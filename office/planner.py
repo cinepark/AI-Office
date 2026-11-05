@@ -62,7 +62,7 @@ def pick_cat(cfg: dict, history: list[dict], today: dt.date, rng: random.Random 
     cats = [h for h in history if h.get("kind") == "cat"]
     last_breed = cats[-1]["breed"] if cats else None
     recent_pairs = {(h.get("breed"), h.get("scene")) for h in _recent(cats, 7, today)}
-    recent_scenes = [h.get("scene") for h in cats[-3:]]
+    recent_scenes = [h.get("scene") for h in cats[-8:]]  # 장면 14개 중 최근 8개는 쉬게 함
 
     breeds = [b for b in cfg["breeds"] if b["id"] != last_breed] or cfg["breeds"]
     scenes = cfg["scenes"]
@@ -105,10 +105,22 @@ def parse_city_folder(name: str) -> tuple[str, str]:
     return name.strip(), ""
 
 
+_YEAR = re.compile(r"(?:19|20)\d{2}|\d+\s*년|몇\s*년")  # 연도·햇수 표기 금지
 _EMOJI = re.compile("[\U0001F300-\U0001FAFF\U00002600-\U000027BF\U0001F000-\U0001F2FF]")
 
 
-def caption_problems(text: str, cfg: dict) -> list[str]:
+def _bigrams(t: str) -> set[str]:
+    s = re.sub(r"[^\w]", "", t)
+    return {s[i:i + 2] for i in range(len(s) - 1)}
+
+
+def similarity(a: str, b: str) -> float:
+    """두 멘트의 글자 겹침 정도 (0~1)."""
+    x, y = _bigrams(a), _bigrams(b)
+    return len(x & y) / len(x | y) if x and y else 0.0
+
+
+def caption_problems(text: str, cfg: dict, recent: list[str] | tuple = ()) -> list[str]:
     c = cfg["caption"]
     probs = []
     t = text.strip()
@@ -123,16 +135,20 @@ def caption_problems(text: str, cfg: dict) -> list[str]:
         probs.append("이모지 과다")
     if "#" in t:
         probs.append("해시태그 포함")
+    if _YEAR.search(t):
+        probs.append("연도 표기")
+    if any(similarity(t, r) >= 0.25 for r in recent):
+        probs.append("최근 멘트와 비슷함")
     return probs
 
 
-def choose_caption(options: list[str], cfg: dict) -> tuple[str, list[str]]:
+def choose_caption(options: list[str], cfg: dict, recent: list[str] | tuple = ()) -> tuple[str, list[str]]:
     """검사를 통과한 첫 안. 모두 탈락이면 가장 짧은 안을 고르고 문제 목록을 함께 돌려준다."""
     clean = [o.strip().strip('"').strip("“”") for o in options if o and o.strip()]
     for o in clean:
-        if not caption_problems(o, cfg):
+        if not caption_problems(o, cfg, recent):
             return o, []
     if not clean:
         return "", ["멘트 생성 실패"]
     o = min(clean, key=len)
-    return o, caption_problems(o, cfg)
+    return o, caption_problems(o, cfg, recent)

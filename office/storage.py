@@ -55,6 +55,10 @@ def put_bytes(key: str, data: bytes, content_type: str) -> str:
     return key
 
 
+def get_bytes(key: str) -> bytes:
+    return _client().get_object(Bucket=_bucket(), Key=key)["Body"].read()
+
+
 def signed_url(key: str, seconds: int = 3600) -> str:
     return _client().generate_presigned_url("get_object", Params={"Bucket": _bucket(), "Key": key},
                                             ExpiresIn=seconds)

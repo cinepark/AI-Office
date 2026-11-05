@@ -76,3 +76,13 @@ class TestPlanner(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def test_year_and_repeat_checks():
+    import yaml
+    cfg = yaml.safe_load(open("config.yaml", encoding="utf-8"))
+    assert "연도 표기" in P.caption_problems("2005년 도쿄. 벌써 20년이 넘었네.", cfg)
+    assert P.caption_problems("신주쿠역. 참 많이 다녔는데", cfg) == []
+    recent = ["낮에는 그렇게 자더니 꼭 내가 자면."]
+    assert "최근 멘트와 비슷함" in P.caption_problems("낮엔 그렇게 자면서 내가 자려고 하면 꼭.", cfg, recent)
+    assert P.caption_problems("택배는 내 거, 상자는 네 거.", cfg, recent) == []

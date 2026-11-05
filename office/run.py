@@ -58,6 +58,51 @@ def eff_cfg(st: dict) -> dict:
     return c
 
 
+def _travel_subject(city: str) -> str:
+    return f"여행 그림. {city} 사진을 펜 수채화로 다시 그린 것. 그림 속 장소를 보고 멘트를 쓰세요. 연도나 햇수는 쓰지 마세요."
+
+
+def recent_captions(st: dict, kind: str, exclude: str = "", n: int = 30) -> list[str]:
+    """같은 종류(고양이/여행)의 최근 멘트. 게시된 것 + 대기 중인 것."""
+    rows = [h for h in st.get("history", []) if h.get("kind") == kind and h.get("caption")]
+    rows += [v for k, v in sorted(st.get("queue", {}).items())
+             if k != exclude and v.get("kind") == kind and v.get("status") != "skipped" and v.get("caption")]
+    seen, out = set(), []
+    for r in rows:
+        if r["caption"] not in seen and r.get("slot") != exclude:
+            seen.add(r["caption"])
+            out.append(r["caption"])
+    return out[-n:]
+
+
+def fix_caption(st: dict, key: str) -> bool:
+    """게시 전 멘트를 현재 규칙으로 다시 검사. 어긋나면 다른 안으로, 없으면 멘트만 새로 쓴다.
+    Mr. MOON 이 직접 고친 멘트는 건드리지 않는다. 바꿨으면 True."""
+    item = st["queue"][key]
+    cfg = eff_cfg(st)
+    recent = recent_captions(st, item["kind"], exclude=key)
+    if not P.caption_problems(item.get("caption", ""), cfg, recent):
+        return False
+    if any(e.get("slot") == key for e in st.get("caption_edits", [])):
+        return False
+    cap, probs = P.choose_caption(item.get("options", []), cfg, recent)
+    if probs:
+        from . import ai, storage
+        subject = (_travel_subject(item.get("city", "")) if item["kind"] == "travel"
+                   else f"고양이 그림. 품종: {item.get('breed_name', '')}. 장면: {item.get('scene_name', '')}.")
+        act(st, "writer", f"{key} 규칙에 맞게 멘트 다시 쓰는 중", "working")
+        options = ai.captions(cfg, subject, storage.get_bytes(item["r2_key"]), recent)
+        cap, probs = P.choose_caption(options, cfg, recent)
+        if probs:
+            act(st, "review", f"{key} 새 멘트도 검사 주의: {', '.join(probs)}", "error")
+            return False
+        item["options"] = options
+    old = item["caption"]
+    item["caption"], item["problems"] = cap, []
+    act(st, "review", f"{key} 멘트 교체 (규칙 위반: {old}) → {cap}", "done")
+    return True
+
+
 def save_and_produce(state: dict) -> None:
     from . import storage
     storage.save_state(state)
@@ -103,14 +148,14 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
             src = drive.download(photo["id"])
             refs = [drive.download(fid) for fid in CFG["google_drive"]["travel_reference_files"]]
             png = ai.draw(CFG, CFG["travel_style"], [src] + refs)
-            when = f"{photo['year']}년에 찍은 " if photo["year"] else ""
-            subject = f"여행 그림. {when}{photo['city']} 사진을 펜 수채화로 다시 그린 것. 그림 속 장소를 보고 멘트를 쓰세요."
+            subject = _travel_subject(photo["city"])
             item = {"kind": "travel", "city": photo["city"], "photo_id": photo["id"], "photo_name": photo["name"]}
         act(st, "image", f"{label} 그림 완성", "done")
         act(st, "writer", f"{label} 멘트 3안 쓰는 중", "working")
-        options = ai.captions(cfg, subject, png)
+        recent = recent_captions(st, item["kind"], exclude=key)
+        options = ai.captions(cfg, subject, png, recent)
         act(st, "writer", f"{label} 멘트 3안 완성", "done")
-        caption, problems = P.choose_caption(options, cfg)
+        caption, problems = P.choose_caption(options, cfg, recent)
         act(st, "review", f"{key} 멘트 검사 {'통과' if not problems else '주의: ' + ', '.join(problems)} — {caption}",
             "done" if not problems else "error")
     except Exception as e:
@@ -133,6 +178,12 @@ def produce() -> None:
     today = P.now_kst().date()
     made = 0
     act(st, "shiho", f"{CFG['stock_days']}일치 재고 점검 시작", "working")
+    for k in sorted(k for k, v in st["queue"].items() if v.get("status") == "ready"):
+        try:
+            if fix_caption(st, k):
+                storage.save_state(st)
+        except Exception as e:
+            act(st, "dev", f"{k} 멘트 재검사 실패: {str(e)[:150]}", "error")
     for key, slot in P.upcoming_slot_keys(CFG, today + dt.timedelta(days=1), CFG["stock_days"]):
         if key in st["queue"] and st["queue"][key].get("status") in ("ready", "posted"):
             continue
@@ -203,6 +254,11 @@ def post() -> None:
 def publish_item(st: dict, key: str) -> dict:
     """한 게시물을 지금 Threads 에 올린다 (예약 실행·오피스 '지금 게시' 공용)."""
     from . import storage, threads
+    try:
+        if fix_caption(st, key):
+            storage.save_state(st)
+    except Exception as e:  # 재검사가 실패해도 게시는 계속
+        act(st, "dev", f"{key} 멘트 재검사 실패: {str(e)[:150]}", "error")
     item = st["queue"][key]
     token = _token(st)
     user_id = os.environ.get("THREADS_USER_ID", "").strip() or threads.me(token)["id"]

@@ -53,6 +53,7 @@ _RULES = """당신은 Threads 계정 'Turner Bro'(turnerbro.32)의 멘트 담당
 - 고양이: SNS 집사들이 "우리 애도 그래" 하고 공감할 순간. 집사의 혼잣말이나 뒤틀기 한 줄.
   (예: 귀엽다 → 목욕은 싫어하면서)
 - 여행: 그곳에 대한 짧은 개인적 감상 한 줄. 지어낸 구체적 사건(누구와 갔다, 무엇을 먹었다)은 쓰지 않는다.
+  연도, 날짜, '몇 년 전', '20년이 넘었다' 같은 시간·햇수 표현은 쓰지 않는다.
 - 금지어: {banned}
 - 말투 예시(이 계정의 실제 게시 문구):
 {examples}
@@ -60,10 +61,13 @@ _RULES = """당신은 Threads 계정 'Turner Bro'(turnerbro.32)의 멘트 담당
 서로 다른 3안을 JSON 으로만 출력: {{"options": ["...", "...", "..."]}}"""
 
 
-def captions(cfg: dict, subject: str, image_png: bytes | None = None) -> list[str]:
+def captions(cfg: dict, subject: str, image_png: bytes | None = None, recent: list[str] | tuple = ()) -> list[str]:
     c = cfg["caption"]
     system = _RULES.format(max_chars=c["max_chars"], banned=", ".join(c["banned"]),
                            examples="\n".join(f"  - {e}" for e in c["examples"]))
+    if recent:
+        system += ("\n\n최근에 이미 올린 멘트입니다. 같은 생각(예: 낮잠·밤잠, 방해, 자리 뺏기), 같은 문장 구조, "
+                   "같은 끝맺음을 되풀이하지 말고 다른 순간을 고르세요:\n" + "\n".join(f"  - {r}" for r in recent))
     content = [{"type": "input_text", "text": subject}]
     if image_png:
         b64 = base64.b64encode(_shrink(image_png, 768)).decode()
