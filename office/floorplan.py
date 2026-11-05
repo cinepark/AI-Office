@@ -55,8 +55,8 @@ def _status(now: dict | None) -> str:
     if not now:
         return "idle"
     st = now["status"]
-    # 작업 중 표시가 3시간 넘게 남아 있으면 멈춘 것으로 보고 대기로 표시
-    if st == "working" and (dt.datetime.now(KST) - dt.datetime.fromisoformat(now["t"])).total_seconds() > 10800:
+    # 작업 중 표시가 40분 넘게 그대로면 끝났거나 멈춘 것으로 보고 대기로 표시
+    if st == "working" and (dt.datetime.now(KST) - dt.datetime.fromisoformat(now["t"])).total_seconds() > 2400:
         return "idle"
     return st
 

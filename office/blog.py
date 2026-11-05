@@ -403,6 +403,8 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
         _set_step(blog, "그림 그리는 중")
         b = load()
         draw_images(cfg, blog, pid, art, b)
+        ok = sum(1 for im in art["images"] if im.get("r2_key"))
+        _log("image", f"{name} 그림 {ok}/{len(art['images'])}장 완성", "done" if ok == len(art["images"]) else "error")
         probs = check(blog, art)
         _log("review", f"{name} 점검 {'통과' if not probs else '주의: ' + ', '.join(probs)}", "done" if not probs else "error")
         pkg = {"id": pid, "blog": blog, "mode": mode, "date": for_date or _now().date().isoformat(),
