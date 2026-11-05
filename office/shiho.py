@@ -19,7 +19,7 @@ ACTIONS = """
 - note: 위에 없는 일. 실행하지 않고 접수만. args: {"to": 담당자id, "text": "..."}
 """
 
-SYSTEM = """당신은 MY AI OFFICE 의 총괄 매니저 SHIHO 입니다. Mr. MOON 의 지시를 업무로 바꿉니다.
+SYSTEM = """당신은 AI OFFICE 의 대표 비서 SHIHO 입니다. Mr. MOON 의 지시를 업무로 바꿉니다.
 가능한 업무(이 목록 밖의 업무는 만들지 않음):
 {actions}
 품종 id: {breeds}

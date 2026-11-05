@@ -91,7 +91,7 @@ with st.sidebar:
     st.markdown(f"<div style='font-weight:800;font-size:1.4rem;color:{NAVY}'>AI<br>OFFICE<span style='color:{YELLOW}'>.</span></div>",
                 unsafe_allow_html=True)
     st.caption("Mr. MOON · 개인 워크스페이스")
-    page = st.radio("WORKSPACE", ["오피스", "Threads 데스크", "CINEPARK 데스크", "리뷰&리뷰 데스크", "SHIHO 메신저", "설정 · 연결"],
+    page = st.radio("WORKSPACE", ["오피스", "Threads 데스크", "CINEPARK 데스크", "리뷰&리뷰 데스크", "설정 · 연결"],
                     label_visibility="collapsed")
     st.divider()
     st.caption("🟡 작업 중  🟢 완료  🔴 문제  ⚪ 대기")
@@ -107,26 +107,54 @@ queue = state.get("queue", {})
 today = P.now_kst().date().isoformat()
 
 
+# ───────────────────────── SHIHO 대화 ─────────────────────────
+def shiho_chat(box_height: int) -> None:
+    """Mr. MOON 은 SHIHO 에게만 지시합니다. 오피스 화면 오른쪽에 붙어 있습니다."""
+    st.markdown("<div class='eyebrow'>SHIHO · 대표 비서</div>", unsafe_allow_html=True)
+    box = st.container(height=box_height)
+    msgs = state.get("messages", [])[-30:]
+    with box:
+        if not msgs:
+            st.caption("지시는 SHIHO에게만 하시면 됩니다. 업무로 바꿔 담당자에게 나눠 맡기고 결과를 알려 드립니다.")
+        for m in msgs:
+            with st.chat_message("user" if m["from"] == "moon" else "assistant",
+                                 avatar="🧑‍💼" if m["from"] == "moon" else "📋"):
+                st.write(m["text"])
+    order = st.chat_input("SHIHO에게 지시 (예: 다음 고양이는 랙돌로)")
+    if order:
+        from office import shiho
+        s = fresh_state()
+        s.setdefault("messages", []).append({"t": P.now_kst().isoformat(), "from": "moon", "text": order})
+        act(s, "shiho", f"Mr. MOON 지시 확인: {order[:40]}", "working")
+        with st.spinner("SHIHO가 지시를 확인하고 담당자에게 나누는 중입니다…"):
+            try:
+                plan = shiho.interpret(R.eff_cfg(s), order, today)
+                results = shiho.execute(s, R.CFG, plan["actions"], R)
+                reply = plan["reply"] + ("\n\n" + "\n".join(f"- {r}" for r in results) if results else "")
+            except Exception as e:
+                reply = f"지시를 처리하지 못했습니다. 개발 담당에게 기록을 남겼습니다. ({str(e)[:150]})"
+                act(s, "dev", f"SHIHO 지시 처리 실패: {str(e)[:150]}", "error")
+        s["messages"].append({"t": P.now_kst().isoformat(), "from": "shiho", "text": reply})
+        act(s, "shiho", f"지시 처리 완료: {order[:30]}", "done")
+        save(s)
+        st.rerun()
+
+
 # ───────────────────────── 오피스 ─────────────────────────
 if page == "오피스":
-    st.markdown("<div class='hero'><div class='eyebrow'>YOUR PERSONAL WORKSPACE</div><h1>지금, 오피스에서.</h1></div>",
+    st.markdown("<div class='hero'><div class='eyebrow'>BLUE JEANS PICTURES</div><h1>AI OFFICE</h1></div>",
                 unsafe_allow_html=True)
-    posted_today = [v for k, v in queue.items() if k.startswith(today) and v.get("status") == "posted"]
-    ready = [k for k, v in queue.items() if v.get("status") == "ready"]
-    nxt = sorted(k for k in ready if k >= f"{today}_{P.now_kst():%H%M}")
-    tok = state.get("threads_token_refreshed")
-    c = st.columns(4)
-    c[0].markdown(f"<div class='kpi'><small>오늘 Threads 게시</small><br><b>{len(posted_today)}</b> / {len(R.CFG['slots'])}</div>", unsafe_allow_html=True)
-    c[1].markdown(f"<div class='kpi'><small>게시 대기 재고</small><br><b>{len(ready)}</b> 건</div>", unsafe_allow_html=True)
-    nk = nxt[0] if nxt else None
-    c[2].markdown(f"<div class='kpi'><small>다음 게시</small><br><b>{nk[-4:-2] + ':' + nk[-2:] if nk else '—'}</b> "
-                  f"{queue[nk]['kind'] if nk else ''}</div>", unsafe_allow_html=True)
-    c[3].markdown(f"<div class='kpi'><small>Threads 토큰</small><br><b>{'갱신됨' if tok else '초기'}</b> "
-                  f"<small>{ago(tok)}</small></div>", unsafe_allow_html=True)
-
-    import streamlit.components.v1 as components
-    from office import floorplan
-    components.html(floorplan.render(state), height=1950, scrolling=True)
+    left, right = st.columns([2.3, 1], gap="medium")
+    with left:
+        from office import floorplan
+        office_html = floorplan.render(state, R.CFG["slots"])
+        if hasattr(st, "iframe"):
+            st.iframe(office_html, height="content")
+        else:  # 예전 Streamlit
+            import streamlit.components.v1 as components
+            components.html(office_html, height=1250, scrolling=True)
+    with right:
+        shiho_chat(560)
 
 
 # ───────────────────────── Threads 데스크 ─────────────────────────
@@ -203,33 +231,6 @@ elif page == "CINEPARK 데스크":
 elif page == "리뷰&리뷰 데스크":
     st.markdown("<div class='hero'><div class='eyebrow'>리뷰&리뷰 · 쿠팡파트너스</div><h1>리뷰&리뷰 데스크</h1></div>", unsafe_allow_html=True)
     st.info("다음 단계 업무입니다. 매일 09:00 글감 3개와 원고 초안 패키지, 쿠팡 상품 연결을 맡습니다.")
-
-
-# ───────────────────────── SHIHO 메신저 ─────────────────────────
-elif page == "SHIHO 메신저":
-    st.markdown("<div class='hero'><div class='eyebrow'>SHIHO · 총괄관리</div><h1>SHIHO 메신저</h1></div>", unsafe_allow_html=True)
-    st.caption("지시는 SHIHO에게만 하시면 됩니다. SHIHO가 업무로 바꿔 담당자에게 나눠 맡기고 결과를 알려 드립니다.")
-    for m in state.get("messages", [])[-30:]:
-        with st.chat_message("user" if m["from"] == "moon" else "assistant", avatar="🧑‍💼" if m["from"] == "moon" else "📋"):
-            st.write(m["text"])
-    order = st.chat_input("예: 다음 고양이는 랙돌로 / 내일 12시반 게시물 다시 만들어 / '감성'도 금지어로")
-    if order:
-        from office import shiho
-        s = fresh_state()
-        s.setdefault("messages", []).append({"t": P.now_kst().isoformat(), "from": "moon", "text": order})
-        act(s, "shiho", f"Mr. MOON 지시 확인: {order[:40]}", "working")
-        with st.spinner("SHIHO가 지시를 확인하고 담당자에게 나누는 중입니다…"):
-            try:
-                plan = shiho.interpret(R.eff_cfg(s), order, today)
-                results = shiho.execute(s, R.CFG, plan["actions"], R)
-                reply = plan["reply"] + ("\n\n" + "\n".join(f"- {r}" for r in results) if results else "")
-            except Exception as e:
-                reply = f"지시를 처리하지 못했습니다. 개발 담당에게 기록을 남겼습니다. ({str(e)[:150]})"
-                act(s, "dev", f"SHIHO 지시 처리 실패: {str(e)[:150]}", "error")
-        s["messages"].append({"t": P.now_kst().isoformat(), "from": "shiho", "text": reply})
-        act(s, "shiho", f"지시 처리 완료: {order[:30]}", "done")
-        save(s)
-        st.rerun()
 
 
 # ───────────────────────── 설정 · 연결 ─────────────────────────

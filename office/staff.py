@@ -11,7 +11,7 @@ from zoneinfo import ZoneInfo
 KST = ZoneInfo("Asia/Seoul")
 
 DEPARTMENTS = [
-    {"id": "management", "name": "총괄관리"},
+    {"id": "management", "name": "대표실"},
     {"id": "it", "name": "IT기획전략실"},
     {"id": "content", "name": "콘텐츠 제작실"},
     {"id": "cinepark", "name": "CINEPARK"},
@@ -19,7 +19,7 @@ DEPARTMENTS = [
 
 # id, 이름, 역할, 부서, 맡은 실제 업무
 STAFF = [
-    ("shiho", "SHIHO", "총괄 매니저", "management", "예약표를 보고 담당자에게 일을 나눕니다. 재고·실패를 챙깁니다."),
+    ("shiho", "SHIHO", "대표 비서", "management", "Mr. MOON 의 지시를 받아 담당자에게 나눕니다. 재고와 실패를 챙깁니다."),
     ("strategy", "전략 담당", "기획·전략", "it", "주간 성과(게시 수·품종·시간대)를 정리합니다."),
     ("design", "설계 담당", "화면·업무 설계", "it", "오피스 화면과 업무 흐름을 관리합니다."),
     ("dev", "개발 담당", "개발·오류 대응", "it", "실패한 작업의 오류를 기록합니다."),
