@@ -23,46 +23,76 @@ STATIC = __import__("pathlib").Path(__file__).resolve().parent.parent / "static"
 _lock = threading.Lock()
 
 # ───────────────────────── 작법 ─────────────────────────
-CINEPARK_RESEARCH = """당신은 네이버 영화 블로그 CINEPARK 의 리서치 담당입니다.
-웹 검색으로 최근 7일 안의 세계 영화계 뉴스를 찾아 '영화잡지형' 포스팅 글감 3개를 제안합니다.
+CINEPARK_RESEARCH = """당신은 네이버 영화 블로그 CINEPARK 의 리서치 담당입니다. 영화잡지형 포스팅의 글감을 찾습니다.
 
-- 세 글감은 서로 다른 축: 돈(제작비·흥행·투자·계약·인수합병) / 셀럽(배우·감독의 행보·캐스팅·발언) / 뒷얘기(제작 비하인드·갈등·기록·숨은 사연).
-- 기사 한 건을 옮기는 주제는 안 됩니다. 서로 다른 매체 2곳 이상의 기사를 엮어 하나의 이야기가 되는 주제만 고릅니다.
-- 한국 독자와의 연결고리(한국 배우·감독·기업, 국내 개봉, 국내 OTT 공개)가 있으면 우선합니다.
-- 사실마다 상태를 구분합니다: 확정(공식 발표·계약 완료) / 보도(매체 보도) / 협상(논의·검토 단계) / 소문.
+글감 기준 (Mr. MOON 이 정한 기준)
+- 반드시 '영화'와 관련된 이야기. 그중에서도 사람들이 끌리는 세 가지 고리 중 하나가 있어야 한다:
+  돈(제작비·투자·흥행 수익·배우 출연료·인수합병·해외 자본) / 셀럽(배우·감독의 행보·캐스팅·발언·논란) / 뒷얘기(제작 비하인드·갈등·숨은 사연·기록).
+- 기준이 되는 글감: "중동의 돈이 한국 콘텐츠로 온다? 두바이·아부다비·사우디의 서로 다른 속셈"
+  → 세계 영화계에서 벌어지는 일을 한국 독자가 바로 궁금해할 한 줄 질문으로 바꾼 것. 두바이 머니, 한국 영화, 실제로 들어오나? 처럼
+  '누가 · 무엇이 · 한국 영화(관객)와 어떻게 연결되나'가 질문 하나에 들어 있다.
+- 기사 한 건을 옮기는 주제는 안 된다. 서로 다른 매체·기관 자료 2곳 이상을 엮어야 답이 나오는 질문만 고른다.
+- 최근 2주 안의 뉴스나 지금 진행 중인 이슈에서 찾는다. 웹 검색으로 사실과 출처를 확인한다.
+- 사실마다 상태를 구분한다: 확정(공식 발표·계약 완료) / 보도(매체 보도) / 협상(논의·검토) / 소문.
 {hint}
+후보 3개를 '기준 글감과 얼마나 닮았나' 순서로 정렬해서, 가장 좋은 것을 맨 앞에 둔다.
+
 JSON 만 출력:
-{{"topics": [{{"axis": "돈|셀럽|뒷얘기", "title_idea": "제목 아이디어", "hook_question": "독자가 궁금해할 첫 질문",
- "why_now": "지금 써야 하는 이유", "korea_link": "한국 독자 연결고리",
- "facts": [{{"text": "사실 한 줄", "status": "확정|보도|협상|소문", "source": "매체명", "url": "기사 주소"}}],
+{{"topics": [{{"axis": "돈|셀럽|뒷얘기", "format": "기획기사|정보", "question": "한 줄 질문 (예: 중동의 돈이 한국 영화로 온다?)",
+ "title_idea": "제목 아이디어 (질문 + 부제)", "hook_question": "도입 끝에 던질 질문", "why_now": "지금 써야 하는 이유",
+ "korea_link": "한국 영화·관객과의 연결고리", "first_line": "첫 줄로 쓸 숫자·이름·장면 한 마디",
+ "facts": [{{"text": "사실 한 줄", "status": "확정|보도|협상|소문", "source": "매체·기관명", "url": "주소"}}],
  "related_companies": ["관련 상장사 이름"]}}]}}"""
 
 CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입니다. 영화잡지 기획기사처럼 씁니다.
 
+이 블로그의 실제 글 (구성과 말투를 그대로 따른다)
+제목: 중동의 돈이 한국 콘텐츠로 온다? 두바이·아부다비·사우디의 서로 다른 속셈
+261억 원.
+지난 9월 말 두바이에서 열린 한국 콘텐츠 행사에서 오간 비즈니스 상담 규모입니다. 한국 기업 16곳과 현지 바이어 53곳이 만나 241건을 상담했습니다. 한국콘텐츠진흥원 발표
+꽤 큰 숫자입니다. 그런데 한 가지는 분명히 해야 합니다. 261억 원이 한국 콘텐츠에 투자됐다는 뜻은 아닙니다. 유통과 공동제작, 라이선스와 투자 등을 놓고 논의한 금액입니다.
+그렇다면 중동과 한국 콘텐츠 사이에서는 실제로 어떤 일이 벌어지고 있을까요?
+[이미지 1: 썸네일]
+소제목: 두바이·아부다비·사우디는 같은 곳이 아닙니다
+소제목: 사우디는 실제로 한국 콘텐츠 기업에 투자했다
+문단 예: 2023년 카카오엔터는 해외 국부펀드로부터 총 1조 2천억 원의 투자를 유치했다고 발표했습니다. (…) 카카오엔터 발표 · 연합뉴스 보도
+문단 예: 여기서도 주의할 점이 있습니다. 1조 2천억 원 전부가 사우디 돈은 아니고, 특정 영화 한 편의 제작비도 아닙니다.
+소제목: 콘텐츠를 사는 것과 회사에 투자하는 것도 다르다
+소제목: 그렇다면 왜 한국일까?  (문단 끝: 이것은 여러 발표를 연결한 해석이지, 모든 투자자의 공식적인 이유는 아닙니다.)
+소제목: CINEPARK의 한 줄 정리  (핵심 질문 한 줄: 누가, 어디에, 어떤 방식으로 돈을 쓰는가?)
+
 작법 7원칙
-1. 첫 문단은 독자가 궁금해할 질문으로 연다.
-2. 서로 다른 매체의 기사 여러 건을 엮어 하나의 이야기로 만든다. 기사 한 건을 번역하듯 옮기지 않는다.
-3. 사실과 해석을 구분한다. '논의 중', '계획', '계약', '실제 투자'를 섞지 않고 상태 그대로 쓴다. 출처를 문장 안에 밝힌다(예: 버라이어티 보도에 따르면).
-4. 제작자의 시선으로 쉽게 풀어 쓴다. 업계 사정을 아는 사람이 옆에서 설명해 주는 말투, ~입니다/~습니다 체. 지어낸 인용, 지어낸 숫자는 쓰지 않는다.
+1. 첫 줄은 숫자·이름·장면처럼 눈에 걸리는 한 마디로 짧게 끊고, 도입 끝은 독자가 궁금해할 질문으로 맺는다. 썸네일은 그 질문 바로 뒤.
+2. 서로 다른 매체·기관의 자료 여러 건을 엮어 하나의 이야기로 만든다. 기사 한 건을 번역하듯 옮기지 않는다.
+3. 사실과 해석을 구분한다. 상담·논의·협약·계약·실제 투자를 섞지 않고 상태 그대로 쓴다. 큰 숫자 뒤에는 '그 숫자가 뜻하지 않는 것'을 짚는다.
+   출처는 문단 끝에 'OO 발표', 'OO 보도', 'OO 발표 · OO 보도' 형식으로 붙인다.
+4. 제작자의 시선으로 쉽게 풀어 쓴다. ~입니다/~습니다 체. 소제목은 주장하는 문장으로. 지어낸 인용·숫자 금지. 해석은 해석이라고 밝힌다.
 5. 돈·셀럽·뒷얘기 중 이 글의 축을 끝까지 밀고 간다.
-6. 그림은 뉴스 상황을 재구성한 AI 이미지이며, 캡션에 '(AI 재구성 이미지)'를 붙인다. 실존 인물의 얼굴은 그리지 않는다.
-7. 끝에 관련 기업·종목을 정리하되 매수·매도를 권하지 않는다.
+6. 그림은 내용을 설명하는 AI 재구성 장면이다(끝에 고지 문구를 넣는다).
+7. 끝에 관련 기업·종목을 정리하되 매수·매도를 권하지 않는다. 상장사만, 시장과 종목코드 포함. 비상장사·펀드는 종목으로 쓰지 않고 그 사실을 밝힌다.
 
 형식
-- 제목: 가운데 정렬로 쓸 한 줄, 32자 안팎. 궁금증이 생기는 제목.
-- 본문: 2,500~3,500자, 소제목 3~4개, 한 문단 3~4문장.
-- 그림 {n}장: 0번은 썸네일, 1~{last}번은 본문 사이사이. 본문 blocks 안에 {{"type": "image", "no": 번호}} 로 위치를 표시.
+- 제목: 가운데 정렬로 쓸 한 줄, '…온다? …' 처럼 질문과 부제가 이어지는 형태, 40자 안팎.
+  글감의 question(한 줄 질문)을 제목 앞부분에 살리고, 글감의 first_line 을 본문 첫 줄로 쓴다. 글 전체가 그 질문에 답하는 구조여야 한다.
+- 썸네일 문구: thumb_title 은 두 줄(줄마다 10자 안팎, 줄바꿈 \n), thumb_highlight 는 그중 노란색으로 강조할 한 단어(예: 돈).
+- 본문 2,500~3,500자, 소제목 5~6개(마지막은 'CINEPARK의 한 줄 정리').
+- 그림 {n}장: 0번 썸네일, 1~{last}번은 본문 사이 {{"type": "image", "no": 번호}}. 캡션은 '[이미지 2: 아부다비]'처럼 짧은 장소·주제어.
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 'or', 'maybe', 'slightly' 같은 말 금지.
-  모든 그림에 블로그 캐릭터 한 사람만 넣는다: {character}. 그녀가 뉴스 상황 속에서 한 동작을 하는 장면(예: 영화 시장 부스에서 계약서를 넘겨 보는 모습, 빈 시사실 객석에 앉은 모습, 촬영장 모니터 앞에 선 모습).
-  남자는 어떤 그림에도 절대 넣지 않는다. 그녀 외의 사람은 그리지 않는다(군중·배우·감독 모두 금지). 그림 prompt 마다 'She is the only person in the frame.' 를 넣는다.
-  6장의 장소·구도·동작이 서로 겹치지 않게 한다. 실존 인물·로고·글자·숫자는 그림에 넣지 않는다. 3D 실사풍, 따뜻한 조명.
-- 관련 종목: 실제 상장 기업만, 거래소와 종목코드 포함. 마지막 줄에 '※ 특정 종목의 매수·매도를 권유하는 글이 아닙니다.'
+  모든 그림에 블로그 캐릭터 한 사람만 넣는다: {character}.
+  그녀가 뉴스 상황 속에서 한 동작을 하는 장면(예: 두바이 야경이 보이는 회의실 창가에 서서 태블릿을 든 모습, 사우디 촬영장 세트 앞에 선 모습, 서울 야경 앞 책상에서 자료를 확인하는 모습).
+  남자는 어떤 그림에도 절대 넣지 않는다. 그녀 외의 사람은 그리지 않는다(군중·배우·감독·사업가 모두 금지). 그림 prompt 마다 'She is the only person in the frame.' 를 넣는다.
+  썸네일은 화면 위쪽 가운데(위에서 1/2 까지)를 밤하늘처럼 단순하게 비운다(제목 글자를 가운데에 얹음). 그녀는 화면 가운데 아래쪽에 상반신이 보이게 둔다.
+  책상은 단순하게: 노트북 한 대와 컵 하나만. 필름 릴·클래퍼보드·서류 더미 같은 소품을 늘어놓지 않는다.
+  실내 장면은 남산서울타워가 보이는 서울 야경 큰 창을 배경으로 하는 것을 기본으로 한다.
+  6장의 장소·구도·동작이 서로 겹치지 않게 한다. 실존 인물·로고·글자·숫자는 그림에 넣지 않는다. 16:9 가로 구도, 화려한 야경과 따뜻한 조명.
+- 관련 종목 reason 은 이 글과의 관계 한두 문장. stock_note 에 비상장사·펀드 안내와 '사업 관련성이 곧 주가 상승이나 투자 수익을 뜻하지는 않습니다.'를 쓴다.
 
 JSON 만 출력:
-{{"title": "...", "blocks": [{{"type": "h", "text": "소제목"}}, {{"type": "p", "text": "문단"}}, {{"type": "image", "no": 1}}],
- "images": [{{"no": 0, "role": "썸네일", "prompt": "...", "caption": "(AI 재구성 이미지) ..."}}],
- "stocks": [{{"name": "...", "market": "KOSPI|KOSDAQ|NASDAQ|NYSE|...", "code": "...", "reason": "..."}}],
- "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
+{{"title": "...", "thumb_title": "첫 줄\n둘째 줄", "thumb_highlight": "...",
+ "blocks": [{{"type": "p", "text": "261억 원."}}, {{"type": "p", "text": "..."}}, {{"type": "image", "no": 0}}, {{"type": "h", "text": "소제목"}}, {{"type": "p", "text": "..."}}, {{"type": "image", "no": 1}}],
+ "images": [{{"no": 0, "role": "썸네일", "prompt": "...", "caption": "[이미지 1: 썸네일]"}}],
+ "stocks": [{{"name": "...", "market": "코스피|코스닥|NASDAQ|NYSE|Tadawul|...", "code": "...", "reason": "..."}}], "stock_note": "...",
+ "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "CINEPARK"]}}"""
 
 REVIEW_RESEARCH = """당신은 네이버 블로그 '리뷰&리뷰'의 리서치 담당입니다.
 이 블로그는 고양이 돌봄, 생활용품, 계절 살림의 '고르는 법 · 관리법 · 안전 수칙'을 제조사·보호단체·공공기관 안내로 정리합니다.
@@ -250,6 +280,9 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
             png = ai.render(cfg, prompt, refs, cfg["blog"]["image_size"])
             if bc.get("labels") and im.get("label"):
                 png = label(png, im["label"])
+            elif blog == "cinepark":
+                png = (cine_thumb(png, art["thumb_title"], art.get("thumb_highlight", ""))
+                       if im["no"] == 0 and art.get("thumb_title") else crop169(png))
             ext = "jpg" if png[:3] == b"\xff\xd8\xff" else "png"
             key = f"blog/{blog}/{pid}/{im['no']:02d}.{ext}"
             storage.put_bytes(key, png, "image/jpeg" if ext == "jpg" else "image/png")
@@ -391,6 +424,58 @@ def label(img: bytes, text: str) -> bytes:
     return out.getvalue()
 
 
+def crop169(img: bytes) -> bytes:
+    from PIL import Image
+    im = Image.open(io.BytesIO(img)).convert("RGB")
+    w, h = im.size
+    th = int(w * 9 / 16)
+    if th < h:
+        top = (h - th) // 2
+        im = im.crop((0, top, w, top + th))
+    out = io.BytesIO()
+    im.save(out, "JPEG", quality=92)
+    return out.getvalue()
+
+
+def cine_thumb(img: bytes, title: str, highlight: str = "") -> bytes:
+    """CINEPARK 썸네일: 제목 두 줄을 가로 정가운데에. 모바일에서 정사각형으로 잘려도 보이도록
+    글자 덩어리를 화면 폭의 50% 안에 넣는다. 강조 단어는 노란색, 부드러운 그림자."""
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    im = Image.open(io.BytesIO(crop169(img))).convert("RGBA")
+    w, h = im.size
+    lines = [x.strip() for x in title.replace("\\n", "\n").split("\n") if x.strip()][:2]
+    d0 = ImageDraw.Draw(im)
+    size = int(h * 0.11)
+    while size > 20:
+        font = ImageFont.truetype(str(STATIC / "Paperlogy-8ExtraBold.woff2"), size)
+        if max(d0.textlength(ln, font=font) for ln in lines) <= w * 0.50:
+            break
+        size -= 2
+    y = h * 0.36 - (len(lines) * size * 1.25) / 2
+    shadow = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ds = ImageDraw.Draw(shadow)
+    runs = []
+    for ln in lines:
+        x = (w - d0.textlength(ln, font=font)) / 2
+        ds.text((x + 3, y + 4), ln, font=font, fill=(0, 0, 0, 200))
+        parts = ln.split(highlight) if highlight and highlight in ln else [ln]
+        xx = x
+        for i, part in enumerate(parts):
+            runs.append(((xx, y), part, "white"))
+            xx += d0.textlength(part, font=font)
+            if i < len(parts) - 1:
+                runs.append(((xx, y), highlight, (255, 214, 10)))
+                xx += d0.textlength(highlight, font=font)
+        y += size * 1.25
+    im = Image.alpha_composite(im, shadow.filter(ImageFilter.GaussianBlur(size * 0.12)))
+    d = ImageDraw.Draw(im)
+    for xy, t, col in runs:
+        d.text(xy, t, font=font, fill=col)
+    out = io.BytesIO()
+    im.convert("RGB").save(out, "JPEG", quality=90)
+    return out.getvalue()
+
+
 # ───────────────────────── 가져가기 ─────────────────────────
 def plain_text(pkg: dict) -> str:
     """네이버 에디터에 붙여 넣을 본문. 그림 자리는 【그림 n】 으로 표시."""
@@ -406,7 +491,8 @@ def plain_text(pkg: dict) -> str:
         t = bl.get("type")
         if t == "image":
             n = bl.get("no", 0)
-            lines += [f"【그림 {n + 1}】 {caps.get(n, '')}".rstrip(), ""]
+            cap = caps.get(n, "")
+            lines += [cap if cap.startswith("[이미지") else f"【그림 {n + 1}】 {cap}".rstrip(), ""]
         elif t == "h":
             lines += [f"■ {bl.get('text', '')}", ""]
         elif t in ("p", "memo", "link", "source"):
@@ -414,9 +500,15 @@ def plain_text(pkg: dict) -> str:
         elif t == "check":
             lines += [f"□ {x}" for x in bl.get("items", [])] + [""]
     if a.get("stocks"):
-        lines += ["■ 관련 기업·종목", ""]
-        lines += [f"· {s.get('name', '')} ({s.get('market', '')} {s.get('code', '')}) — {s.get('reason', '')}" for s in a["stocks"]]
-        lines += ["", "※ 특정 종목의 매수·매도를 권유하는 글이 아닙니다.", ""]
+        lines += ["■ 관련 기업과 종목", ""]
+        for x in a["stocks"]:
+            lines += [f"• {x.get('name', '')} | {x.get('market', '')} {x.get('code', '')}", x.get("reason", ""), ""]
+        lines += [a.get("stock_note") or "사업 관련성이 곧 주가 상승이나 투자 수익을 뜻하지는 않습니다.",
+                  "※ 특정 종목의 매수·매도를 권유하는 글이 아닙니다.", ""]
+    if pkg.get("blog") == "cinepark":
+        d = pkg.get("date", "")
+        lines += [f"※ 작성 기준: {d[:4]}년 {int(d[5:7])}월 {int(d[8:10])}일. 본문 이미지는 내용을 설명하기 위해 AI로 재구성한 가상 장면이며 "
+                  "실제 행사·계약 사진이 아닙니다." if len(d) == 10 else "", ""]
     if a.get("sources") and not any(bl.get("type") == "source" for bl in a.get("blocks", [])):
         lines += ["참고 자료"] + [f"· {s.get('title', '')} {s.get('url', '')}" for s in a["sources"]] + [""]
     if a.get("tags"):

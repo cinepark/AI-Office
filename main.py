@@ -320,7 +320,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 st.markdown("**다른 글감**")
                 for k, t in enumerate(p["others"]):
                     oc1, oc2 = st.columns([4, 1])
-                    oc1.markdown(f"[{t.get('axis', '')}] {t.get('title_idea', '')} — {t.get('hook_question', '')}")
+                    oc1.markdown(f"[{t.get('axis', '')}] **{t.get('question') or t.get('title_idea', '')}** — {t.get('why_now') or t.get('hook_question', '')}")
                     if oc2.button("이걸로 만들기", key=f"o_{p['id']}_{k}"):
                         blog.start_background(R.CFG, blog_id, "", t)
                         blog_state_cached.clear()
