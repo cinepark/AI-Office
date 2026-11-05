@@ -14,7 +14,7 @@ from .staff import KST, STAFF_BY_ID
 
 STATIC = Path(__file__).resolve().parent.parent / "static"
 OFFICE_IMG = "office.jpg"
-CINEPARK_IMG = "cinepark_room.jpg"
+CINEPARK_IMG = "cinepark_room_shiho.jpg"  # SHIHO 그림을 이 이름으로 넣으면 블로그실 칸에 표시
 
 # 담당자 id: (x%, y%, 이름표 위치 'up'=머리 위 | 'right'=머리 오른쪽)
 SEATS = {
@@ -26,7 +26,7 @@ SEATS = {
     "design": (15.0, 39.6, "up"),
     "dev": (26.2, 39.6, "up"),
     "security": (38.4, 39.8, "up"),
-    "video": (56.4, 43.6, "up"),
+    "video": (58.1, 41.0, "up"),
     "review": (70.6, 39.8, "up"),
     "channel": (81.0, 40.0, "right"),
     "strategy": (24.2, 63.2, "up"),
@@ -103,7 +103,8 @@ def render(state: dict, slots: list[dict] | None = None) -> str:
 
     c = now.get("cinepark")
     cst = _status(c)
-    cine = (f"<div class='room'><img src='data:image/jpeg;base64,{_b64(CINEPARK_IMG)}'>"
+    room_img = f"<img src='data:image/jpeg;base64,{_b64(CINEPARK_IMG)}'>" if (STATIC / CINEPARK_IMG).exists() else ""
+    cine = (f"<div class='room'>{room_img}"
             f"<div class='rt'><div class='rh'>CINEPARK 블로그실 <span class='st {cst}'>{LABEL[cst] if c else '준비 중'}</span></div>"
             f"<div class='rn'>영화잡지형 기획기사 · 정보</div>"
             f"<p>{html.escape(c['text'] if c else STAFF_BY_ID['cinepark'][4])}</p></div></div>")
@@ -140,7 +141,7 @@ border-radius:999px;padding:.25vw .7vw;font-size:clamp(9px,1.05vw,13px);line-hei
 font-size:clamp(8px,.95vw,12px)}}
 .board div{{display:flex;align-items:baseline;gap:.4vw}} .board small{{color:#9fb4c2}} .board b{{color:#DBA12C;font-weight:800;margin-right:.6vw}}
 .room{{display:flex;gap:12px;margin:12px 0;border:1px solid #C8D6DD;border-radius:14px;overflow:hidden;background:#F7FBFC}}
-.room img{{width:38%;object-fit:cover;display:block}} .rt{{padding:10px 12px 10px 0}} .rh{{font-weight:800;color:#0F3B59}}
+.room img{{width:38%;object-fit:cover;display:block}} .rt{{padding:10px 12px}} .rh{{font-weight:800;color:#0F3B59}}
 .rn{{font-size:.8rem;color:#5b7486;margin:2px 0 6px}} .room p{{margin:0;font-size:.86rem}}
 .st{{font-size:.72rem;font-weight:600;color:#8aa0ae;margin-left:4px}} .st.working{{color:#b8860b}} .st.error{{color:#e5484d}} .st.done{{color:#2fbf71}}
 .grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-bottom:12px}}

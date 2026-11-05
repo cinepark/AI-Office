@@ -155,6 +155,10 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
         recent = recent_captions(st, item["kind"], exclude=key)
         options = ai.captions(cfg, subject, png, recent)
         act(st, "writer", f"{label} 멘트 3안 완성", "done")
+        if item["kind"] == "travel" and options:
+            # 여행은 혼잣말 / 현지 공감 / 말 걸기를 날마다 번갈아 먼저 고른다
+            n = (date.toordinal() * 2 + (0 if slot["time"] < "12:00" else 1)) % len(options)
+            options = options[n:] + options[:n]
         caption, problems = P.choose_caption(options, cfg, recent)
         act(st, "review", f"{key} 멘트 검사 {'통과' if not problems else '주의: ' + ', '.join(problems)} — {caption}",
             "done" if not problems else "error")
@@ -204,6 +208,19 @@ def produce() -> None:
     log(f"새로 만든 게시물 {made}건. 대기 중 {ready}건.")
     _gallery(st)
     storage.save_state(st)
+    # 네이버 블로그 예약 패키지: 내일이 예약 요일이면 미리 만든다
+    try:
+        from . import blog
+        for r in blog.scheduled(CFG, today + dt.timedelta(days=1)):
+            log(f"블로그 예약 패키지: {r[:80]}")
+    except Exception as e:
+        log(f"✘ 블로그 예약 패키지 실패: {e}")
+
+
+def blog_now(which: str = "cinepark") -> None:
+    """수동 실행용: python -m office.run blog cinepark"""
+    from . import blog
+    log(f"블로그 패키지 완료: {blog.make_package(CFG, which, mode='실시간')}")
 
 
 def _gallery(st: dict) -> None:
@@ -354,4 +371,5 @@ def selftest() -> None:
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "selftest"
     {"produce": produce, "post": post, "refresh": refresh, "selftest": selftest,
-     "skip": lambda: skip(sys.argv[2])}[cmd]()
+     "skip": lambda: skip(sys.argv[2]),
+     "blog": lambda: blog_now(sys.argv[2] if len(sys.argv) > 2 else "cinepark")}[cmd]()

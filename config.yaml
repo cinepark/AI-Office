@@ -84,3 +84,36 @@ seed_history:
   - { date: "2026-11-04", kind: cat, breed: scottish_fold, scene: heatedmat }
   - { date: "2026-11-04", kind: travel, city: LONDON }
   - { date: "2026-11-04", kind: travel, city: Fukuoka }
+
+# ───────── 네이버 블로그 글감 패키지 (업로드는 Mr. MOON 이 직접) ─────────
+blog:
+  daily_image_limit: 24          # 블로그 그림 하루 상한 (Threads 와 별도)
+  image_size: 1536x1024          # 가로형. 모델이 지원하지 않으면 1024x1024 로 자동 대체
+  blogs:
+    cinepark:
+      name: CINEPARK
+      images: 6                  # 썸네일 1 + 본문 5
+      schedule_days: [0, 1, 2, 3, 4, 5, 6]   # 기본 예약: 매일 (0=월 … 6=일). 데스크에서 바꿀 수 있음
+      reference_files:           # SHIHO(3D) 캐릭터 시트 (CINEPARK 그림에는 SHIHO 만 나온다. 남자 금지)
+        - 14qlBS-MyA_Jv5PnVj3LDVKxd8IYLPV7O
+        - 1NujQsrdRTVkrzhmCJ7cyULeMhLiU8JIl
+      image_style: >-
+        Photorealistic 3D render style matching the attached character sheet, cinematic warm lighting.
+        She is the only person in the frame. No men anywhere in the image.
+      character: >-
+        SHIHO, a young Korean woman with long straight black hair, matching the face, hair and outfit
+        of the attached character sheet exactly
+    review:
+      name: 리뷰&리뷰
+      images: 6                  # 썸네일 1 + 본문 5, 모든 그림 위쪽에 짧은 글자(label)
+      labels: true
+      schedule_days: [0, 1, 2, 3, 4, 5, 6]   # 기본 예약: 매일
+      reference_files: []
+      reference_local:           # 리뷰&리뷰 실제 게시 그림(고양이 겨울 잠자리)의 화풍 기준, 글자 없는 부분만 잘라 둠
+        - refs/review_style_01.jpg
+        - refs/review_style_02.jpg
+        - refs/review_style_03.jpg
+      image_style: >-
+        Match the painting style of the attached reference images: warm textured gouache illustration
+        with visible short crayon-like brush strokes, soft cozy lighting, muted warm palette,
+        3:2 landscape composition, the top quarter of the frame kept simple and empty. No text, letters or numbers.

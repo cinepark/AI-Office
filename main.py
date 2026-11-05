@@ -220,21 +220,123 @@ elif page == "Threads 데스크":
             st.caption("아직 이 사무실에서 게시한 기록이 없습니다.")
 
 
-# ───────────────────────── CINEPARK 데스크 ─────────────────────────
-elif page == "CINEPARK 데스크":
-    st.markdown("<div class='hero'><div class='eyebrow'>CINEPARK · 영화잡지</div><h1>CINEPARK 데스크</h1></div>", unsafe_allow_html=True)
-    st.info("다음 단계 업무입니다. 목·월 07:00에 리서치 담당이 글감 3개(돈·셀럽·뒷얘기)를 올리고, "
-            "고르시면 작법 7원칙대로 원고 + 썸네일 1 + 본문 5장 패키지를 만듭니다. 본문 복사·이미지 묶음·DOCX로 가져가 네이버에 올리시면 됩니다.")
-    st.caption("0단계: 시험 원고 3편으로 글 품질을 먼저 확인한 뒤 이 데스크를 켭니다.")
+# ───────────────────────── 블로그 데스크 (CINEPARK · 리뷰&리뷰) ─────────────────────────
+DAYS = ["월", "화", "수", "목", "금", "토", "일"]
 
 
+@st.cache_data(ttl=20, show_spinner=False)
+def blog_state_cached() -> dict:
+    from office import blog
+    if os.environ.get("OFFICE_DEMO"):  # 화면 점검용
+        import json
+        if os.path.exists("tests/demo_blog.json"):
+            return json.load(open("tests/demo_blog.json", encoding="utf-8"))
+        return {"packages": {}, "schedule": {}, "running": {}}
+    try:
+        return blog.load()
+    except Exception as e:
+        return {"_error": str(e), "packages": {}, "schedule": {}, "running": {}}
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def blog_zip(pid: str, blog_id: str) -> bytes:
+    from office import blog
+    return blog.images_zip(blog_state_cached()["packages"][pid])
+
+
+def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
+    from office import blog
+    bc = R.CFG["blog"]["blogs"][blog_id]
+    st.markdown(f"<div class='hero'><div class='eyebrow'>{eyebrow}</div><h1>{title}</h1></div>", unsafe_allow_html=True)
+    st.caption(intro)
+    b = blog_state_cached()
+    if "_error" in b:
+        st.error(f"패키지 보관소를 읽지 못했습니다: {b['_error']}")
+
+    c1, c2 = st.columns([1.3, 1], gap="large")
+    with c1:
+        st.markdown("**실시간** · 지금 바로 만들기")
+        hint = st.text_input("주제 지정 (비우면 리서치 담당이 고릅니다)", key=f"hint_{blog_id}",
+                             placeholder="예: 넷플릭스 한국 오리지널 제작비" if blog_id == "cinepark" else "예: 겨울 전기요")
+        run = b.get("running", {}).get(blog_id)
+        if run:
+            st.info(f"만드는 중 · {run.get('step', '')} ({ago(run.get('t'))} 시작, {run.get('mode', '')}). 10분 안팎 걸립니다.")
+            if st.button("진행 상황 새로고침", key=f"rf_{blog_id}"):
+                blog_state_cached.clear()
+                st.rerun()
+        elif st.button(f"지금 {bc['name']} 패키지 만들기", type="primary", key=f"go_{blog_id}"):
+            s0 = fresh_state()
+            act(s0, "shiho", f"Mr. MOON 지시: {bc['name']} 패키지 지금 만들기", "done")
+            save(s0)
+            blog.start_background(R.CFG, blog_id, hint.strip())
+            blog_state_cached.clear()
+            st.rerun()
+    with c2:
+        st.markdown("**예약** · 전날 21:00에 미리 만들어 둡니다")
+        sc = blog.schedule_of(b, R.CFG, blog_id)
+        on = st.toggle("예약 켜기", value=sc.get("on", True), key=f"on_{blog_id}")
+        days = st.multiselect("요일", DAYS, default=[DAYS[d] for d in sc.get("days", [])], key=f"d_{blog_id}")
+        if st.button("예약 저장", key=f"sv_{blog_id}"):
+            fresh = blog.load()
+            fresh["schedule"][blog_id] = {"on": on, "days": sorted(DAYS.index(d) for d in days)}
+            blog.save(fresh)
+            blog_state_cached.clear()
+            st.success("예약을 저장했습니다.")
+
+    errs = [e for e in b.get("errors", []) if e.get("blog") == blog_id][-1:]
+    if errs and not b.get("running", {}).get(blog_id):
+        st.warning(f"최근 실패 ({errs[0]['t'][5:16]}): {errs[0]['error'][:200]}")
+
+    st.divider()
+    pkgs = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id), key=lambda p: p["made"], reverse=True)
+    if not pkgs:
+        st.caption("아직 만든 패키지가 없습니다.")
+    for i, p in enumerate(pkgs[:15]):
+        a = p["article"]
+        with st.expander(f"{p['date'][5:].replace('-', '/')} · {p['mode']} · {a.get('title', '(제목 없음)')}", expanded=(i == 0)):
+            st.markdown(f"<h3 style='text-align:center;color:{NAVY}'>{html.escape(a.get('title', ''))}</h3>", unsafe_allow_html=True)
+            if p.get("problems"):
+                st.warning("검수 주의: " + ", ".join(p["problems"]))
+            ims = [im for im in a.get("images", [])]
+            cols = st.columns(3)
+            for j, im in enumerate(ims):
+                with cols[j % 3]:
+                    if im.get("r2_key"):
+                        try:
+                            st.image(img_url(im["r2_key"]), use_container_width=True)
+                        except Exception:
+                            st.caption("그림을 불러오지 못했습니다.")
+                    else:
+                        st.caption(f"그림 없음: {im.get('error', '')[:80]}")
+                    st.caption(f"그림 {im['no'] + 1} · {im.get('role', '본문')} — {im.get('caption', '')}")
+            st.markdown("**본문** (오른쪽 위 복사 버튼 → 네이버 에디터에 붙여 넣기, 【그림 n】 자리에 그림을 넣으시면 됩니다)")
+            st.code(blog.plain_text(p), language=None, wrap_lines=True)
+            try:
+                st.download_button("그림 + 본문 묶음 받기 (ZIP)", data=blog_zip(p["id"], blog_id),
+                                   file_name=f"{bc['name']}_{p['id']}.zip", mime="application/zip", key=f"z_{p['id']}")
+            except Exception as e:
+                st.caption(f"묶음을 만들지 못했습니다: {e}")
+            if p.get("others"):
+                st.markdown("**다른 글감**")
+                for k, t in enumerate(p["others"]):
+                    oc1, oc2 = st.columns([4, 1])
+                    oc1.markdown(f"[{t.get('axis', '')}] {t.get('title_idea', '')} — {t.get('hook_question', '')}")
+                    if oc2.button("이걸로 만들기", key=f"o_{p['id']}_{k}"):
+                        blog.start_background(R.CFG, blog_id, "", t)
+                        blog_state_cached.clear()
+                        st.rerun()
+
+
+if page == "CINEPARK 데스크":
+    blog_desk("cinepark", "CINEPARK · 영화잡지", "CINEPARK 데스크",
+              "리서치 담당이 최근 세계 영화계 뉴스로 글감을 고르고, 작가가 작법 7원칙대로 원고를, 이미지 담당이 썸네일 1장과 본문 그림 5장을 만듭니다. 업로드는 대표님이 직접 하십니다.")
 elif page == "리뷰&리뷰 데스크":
-    st.markdown("<div class='hero'><div class='eyebrow'>리뷰&리뷰 · 쿠팡파트너스</div><h1>리뷰&리뷰 데스크</h1></div>", unsafe_allow_html=True)
-    st.info("다음 단계 업무입니다. 매일 09:00 글감 3개와 원고 초안 패키지, 쿠팡 상품 연결을 맡습니다.")
+    blog_desk("review", "리뷰&리뷰 · 쿠팡파트너스", "리뷰&리뷰 데스크",
+              "지금 많이 찾는 생활 상품군을 골라 비교 정보형 원고와 그림 3장을 만듭니다. 첫 줄에 쿠팡파트너스 대가성 문구가 들어가고, 쿠팡 링크와 대표님 실사용 메모 자리는 비워 둡니다.")
 
 
 # ───────────────────────── 설정 · 연결 ─────────────────────────
-else:
+if page == "설정 · 연결":
     st.markdown("<div class='hero'><div class='eyebrow'>SETTINGS</div><h1>설정 · 연결</h1></div>", unsafe_allow_html=True)
     if st.button("연결 점검 실행", type="primary"):
         import contextlib

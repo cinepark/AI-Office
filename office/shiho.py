@@ -16,6 +16,8 @@ ACTIONS = """
 - exclude_breed: 품종 빼기/되살리기. args: {"breed": 품종id, "on": true(빼기)|false(되살리기)}
 - ban_word: 멘트 금지어 추가. args: {"word": "..."}
 - add_example: 멘트 말투 예시 추가. args: {"text": "..."}
+- blog_make: 네이버 블로그 글감 패키지(글감·원고·그림)를 지금 만들기. args: {"blog": "cinepark" 또는 "review", "topic": "지정 주제" 또는 null}
+  (CINEPARK = 영화 블로그, 리뷰&리뷰 = 쿠팡 상품 정보 블로그)
 - note: 위에 없는 일. 실행하지 않고 접수만. args: {"to": 담당자id, "text": "..."}
 """
 
@@ -51,7 +53,7 @@ def interpret(cfg: dict, order: str, today: str) -> dict:
 
 
 WHO = {"produce": "shiho", "remake": "image", "post_now": "channel", "next_cat": "image",
-       "exclude_breed": "image", "ban_word": "review", "add_example": "writer", "note": "shiho"}
+       "exclude_breed": "image", "ban_word": "review", "add_example": "writer", "blog_make": "research", "note": "shiho"}
 
 
 def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str]:
@@ -103,6 +105,14 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
                 s.setdefault("examples_extra", []).append(args["text"])
                 act(state, "writer", f"말투 예시 추가: {args['text']}", "done")
                 done.append("말투 예시에 추가했습니다.")
+            elif t == "blog_make" and args.get("blog") in cfg.get("blog", {}).get("blogs", {}):
+                from . import blog
+                name = cfg["blog"]["blogs"][args["blog"]]["name"]
+                act(state, "shiho", f"Mr. MOON 지시: {name} 글감 패키지 → 리서치·작가·이미지 담당", "done")
+                if blog.start_background(cfg, args["blog"], args.get("topic") or ""):
+                    done.append(f"{name} 패키지를 만들기 시작했습니다. 10분 안팎 걸리고, 끝나면 {name} 데스크에 올라옵니다.")
+                else:
+                    done.append(f"{name} 패키지를 이미 만들고 있습니다. 끝나면 {name} 데스크에 올라옵니다.")
             else:
                 to = args.get("to") if args.get("to") in STAFF_BY_ID else "shiho"
                 state.setdefault("orders", []).append({"to": to, "text": args.get("text", ""), "status": "접수"})
