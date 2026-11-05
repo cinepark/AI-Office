@@ -1,0 +1,86 @@
+# turnerbro.32 Threads 자동 게시 설정
+# 이 파일만 고치면 시각·품종·장면·금지어가 바뀝니다. 코드는 건드리지 않아도 됩니다.
+
+timezone: Asia/Seoul
+
+# 하루 4회 (한국 시간). kind: travel | cat
+slots:
+  - { time: "09:30", kind: travel }
+  - { time: "12:30", kind: cat }
+  - { time: "16:30", kind: travel }
+  - { time: "19:30", kind: cat }
+
+stock_days: 3            # 미리 만들어 둘 날짜 수
+daily_image_limit: 12    # 하루 이미지 생성 상한 (비용 보호, high 기준 약 0.6달러)
+
+openai:
+  image_model: gpt-image-2.5-sunburst
+  image_size: 1024x1024
+  image_quality: high
+  text_model: gpt-6.1-terra      # 자가진단(selftest)에서 실제 모델 목록을 확인한 뒤 맞춥니다
+
+google_drive:
+  travel_root_folder: 1_rlo7xo_GojQ-HSrtw1gZ5-2okESkbd5     # 01.원본 사진 (하위: 2005 Tokyo, 2006 Paris ...)
+  cat_reference_files:                                       # 확정 화풍 기준 2장
+    - 1buDEaCAxkav2WA2EjBzzy1Ii8E459xI_                      # 고양이_저녁식빵_20261104.png
+    - 1lWvzj_vz354-aunUnSAW9l8r5ZU5r_tE                      # 고양이_물방울_수채화_20261104.png
+  travel_reference_files:                                    # 여행 펜수채화 기준 1장
+    - 1n8SLmsXFcpMwLQuCNzVajF5E8RdwMo19                      # 도쿄_신주쿠_20261103_0930_펜수채화.png
+
+style: >-
+  Pen line drawing with loose watercolor washes on off-white cold-press paper.
+  Warm indoor light. Square composition.
+
+travel_style: >-
+  Redraw this photo as a pen line drawing with loose watercolor washes on off-white
+  cold-press paper, matching the drawing style of the reference painting.
+  Keep the exact composition, buildings and perspective of the photo.
+  People appear as simple loose strokes without facial detail. Square composition.
+
+# 품종: 직전 고양이 게시물과 같은 품종은 나오지 않습니다.
+breeds:
+  - { id: koshort_mackerel, name: 코숏 고등어, look: "a Korean shorthair cat with brown mackerel tabby stripes and a white chest" }
+  - { id: koshort_cheese,   name: 코숏 치즈,   look: "a Korean shorthair cat with orange tabby fur" }
+  - { id: koshort_calico,   name: 코숏 삼색,   look: "a Korean shorthair calico cat with white, orange and black patches" }
+  - { id: koshort_tuxedo,   name: 코숏 턱시도, look: "a black-and-white tuxedo Korean shorthair cat with white paws" }
+  - { id: koshort_cow,      name: 코숏 젖소,   look: "a Korean shorthair cat with a white coat and large black patches" }
+  - { id: ragdoll,          name: 랙돌,       look: "a Ragdoll cat with a cream body, a dark seal-point face, ears and tail, and blue eyes" }
+  - { id: scottish_fold,    name: 스코티시 폴드, look: "a grey-and-white Scottish Fold cat with folded ears and a round face" }
+  - { id: russian_blue,     name: 러시안블루,  look: "a Russian Blue cat with a solid blue-grey coat and green eyes" }
+  - { id: persian,          name: 페르시안,    look: "a white Persian cat with long fluffy fur and a flat face" }
+
+# 장면: SNS 집사들이 "우리 애도 그래" 할 순간. 한 상태·한 동작으로 단정해서 씁니다.
+# 같은 '품종+장면' 조합은 최근 7일 안에 다시 나오지 않습니다.
+scenes:
+  - { id: box,       name: 택배 상자,     text: "sits inside an open cardboard delivery box on a wooden floor, chin resting on the box edge, while a brand-new cat bed stands empty beside the box" }
+  - { id: keyboard,  name: 노트북 키보드, text: "lies stretched across an open laptop keyboard on a wooden desk, front paws covering the keys, looking straight at the viewer" }
+  - { id: laundry,   name: 빨래,         text: "sleeps curled inside a basket of freshly folded white laundry" }
+  - { id: rain,      name: 비 오는 창가,  text: "sits on a windowsill watching raindrops run down the window glass" }
+  - { id: vacuum,    name: 로봇청소기,    text: "hides under a sofa with only its eyes visible, watching a robot vacuum pass by" }
+  - { id: paperbag,  name: 종이봉투,      text: "has its head and front body inside a crinkled paper shopping bag, its back legs and tail sticking out" }
+  - { id: door,      name: 닫힌 문,       text: "sits in front of a closed bathroom door, staring at the gap under the door" }
+  - { id: tower,     name: 캣타워 상자,   text: "sleeps on top of the flattened cardboard box a new cat tower came in, while the new cat tower stands unused behind it" }
+  - { id: pen,       name: 펜 떨어뜨리기, text: "pushes a pen off the edge of a desk with one front paw, looking at the viewer" }
+  - { id: heater,    name: 난로 앞,       text: "sleeps belly-up in front of a small electric heater, four paws in the air" }
+  - { id: mandarin,  name: 귤,           text: "sniffs a peeled mandarin orange on a low wooden table, nose wrinkled" }
+  - { id: heatedmat, name: 전기장판,      text: "lies flattened on a heated floor mat under the edge of a thick quilt, only its face showing" }
+  - { id: hallway,   name: 새벽 우다다,   text: "runs down a dark hallway at night with its tail straight up and eyes wide open" }
+  - { id: sink,      name: 세면대 물방울, text: "sits on the edge of a white bathroom sink, staring at one water drop hanging from the faucet" }
+
+caption:
+  max_chars: 40
+  max_emoji: 1
+  banned: [여유롭게, 포근한, 사랑스러운, 우뚝, 가득한, 힐링, 아름다운, 풍경을 자랑, 매력적인, 감성]
+  # 직접 쓰거나 고치신 실제 게시 문구 = 말투 기준. 사이트/설정에서 계속 늘립니다.
+  examples:
+    - "고양이 자세는 귀엽다. 목욕은 싫어하면서."
+    - "뭘보냥?"
+    - "신주쿠역. 참 많이 다녔는데"
+    - "빨래 바구니가 어느새 고양이 전용 자리가 됐다..."
+
+# 이미 게시된 조합 (중복 방지 초기값)
+seed_history:
+  - { date: "2026-11-04", kind: cat, breed: koshort_mackerel, scene: sink }
+  - { date: "2026-11-04", kind: cat, breed: scottish_fold, scene: heatedmat }
+  - { date: "2026-11-04", kind: travel, city: LONDON }
+  - { date: "2026-11-04", kind: travel, city: Fukuoka }
