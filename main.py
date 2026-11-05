@@ -1,4 +1,4 @@
-"""MY AI OFFICE — 담당자들이 실제로 일하는 사무실 화면.
+"""AI OFFICE — 담당자들이 실제로 일하는 사무실 화면.
 
 로컬 실행: streamlit run main.py
 배포: Streamlit Cloud (Secrets 에 GitHub Actions 와 같은 비밀값 7개)
@@ -12,7 +12,7 @@ import os
 
 import streamlit as st
 
-st.set_page_config(page_title="MY AI OFFICE", page_icon="static/favicon.svg", layout="wide")
+st.set_page_config(page_title="AI OFFICE", page_icon="static/favicon.svg", layout="wide")
 
 # Streamlit Secrets → 환경변수 (업무 코드는 환경변수를 읽음)
 for k in ["OPENAI_API_KEY", "THREADS_ACCESS_TOKEN", "THREADS_USER_ID", "R2_ENDPOINT", "R2_ACCESS_KEY_ID",
