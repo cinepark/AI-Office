@@ -88,7 +88,7 @@ state = load_state_cached()
 connected = "_error" not in state
 
 with st.sidebar:
-    st.markdown(f"<div style='font-weight:800;font-size:1.4rem;color:{NAVY}'>MY AI<br>OFFICE<span style='color:{YELLOW}'>.</span></div>",
+    st.markdown(f"<div style='font-weight:800;font-size:1.4rem;color:{NAVY}'>AI<br>OFFICE<span style='color:{YELLOW}'>.</span></div>",
                 unsafe_allow_html=True)
     st.caption("Mr. MOON · 개인 워크스페이스")
     page = st.radio("WORKSPACE", ["오피스", "Threads 데스크", "CINEPARK 데스크", "리뷰&리뷰 데스크", "SHIHO 메신저", "설정 · 연결"],
