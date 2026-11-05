@@ -94,20 +94,20 @@ blog:
       name: CINEPARK
       images: 6                  # 썸네일 1 + 본문 5
       schedule_days: [0, 1, 2, 3, 4, 5, 6]   # 기본 예약: 매일 (0=월 … 6=일). 데스크에서 바꿀 수 있음
-      reference_files:           # SHIHO(3D) 캐릭터 시트 1장 (CINEPARK 그림에는 SHIHO 만 나온다. 남자 금지)
-        - 14qlBS-MyA_Jv5PnVj3LDVKxd8IYLPV7O
-      reference_local:           # CINEPARK 예시 원고(중동의 돈) 속 SHIHO 그림 = 화풍·얼굴 기준
-        - refs/cinepark_style_01.jpg
-        - refs/cinepark_style_02.jpg
+      reference_files: []
+      reference_local:           # SHIHO 새 옷 기준 (2026-11-05 수정본): 정면 상반신 + 6동작 시트
+        - refs/shiho_portrait.jpg
+        - refs/shiho_sheet.jpg
       image_style: >-
-        Match the rendering style, face and hair of the woman in the attached reference images:
-        glossy semi-realistic 3D anime render, warm golden lighting, 16:9 landscape.
+        Match the face, hair and outfit of the woman in the attached reference images exactly.
+        Glossy semi-realistic 3D render, warm golden lighting, 16:9 landscape.
         Clean minimal setting: a simple desk with only a laptop and one cup, no clutter, no stacks of props.
         Large window with the Seoul night view and N Seoul Tower when indoors.
         She is the only person in the frame. No men anywhere in the image. No text, letters or numbers.
       character: >-
         SHIHO, a young Korean woman with long straight black hair in a high ponytail, wearing a white
-        sleeveless top and blue jeans, matching the woman in the attached reference images exactly
+        short-sleeved collared button-up shirt tucked into light blue wide-leg jeans, white sneakers and a
+        beige leather shoulder bag, matching the woman in the attached reference images exactly
     review:
       name: 리뷰&리뷰
       images: 6                  # 썸네일 1 + 본문 5, 모든 그림 위쪽에 짧은 글자(label)

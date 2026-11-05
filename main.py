@@ -45,6 +45,16 @@ html, body, [class*="css"], .stMarkdown, button, input, textarea {{font-family:P
 .dot {{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}}
 .working {{background:{YELLOW};box-shadow:0 0 0 4px #ffcb0533}} .done {{background:#2fbf71}}
 .error {{background:#e5484d}} .idle {{background:#c9c9d6}}
+.spin {{display:inline-block;width:18px;height:18px;border:3px solid #DBA12C33;border-top-color:#DBA12C;border-radius:50%;
+animation:sp .8s linear infinite;vertical-align:-3px;margin-right:8px}}
+@keyframes sp {{to{{transform:rotate(360deg)}}}}
+.prog {{border:1px solid #C8D6DD;border-radius:12px;padding:12px 14px;background:#F7FBFC;margin:6px 0 10px}}
+.prog .top {{font-weight:700;color:#0F3B59}} .prog .el {{float:right;font-weight:400;color:#5b7486;font-variant-numeric:tabular-nums}}
+.steps {{display:flex;gap:6px;margin-top:10px}} .steps div {{flex:1;height:6px;border-radius:3px;background:#e3eaee}}
+.steps div.on {{background:#DBA12C}} .steps div.now {{background:linear-gradient(90deg,#DBA12C 0,#f3d48a 50%,#DBA12C 100%);
+background-size:200% 100%;animation:fl 1.2s linear infinite}}
+@keyframes fl {{to{{background-position:-200% 0}}}}
+.labels {{display:flex;gap:6px;margin-top:4px;font-size:.72rem;color:#8aa0ae}} .labels span {{flex:1}}
 </style>""", unsafe_allow_html=True)
 
 
@@ -140,19 +150,29 @@ def shiho_chat(box_height: int) -> None:
         st.rerun()
 
 
+@st.fragment(run_every=15)
+def office_view() -> None:
+    """사무실 그림: 15초마다 최신 기록으로 다시 그림 (작업 중 표시가 살아 움직임)."""
+    from office import floorplan
+    load_state_cached.clear()
+    s_now = load_state_cached()
+    if "_error" in s_now:
+        s_now = state
+    office_html = floorplan.render(s_now, R.CFG["slots"])
+    if hasattr(st, "iframe"):
+        st.iframe(office_html, height="content")
+    else:  # 예전 Streamlit
+        import streamlit.components.v1 as components
+        components.html(office_html, height=1250, scrolling=True)
+
+
 # ───────────────────────── 오피스 ─────────────────────────
 if page == "오피스":
     st.markdown("<div class='hero'><div class='eyebrow'>BLUE JEANS PICTURES</div><h1>AI OFFICE</h1></div>",
                 unsafe_allow_html=True)
     left, right = st.columns([2.3, 1], gap="medium")
     with left:
-        from office import floorplan
-        office_html = floorplan.render(state, R.CFG["slots"])
-        if hasattr(st, "iframe"):
-            st.iframe(office_html, height="content")
-        else:  # 예전 Streamlit
-            import streamlit.components.v1 as components
-            components.html(office_html, height=1250, scrolling=True)
+        office_view()
     with right:
         shiho_chat(560)
 
@@ -244,6 +264,33 @@ def blog_zip(pid: str, blog_id: str) -> bytes:
     return blog.images_zip(blog_state_cached()["packages"][pid])
 
 
+STEPS = ["글감 찾는 중", "원고 쓰는 중", "그림 그리는 중"]
+
+
+def progress_html(run: dict) -> str:
+    step = run.get("step", "")
+    idx = next((i for i, x in enumerate(STEPS) if step.startswith(x)), 0)
+    t0 = dt.datetime.fromisoformat(run["t"])
+    sec = int((P.now_kst() - t0).total_seconds())
+    bars = "".join(f"<div class='{'on' if i < idx else 'now' if i == idx else ''}'></div>" for i in range(len(STEPS)))
+    return (f"<div class='prog'><div class='top'><span class='spin'></span>{html.escape(step)}"
+            f"<span class='el'>{sec // 60}분 {sec % 60:02d}초째</span></div>"
+            f"<div class='steps'>{bars}</div><div class='labels'>" + "".join(f"<span>{x}</span>" for x in STEPS) + "</div></div>")
+
+
+@st.fragment(run_every=8)
+def progress_box(blog_id: str) -> None:
+    """만드는 동안 8초마다 스스로 새로 고침. 끝나면 데스크 전체를 다시 그려 패키지를 보여 준다."""
+    blog_state_cached.clear()
+    run = blog_state_cached().get("running", {}).get(blog_id)
+    if run:
+        st.session_state[f"was_{blog_id}"] = True
+        st.markdown(progress_html(run), unsafe_allow_html=True)
+        st.caption("자동으로 새로 고쳐집니다. 창을 닫아도 작업은 계속됩니다.")
+    elif st.session_state.pop(f"was_{blog_id}", False):
+        st.rerun()
+
+
 def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
     from office import blog
     bc = R.CFG["blog"]["blogs"][blog_id]
@@ -260,10 +307,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                              placeholder="예: 넷플릭스 한국 오리지널 제작비" if blog_id == "cinepark" else "예: 겨울 전기요")
         run = b.get("running", {}).get(blog_id)
         if run:
-            st.info(f"만드는 중 · {run.get('step', '')} ({ago(run.get('t'))} 시작, {run.get('mode', '')}). 10분 안팎 걸립니다.")
-            if st.button("진행 상황 새로고침", key=f"rf_{blog_id}"):
-                blog_state_cached.clear()
-                st.rerun()
+            progress_box(blog_id)
         elif st.button(f"지금 {bc['name']} 패키지 만들기", type="primary", key=f"go_{blog_id}"):
             s0 = fresh_state()
             act(s0, "shiho", f"Mr. MOON 지시: {bc['name']} 패키지 지금 만들기", "done")
@@ -297,6 +341,8 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             st.markdown(f"<h3 style='text-align:center;color:{NAVY}'>{html.escape(a.get('title', ''))}</h3>", unsafe_allow_html=True)
             if p.get("problems"):
                 st.warning("검수 주의: " + ", ".join(p["problems"]))
+            if a.get("stock_fixes"):
+                st.caption("검수 담당 종목 확인: " + " / ".join(a["stock_fixes"]))
             ims = [im for im in a.get("images", [])]
             cols = st.columns(3)
             for j, im in enumerate(ims):

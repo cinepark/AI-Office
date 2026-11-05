@@ -96,6 +96,17 @@ def _lines(now: dict) -> str:
     return f"<svg class='flow' viewBox='0 0 100 100' preserveAspectRatio='none'>{''.join(out)}</svg>" if out else ""
 
 
+def _live(now: dict) -> str:
+    """지금 작업 중인 담당자가 있으면 그림 아래쪽에 돌아가는 원과 함께 띄운다."""
+    busy = [(sid, n) for sid, n in now.items() if sid in STAFF_BY_ID and _status(n) == "working"]
+    if not busy:
+        return ""
+    sid, n = max(busy, key=lambda x: x[1]["t"])
+    more = f" 외 {len(busy) - 1}명" if len(busy) > 1 else ""
+    return (f"<div class='live'><span class='sp'></span><b>{html.escape(_short(sid))}{more}</b>"
+            f"<span>{html.escape(n['text'][:40])} · {_ago(n['t'])}</span></div>")
+
+
 def render(state: dict, slots: list[dict] | None = None) -> str:
     slots = slots or [{}] * 4
     now = state.get("agent_now", {})
@@ -133,7 +144,12 @@ border-radius:999px;padding:.25vw .7vw;font-size:clamp(9px,1.05vw,13px);line-hei
 .tag.up{{transform:translate(-50%,-100%)}} .tag.right{{transform:translate(18%,-50%)}}
 .tag b{{font-weight:700;color:#0F3B59}} .tag span{{color:#5b7486;font-size:.86em}}
 .tag i{{width:.55vw;height:.55vw;min-width:6px;min-height:6px;border-radius:50%;background:#C8D6DD}}
-.tag.working i{{background:#DBA12C;animation:p 1.2s infinite}} .tag.done i{{background:#2fbf71}} .tag.error i{{background:#e5484d}}
+.tag.working i{{background:transparent;border:2px solid #DBA12C55;border-top-color:#DBA12C;animation:sp .8s linear infinite;box-sizing:border-box;width:.9vw;height:.9vw;min-width:9px;min-height:9px}}
+@keyframes sp{{to{{transform:rotate(360deg)}}}}
+.live{{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);display:flex;align-items:center;gap:.6vw;background:#0F3B59e6;color:#F7FBFC;
+border-radius:999px;padding:.5vw 1.2vw;font-size:clamp(10px,1.1vw,14px);white-space:nowrap;box-shadow:0 2px 8px #0003}}
+.live .sp{{width:1vw;height:1vw;min-width:11px;min-height:11px;border:2px solid #ffffff44;border-top-color:#DBA12C;border-radius:50%;animation:sp .8s linear infinite}}
+.live b{{color:#DBA12C}} .tag.done i{{background:#2fbf71}} .tag.error i{{background:#e5484d}}
 .tag.error{{border-color:#e5484d}} .tag.idle{{opacity:.85}} .tag.boss{{background:#0F3B59}} .tag.boss b{{color:#fff}} .tag.boss span{{color:#DBA12C}}
 .tag.boss i{{background:#DBA12C}}
 @keyframes p{{50%{{box-shadow:0 0 0 .35vw #DBA12C55}}}}
@@ -154,6 +170,6 @@ ul{{list-style:none;padding:0;margin:0;border-top:1px solid #C8D6DD}}
 li{{display:flex;gap:10px;padding:7px 2px;border-bottom:1px solid #eef3f5;font-size:.84rem;align-items:baseline}}
 li time{{color:#8aa0ae;font-variant-numeric:tabular-nums}} li b{{white-space:nowrap;color:#0F3B59}} li span{{color:#3d5566}}
 </style>
-<div class='pic'><img src='data:image/jpeg;base64,{_b64(OFFICE_IMG)}'>{_lines(now)}{_board(state, slots)}{tags}</div>
+<div class='pic'><img src='data:image/jpeg;base64,{_b64(OFFICE_IMG)}'>{_lines(now)}{_board(state, slots)}{tags}{_live(now)}</div>
 {cine}<div class='grid'>{''.join(cards)}</div>
 <ul>{''.join(feed) or '<li><span>아직 활동 기록이 없습니다.</span></li>'}</ul>"""

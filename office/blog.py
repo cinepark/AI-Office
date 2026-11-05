@@ -66,6 +66,7 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
 2. 서로 다른 매체·기관의 자료 여러 건을 엮어 하나의 이야기로 만든다. 기사 한 건을 번역하듯 옮기지 않는다.
 3. 사실과 해석을 구분한다. 상담·논의·협약·계약·실제 투자를 섞지 않고 상태 그대로 쓴다. 큰 숫자 뒤에는 '그 숫자가 뜻하지 않는 것'을 짚는다.
    출처는 문단 끝에 'OO 발표', 'OO 보도', 'OO 발표 · OO 보도' 형식으로 붙인다.
+   본문 문장 안에는 URL·링크·괄호 주소를 절대 쓰지 않는다. 주소는 sources 에만 넣는다.
 4. 제작자의 시선으로 쉽게 풀어 쓴다. ~입니다/~습니다 체. 소제목은 주장하는 문장으로. 지어낸 인용·숫자 금지. 해석은 해석이라고 밝힌다.
 5. 돈·셀럽·뒷얘기 중 이 글의 축을 끝까지 밀고 간다.
 6. 그림은 내용을 설명하는 AI 재구성 장면이다(끝에 고지 문구를 넣는다).
@@ -181,11 +182,13 @@ def _now() -> dt.datetime:
 
 
 def _log(agent: str, text: str, status: str) -> None:
-    """사무실 활동 기록(Threads 와 같은 상태 파일)에 짧게 남긴다."""
+    """사무실 활동 기록(Threads 와 같은 상태 파일)에 짧게 남긴다. CINEPARK 글이면 블로그실 칸도 함께."""
     from . import storage
     try:
         st = storage.load_state()
         act(st, agent, text, status)
+        if text.startswith("CINEPARK"):
+            act(st, "cinepark", text, "working" if status == "working" else ("error" if status == "error" else "done"))
         storage.save_state(st)
     except Exception:
         pass
@@ -219,7 +222,9 @@ def _ask(cfg: dict, system: str, user: str, search: bool) -> dict:
 # ───────────────────────── 단계 ─────────────────────────
 def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = None) -> list[dict]:
     av = f"\n최근에 이미 쓴 글(같은 주제 피하기): {' / '.join(avoid[-20:])}\n" if avoid else ""
-    fmt = {"hint": f"\nMr. MOON 지정 주제: {hint} (이 주제를 중심으로 세 글감을 고른다)\n" if hint else ""}
+    fmt = {"hint": (f"\n★ Mr. MOON 지정 주제: \"{hint}\"\n이 지정 주제가 최우선이다. 세 글감 모두 이 주제 안에서 고른다. 다른 주제로 바꾸지 않는다.\n"
+                    f"최근 2주 뉴스가 부족하면 기간을 넓혀(최근 1년 안의 발표·보도와 진행 중인 흐름) 이 주제를 다룬다.\n"
+                    f"위의 기준 글감과 같은 주제여도 괜찮다. 지금 시점의 새 자료로 다시 쓴다.\n") if hint else ""}
     if "{avoid}" in PROMPTS[blog][0]:
         fmt["avoid"] = av
     else:
@@ -238,6 +243,63 @@ def write(cfg: dict, blog: str, topic: dict) -> dict:
     art = _ask(cfg, sys_w, user, search=True)
     art["images"] = sorted(art.get("images", []), key=lambda x: x.get("no", 0))[:n]
     return art
+
+
+_MDLINK = re.compile(r"\s*\(?\[([^\]]+)\]\((https?://[^)]+)\)\)?")
+_URL = re.compile(r"\s*\(?https?://\S+\)?")
+
+
+def clean_url(u: str) -> str:
+    """검색 도구가 붙이는 utm 꼬리표를 뗀다."""
+    return re.sub(r"[?&]utm_[^&#]+", "", u or "").rstrip("?&")
+
+
+def tidy(art: dict) -> dict:
+    """본문에 섞여 들어온 [사이트](주소) 링크와 맨 주소를 지우고, 출처 주소를 정리한다."""
+    for bl in art.get("blocks", []):
+        if bl.get("type") in ("p", "h", "memo"):
+            t = _MDLINK.sub("", bl.get("text", ""))
+            bl["text"] = re.sub(r"\s{2,}", " ", _URL.sub("", t)).strip()
+    for x in art.get("sources", []):
+        x["url"] = clean_url(x.get("url", ""))
+    for x in art.get("stocks", []):
+        x["reason"] = re.sub(r"\s{2,}", " ", _URL.sub("", _MDLINK.sub("", x.get("reason", "")))).strip()
+    if art.get("stock_note"):
+        art["stock_note"] = _URL.sub("", _MDLINK.sub("", art["stock_note"])).strip()
+    return art
+
+
+VERIFY = """당신은 CINEPARK 의 검수 담당입니다. 아래 기업 목록의 상장 여부, 거래소, 종목코드를 웹 검색으로 하나씩 확인해 고칩니다.
+- 합병·사명 변경이 있었으면 지금 이름과 지금 코드로 고친다(예: 합병 후 새 법인).
+- 한국 거래소는 '코스피' 또는 '코스닥', 해외는 NASDAQ, NYSE, Tadawul 처럼 쓴다.
+- 비상장이거나 확인되지 않으면 listed 를 false 로 둔다.
+JSON 만 출력: {"stocks": [{"name": "...", "market": "...", "code": "...", "listed": true, "fixed": "고친 점(없으면 빈 문자열)"}]}"""
+
+
+def verify_stocks(cfg: dict, art: dict) -> list[str]:
+    """관련 종목의 거래소·코드를 웹 검색으로 다시 확인. 고친 내용을 돌려준다."""
+    stocks = art.get("stocks") or []
+    if not stocks:
+        return []
+    data = _ask(cfg, VERIFY, json.dumps([{k: x.get(k) for k in ("name", "market", "code")} for x in stocks], ensure_ascii=False),
+                search=True)
+    checked = {i: v for i, v in enumerate(data.get("stocks", []))}
+    out, notes = [], []
+    for i, x in enumerate(stocks):
+        v = checked.get(i)
+        if not v:
+            out.append(x)
+            continue
+        if not v.get("listed", True):
+            notes.append(f"{x.get('name')} 비상장/미확인 → 제외")
+            continue
+        if v.get("fixed"):
+            notes.append(f"{x.get('name')}: {v['fixed']}")
+        x.update({"name": v.get("name") or x.get("name"), "market": v.get("market") or x.get("market"),
+                  "code": v.get("code") or x.get("code")})
+        out.append(x)
+    art["stocks"] = out
+    return notes
 
 
 def check(blog: str, art: dict) -> list[str]:
@@ -275,6 +337,7 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
             im["error"] = "오늘 블로그 그림 상한 도달"
             continue
         _log("image", f"{bc['name']} 그림 {im['no'] + 1}/{len(art['images'])} 그리는 중", "working")
+        _set_step(blog, f"그림 그리는 중 {im['no'] + 1}/{len(art['images'])}")
         try:
             prompt = im["prompt"] + (f" {style}" if style else "")
             png = ai.render(cfg, prompt, refs, cfg["blog"]["image_size"])
@@ -316,8 +379,17 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             others = []
         _set_step(blog, "원고 쓰는 중")
         _log("writer", f"{name} 원고 쓰는 중: {topic.get('title_idea', '')[:30]}", "working")
-        art = write(cfg, blog, topic)
+        art = tidy(write(cfg, blog, topic))
         _log("writer", f"{name} 원고 완성: {art.get('title', '')[:30]}", "done")
+        if art.get("stocks"):
+            _set_step(blog, "원고 쓰는 중 · 종목 확인")
+            _log("review", f"{name} 관련 종목 거래소·코드 확인 중", "working")
+            try:
+                fixes = verify_stocks(cfg, art)
+                art["stock_fixes"] = fixes
+                _log("review", f"{name} 종목 확인 끝" + (f" — 고침: {'; '.join(fixes)[:80]}" if fixes else " — 이상 없음"), "done")
+            except Exception as e:
+                art["stock_fixes"] = [f"확인 실패: {str(e)[:80]}"]
         _set_step(blog, "그림 그리는 중")
         b = load()
         draw_images(cfg, blog, pid, art, b)
