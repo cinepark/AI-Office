@@ -220,6 +220,13 @@ def _ask(cfg: dict, system: str, user: str, search: bool) -> dict:
 
 
 # ───────────────────────── 단계 ─────────────────────────
+def _on_topic(hint: str, topic: dict) -> bool:
+    """지정 주제의 핵심어(단어 앞 3글자)가 글감에 들어 있는지."""
+    text = json.dumps(topic, ensure_ascii=False)
+    keys = [w[:3] for w in re.split(r"\s+", hint.strip()) if len(w) >= 2]
+    return not keys or keys[0] in text  # 첫 단어(주제의 중심)가 반드시 들어 있어야 함
+
+
 def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = None) -> list[dict]:
     av = f"\n최근에 이미 쓴 글(같은 주제 피하기): {' / '.join(avoid[-20:])}\n" if avoid else ""
     fmt = {"hint": (f"\n★ Mr. MOON 지정 주제: \"{hint}\"\n이 지정 주제가 최우선이다. 세 글감 모두 이 주제 안에서 고른다. 다른 주제로 바꾸지 않는다.\n"
@@ -371,6 +378,9 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             prev = [p["article"].get("title", "") for p in sorted(load()["packages"].values(), key=lambda x: x["made"])
                     if p["blog"] == blog]
             topics = research(cfg, blog, hint, prev)
+            if hint and topics and not _on_topic(hint, topics[0]):
+                _log("research", f"{name} 지정 주제와 다른 글감 → 다시 찾는 중", "working")
+                topics = research(cfg, blog, hint + " (반드시 이 주제로)", prev) or topics
             if not topics:
                 raise RuntimeError("글감을 찾지 못했습니다.")
             topic, others = topics[0], topics[1:]
