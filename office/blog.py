@@ -370,7 +370,8 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
     pid = f"{blog}_{_now():%Y%m%d_%H%M%S}"
     with _lock:
         b = load()
-        b["running"][blog] = {"t": _now().isoformat(timespec="seconds"), "step": "글감 찾는 중", "mode": mode}
+        t0 = _now().isoformat(timespec="seconds")
+        b["running"][blog] = {"t": t0, "u": t0, "step": "글감 찾는 중", "mode": mode}
         save(b)
     try:
         if topic is None:
@@ -434,7 +435,16 @@ def _set_step(blog: str, step: str) -> None:
         b = load()
         if blog in b["running"]:
             b["running"][blog]["step"] = step
+            b["running"][blog]["u"] = _now().isoformat(timespec="seconds")
             save(b)
+
+
+def clear_running(blog: str) -> None:
+    """멈춘 작업 표시 지우기 (화면 서버가 다시 시작되며 작업이 끊긴 경우)."""
+    with _lock:
+        b = load()
+        b["running"].pop(blog, None)
+        save(b)
 
 
 def start_background(cfg: dict, blog: str, hint: str = "", topic: dict | None = None) -> bool:

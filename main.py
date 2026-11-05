@@ -286,7 +286,17 @@ def progress_box(blog_id: str) -> None:
     if run:
         st.session_state[f"was_{blog_id}"] = True
         st.markdown(progress_html(run), unsafe_allow_html=True)
-        st.caption("자동으로 새로 고쳐집니다. 창을 닫아도 작업은 계속됩니다.")
+        idle = (P.now_kst() - dt.datetime.fromisoformat(run.get("u") or run["t"])).total_seconds()
+        if idle > 720:  # 12분 넘게 단계가 그대로면 끊긴 작업
+            st.warning(f"{int(idle // 60)}분째 단계가 바뀌지 않습니다. 화면 서버가 다시 시작되면서 작업이 끊긴 것입니다.")
+            if st.button("멈춘 작업 정리", key=f"clr_{blog_id}"):
+                from office import blog
+                blog.clear_running(blog_id)
+                st.session_state.pop(f"was_{blog_id}", None)
+                blog_state_cached.clear()
+                st.rerun(scope="app")
+        else:
+            st.caption("자동으로 새로 고쳐집니다. 창을 닫아도 작업은 계속됩니다.")
     elif st.session_state.pop(f"was_{blog_id}", False):
         st.rerun()
 
