@@ -167,7 +167,8 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
         act(st, "image", "작업 중단 (개발 담당 기록 참고)", "error")
         raise
     ext = "jpg" if png[:3] == b"\xff\xd8\xff" else "png"
-    r2_key = f"turnerbro-threads/queue/{key}.{ext}"
+    # 다시 만들 때마다 새 파일 이름 → 화면·브라우저가 예전 그림을 기억해 보여 주는 일이 없다
+    r2_key = f"turnerbro-threads/queue/{key}_{P.now_kst():%H%M%S}.{ext}"
     storage.put_bytes(r2_key, png, "image/jpeg" if ext == "jpg" else "image/png")
     today = P.now_kst().date().isoformat()
     st["images_made"][today] = st["images_made"].get(today, 0) + 1

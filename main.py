@@ -107,6 +107,7 @@ with st.sidebar:
     st.caption("🟡 작업 중  🟢 완료  🔴 문제  ⚪ 대기")
     if st.button("새로고침", use_container_width=True):
         load_state_cached.clear()
+        img_url.clear()
         st.rerun()
 
 if not connected:
@@ -270,6 +271,7 @@ elif page == "Threads 데스크":
         cols = st.columns(3)
         for i, k in enumerate(keys):
             v = queue[k]
+            ver = v.get("r2_key", "").rsplit("/", 1)[-1].split(".")[0]  # 다시 만들면 파일 이름이 바뀜 → 칸이 새 멘트로 초기화
             with cols[i % 3]:
                 with st.container(border=True):
                     try:
@@ -282,8 +284,8 @@ elif page == "Threads 데스크":
                     if v.get("problems"):
                         st.warning("검수 주의: " + ", ".join(v["problems"]))
                     opts = [v["caption"]] + [o for o in v.get("options", []) if o != v["caption"]]
-                    pick = st.radio("멘트", opts, key=f"r_{k}", label_visibility="collapsed")
-                    new = st.text_area("고치기", value=pick, key=f"t_{k}", height=70, label_visibility="collapsed")
+                    pick = st.radio("멘트", opts, key=f"r_{k}_{ver}", label_visibility="collapsed")
+                    new = st.text_area("고치기", value=pick, key=f"t_{k}_{ver}_{opts.index(pick)}", height=70, label_visibility="collapsed")
                     b1, b2, b3 = st.columns(3)
                     if b1.button("저장", key=f"s_{k}"):
                         s = fresh_state()
