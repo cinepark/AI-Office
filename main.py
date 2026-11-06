@@ -440,10 +440,12 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.warning(f"최근 실패 ({errs[0]['t'][5:16]}): {errs[0]['error'][:200]}")
 
     st.divider()
-    pkgs = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id and not p.get("deleted")),
+    allp = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id and not p.get("deleted")),
                   key=lambda p: p["made"], reverse=True)
+    pkgs = [p for p in allp if not p.get("posted")]
+    done = sorted((p for p in allp if p.get("posted")), key=lambda p: p["posted"], reverse=True)
     if not pkgs:
-        st.caption("아직 만든 패키지가 없습니다.")
+        st.caption("올릴 패키지가 없습니다. 올린 글은 아래 '올린 글 기록'에 있습니다." if done else "아직 만든 패키지가 없습니다.")
     for i, p in enumerate(pkgs[:15]):
         a = p["article"]
         with st.expander(f"{p['date'][5:].replace('-', '/')} · {p['mode']} · {a.get('title', '(제목 없음)')}", expanded=(i == 0)):
@@ -471,6 +473,18 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                                    file_name=f"{bc['name']}_{p['id']}.zip", mime="application/zip", key=f"z_{p['id']}")
             except Exception as e:
                 st.caption(f"묶음을 만들지 못했습니다: {e}")
+            pc1, pc2 = st.columns([3, 1])
+            purl = pc1.text_input("네이버 글 주소 (선택)", key=f"pu_{p['id']}", placeholder="https://blog.naver.com/...")
+            pc2.write("")
+            if pc2.button("네이버에 올림", key=f"po_{p['id']}", type="primary"):
+                b2 = blog.load()
+                if p["id"] in b2["packages"]:
+                    b2["packages"][p["id"]]["posted"] = P.now_kst().isoformat(timespec="seconds")
+                    b2["packages"][p["id"]]["posted_url"] = purl.strip()
+                    blog.save(b2)
+                blog_state_cached.clear()
+                st.toast(f"'{a.get('title', '')}' 게시 완료로 옮겼습니다.")
+                st.rerun()
             dc1, dc2 = st.columns([3, 1])
             sure = dc1.checkbox("이 패키지를 지웁니다 (예약 글이면 그날 다시 만들지 않습니다)", key=f"dc_{p['id']}")
             if dc2.button("삭제", key=f"del_{p['id']}", disabled=not sure):
@@ -494,6 +508,21 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                             blog.start_background(R.CFG, blog_id, "", t)
                         blog_state_cached.clear()
                         st.rerun()
+    if done:
+        with st.expander(f"올린 글 기록 ({len(done)}건)"):
+            for p in done[:60]:
+                t = p["article"].get("title", "")
+                when = p["posted"][5:16].replace("-", "/").replace("T", " ")
+                link = f" · [글 보기]({p['posted_url']})" if p.get("posted_url") else ""
+                hc1, hc2 = st.columns([5, 1])
+                hc1.markdown(f"{when} · {html.escape(t)}{link}")
+                if hc2.button("되돌리기", key=f"un_{p['id']}"):
+                    b2 = blog.load()
+                    if p["id"] in b2["packages"]:
+                        b2["packages"][p["id"]].pop("posted", None)
+                        blog.save(b2)
+                    blog_state_cached.clear()
+                    st.rerun()
 
 
 if page == "CINEPARK 데스크":
