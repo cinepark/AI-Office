@@ -31,18 +31,34 @@ CINEPARK_RESEARCH = """당신은 네이버 영화 블로그 CINEPARK 의 리서�
 - 기준이 되는 글감: "중동의 돈이 한국 콘텐츠로 온다? 두바이·아부다비·사우디의 서로 다른 속셈"
   → 세계 영화계에서 벌어지는 일을 한국 독자가 바로 궁금해할 한 줄 질문으로 바꾼 것. 두바이 머니, 한국 영화, 실제로 들어오나? 처럼
   '누가 · 무엇이 · 한국 영화(관객)와 어떻게 연결되나'가 질문 하나에 들어 있다.
-- 기사 한 건을 옮기는 주제는 안 된다. 서로 다른 매체·기관 자료 2곳 이상을 엮어야 답이 나오는 질문만 고른다.
+- CINEPARK 는 속보를 옮기는 인터넷 기사가 아니라 버라이어티·사이트 앤 사운드·키노 같은 영화잡지다. 뉴스는 출발점일 뿐이다.
+  서로 다른 매체·기관 자료 4곳 이상을 엮어야 답이 나오는 질문만 고른다. 오늘의 뉴스 + 그 뉴스를 이해하게 해 주는 배경을 함께 모은다:
+  선례(비슷한 일이 전에 어떻게 됐나), 비교(다른 작품·나라·회사와 견주면), 업계 구조(돈이 어떻게 흐르나), 비평(평단은 무엇을 봤나), 숨은 사람(누가 이 일을 만들었나).
+- 돈·셀럽·뒷얘기는 결국 주식시장과 이어진다. 글감마다 한국(코스피·코스닥)·미국(NYSE·NASDAQ)·일본(도쿄증권거래소) 등의 상장사가
+  이 이야기와 어떤 경로로 이어지는지 찾는다: 그 회사의 어느 사업이 이 돈·작품·사람과 닿아 있나(매출 비중, 배급·제작·IP·극장·플랫폼 계약, 공시·IR 자료).
+  상장사와의 연결이 근거로 확인되는 글감을 우선한다. 연결이 억지스러우면 붙이지 않는다.
+  한국 독자는 국내 주식과 미국·일본 등 해외 주식을 모두 산다. 국내 상장사(네이버 증권에서 바로 찾는 종목)를 먼저 찾고,
+  해외 상장사는 이 이야기의 주인공 회사이거나 국내 투자자가 많이 사는 종목일 때 함께 잇는다. 국내 연결이 있는 글감을 더 높게 친다.
+- 글감마다 angle 을 정한다: 이 글만의 관점 한 줄. 뉴스 요약이 아니라 '그래서 이 일은 무엇을 보여 주나'에 대한 답이다
+  (예: 뉴스 '세 시간 다큐 북미 1위' → angle '극장이 다큐를 다시 부른 이유는 사건이 아니라 접근권이다').
 - 최근 2주 안의 뉴스나 지금 진행 중인 이슈에서 찾는다. 웹 검색으로 사실과 출처를 확인한다.
 - 사실마다 상태를 구분한다: 확정(공식 발표·계약 완료) / 보도(매체 보도) / 협상(논의·검토) / 소문.
+- 특정 작품(영화·다큐·시리즈)이 중심인 글감이면 work 칸을 반드시 채운다: 어떤 이야기인지(인물·사건·핵심 장면),
+  만든 사람의 이력, 평단과 관객이 이 작품을 화제로 만든 이유(리뷰·평점·입소문·논란)를 출처와 함께 조사한다. 이게 없으면 그 글감은 고르지 않는다.
+- 출처는 신뢰할 수 있는 언론·공식 기관·집계 사이트만. 텔레그램·커뮤니티 글 모음 사이트·블로그·상표 출원 문서는 출처로 쓰지 않는다.
 {hint}
 후보 3개를 '기준 글감과 얼마나 닮았나' 순서로 정렬해서, 가장 좋은 것을 맨 앞에 둔다.
 
 JSON 만 출력:
 {{"topics": [{{"axis": "돈|셀럽|뒷얘기", "format": "기획기사|정보", "question": "한 줄 질문 (예: 중동의 돈이 한국 영화로 온다?)",
- "title_idea": "제목 아이디어 (질문 + 부제)", "hook_question": "도입 끝에 던질 질문", "why_now": "지금 써야 하는 이유",
+ "title_idea": "제목 아이디어 (질문 + 부제)", "angle": "이 글만의 관점 한 줄",
+ "context": [{{"text": "배경·선례·비교·비평 한 줄", "source": "매체·기관명", "url": "주소"}}], "hook_question": "도입 끝에 던질 질문", "why_now": "지금 써야 하는 이유",
  "korea_link": "한국 영화·관객과의 연결고리", "first_line": "첫 줄로 쓸 숫자·이름·장면 한 마디",
  "facts": [{{"text": "사실 한 줄", "status": "확정|보도|협상|소문", "source": "매체·기관명", "url": "주소"}}],
- "related_companies": ["관련 상장사 이름"]}}]}}"""
+ "work": {{"title": "국내 표기 제목 (원제)", "what": "어떤 이야기인지 3~4문장: 인물·사건·핵심 장면", "makers": "감독·주요 인물 이력 한두 줄",
+   "why_hit": ["화제·흥행 이유 한 줄 (출처)", "..."]}},
+ "related_companies": ["관련 상장사 이름"],
+ "market_link": [{{"company": "상장사 이름", "market": "코스피|코스닥|NYSE|NASDAQ|TSE|...", "code": "종목코드", "how": "이 이야기와 이어지는 사업 경로 한 줄", "source": "공시·IR·보도", "url": "주소"}}]}}]}}"""
 
 CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입니다. 영화잡지 기획기사처럼 씁니다.
 
@@ -64,6 +80,13 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
 (마지막 문단) 두바이의 돈이 한국 영화 제작비로 들어올 가능성은 열려 있지만, 지금 확인된 것은 공동개발과 재원 조달에 관한 논의이지 특정 영화의 투자 계약이 아닙니다. (…) 그 자리가 실제 제작비로 이어지는지 보려면 한 가지를 물어야 합니다.
 누가, 어떤 작품에, 어떤 권리를 조건으로 돈을 내는가?
 
+영화잡지의 기준 (가장 중요하다)
+- 이 글은 속보 기사가 아니라 버라이어티·사이트 앤 사운드·키노 같은 영화잡지의 기획기사다. 독자가 뉴스에서 이미 본 사실을 되풀이하면 읽을 이유가 없다.
+- 글감의 angle(관점)을 글 전체의 뼈대로 삼는다. 소제목들은 그 관점을 한 걸음씩 증명하는 순서로 놓는다. 뉴스 → 반박 → 유보를 반복하는 나열식 구성 금지.
+- 뉴스는 도입에서 짧게 쓰고, 본문은 context(선례·비교·업계 구조·비평·숨은 사람)로 채운다. 여러 매체의 자료를 엮어 독자가 혼자서는 연결하지 못했을 그림을 보여 준다.
+- 장면으로 쓴다: 작품의 한 장면, 시사회장의 반응, 협상 테이블, 박스오피스 표의 한 줄처럼 눈에 보이는 디테일을 넣는다.
+- 마지막 소제목은 '그래서 한국 영화(관객)에게 무엇이 남나'를 제작자의 시선으로 정리한다. 다 읽은 독자가 남에게 말해 주고 싶은 한 문장이 있어야 한다.
+
 작법 7원칙
 1. 첫 줄은 숫자·이름·장면처럼 눈에 걸리는 한 마디로 짧게 끊고, 도입 끝은 독자가 궁금해할 질문으로 맺는다. 썸네일은 그 질문 바로 뒤.
 2. 서로 다른 매체·기관의 자료 여러 건을 엮어 하나의 이야기로 만든다. 기사 한 건을 번역하듯 옮기지 않는다.
@@ -75,8 +98,18 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
    같은 소제목 안에서 같은 출처 꼬리표를 되풀이하지 않는다(처음 한 번만). AI 이미지 고지 문구는 쓰지 않는다(끝에 자동으로 붙는다).
 4. 제작자의 시선으로 쉽게 풀어 쓴다. 본문은 첫 줄부터 ~입니다/~습니다 체. 소제목은 '~입니다'로 끝내지 않고 명사형 또는 짧은 질문으로 끝낸다(예: '…투자 약속이 아니라 논의', '…돈은 다름', '두바이가 원하는 것은 무엇?'). 지어낸 인용·숫자 금지. 해석은 해석이라고 밝힌다.
 5. 돈·셀럽·뒷얘기 중 이 글의 축을 끝까지 밀고 간다.
-6. 그림은 내용을 설명하는 AI 재구성 장면이다(끝에 고지 문구를 넣는다).
-7. 끝에 관련 기업·종목을 정리하되 매수·매도를 권하지 않는다. 상장사만, 시장과 종목코드 포함. 비상장사·펀드는 종목으로 쓰지 않고 그 사실을 밝힌다.
+5-1. 특정 작품이 중심인 글이면, 독자는 '그래서 어떤 작품인데? 왜 그렇게 됐는데?'부터 궁금하다.
+   첫 번째 소제목에서 무엇에 관한 작품인지 인물·사건·장면으로 구체적으로 보여 주고(글감의 work.what, makers),
+   두 번째 소제목에서 왜 화제·흥행이 됐는지 평단·관객이 꼽은 이유를 근거와 함께 쓴다(work.why_hit). 돈·배급·한국 개봉 이야기는 그다음이다.
+5-2. 유보 문장('~은 다릅니다', '~라고 단정할 수 없습니다', '~은 확인되지 않았습니다', '~을 보장하지 않습니다')은 글 전체에서 세 번 이하.
+   소제목마다 유보로 끝내지 않는다. 확인 안 된 것은 한 번 밝히고 넘어간다. 독자가 새로 알게 되는 사실과 장면으로 지면을 채운다.
+5-3. sources 에는 신뢰할 수 있는 언론·공식 기관·집계 사이트만. 텔레그램·커뮤니티 모음 사이트·상표 출원 문서는 넣지 않는다.
+6. 그림은 내용을 설명하는 AI 재구성 장면이다(고지 문구는 끝에 자동으로 붙는다).
+7. 돈·셀럽·뒷얘기를 주식시장과 잇는다. 본문 소제목 하나는 '이 일이 어느 상장사의 어떤 사업과 이어지나'를 다룬다(글감의 market_link).
+   한국·미국·일본 등 상장사의 사업 구조(매출 비중, 배급·제작·IP·극장·플랫폼 계약)를 공시·IR·보도 근거로 설명한다. 주가가 오를지 내릴지는 쓰지 않는다.
+   국내 상장사 연결을 먼저 다루고, 해외 상장사는 그다음에 국내 회사와 어떻게 얽히는지(배급·공동제작·플랫폼 계약 상대 등)로 잇는다.
+   끝의 '관련 기업과 종목'에는 상장사만, 국내 종목을 먼저 적고 해외 종목을 뒤에 적는다. 시장과 종목코드, 이 이야기와 이어지는 이유 한 줄. 매수·매도를 권하지 않는다.
+   비상장사·펀드는 종목으로 쓰지 않고 그 사실을 밝힌다.
 
 형식
 - 제목: 가운데 정렬로 쓸 질문 한 줄, 부제 없이 25자 안팎(예: 두바이의 돈은 한국 영화로 들어올까?).
@@ -92,7 +125,8 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
   0번 kind "shiho": 썸네일. {character}. 화면 위쪽 40%를 하늘·배경으로 비우고(제목 글자 자리) 그녀의 머리는 화면 가운데보다 아래에서 시작.
      prompt 에 'The top 40 percent of the frame is empty sky. Her head starts below the middle of the frame. She is the only person in the frame.' 를 넣는다.
   1번 kind "crew": BTS(비하인드 더 신) 촬영장, 고급 시네마틱 3D 애니메이션 영화 같은 그림으로, 영화의 장르적 장면과 그것을 만드는 평범한 작업이 한 화면에 같이 보여서 웃음이나 놀라움을 주는 순간.
-     이번 글의 촬영장은 이것으로 정해져 있다(이야기의 장르·나라에 맞게 인물·의상·세트를 구체적으로 채운다): {bts}
+     이번 글의 촬영장 후보 셋 가운데 이 글의 작품·장르와 가장 어울리는 하나를 골라, 인물·의상·세트를 이야기에 맞게 구체적으로 채운다(글과 상관없는 동물·장르를 억지로 넣지 않는다):
+     {bts}
      먼저 순간을 하나로 정한다(촬영 중 / 테이크 사이 쉬는 시간 / 세팅 중). 모든 인물의 행동은 그 순간에 실제로 하는 일이어야 한다. 쉬는 시간에 반사판·붐마이크를 들고 있거나 조명을 비추는 스태프는 없다(쉬는 시간의 스태프는 분장 수정, 대본 확인, 모니터 재생, 장비 정리, 물 마시기를 한다). 배우는 자동차·소품·장비 위에 앉지 않는다. 쉬는 시간의 배우는 접이식 배우 의자에 앉거나 서 있다. 거리·마을 장면은 실제 거리보다 오픈 세트(합판 건물 정면, 뒤쪽 비계)로 재현한다.
      인물은 실제 현장처럼 남녀가 자연스럽게 섞인다. 뒤쪽 배경 스태프는 작게. SHIHO 는 이 현장을 구경하러 온 사람으로 화면 맨 왼쪽에 온몸이 보이게 서 있고, 장비 케이스에 기대어 두 손으로 턱을 괴고 세트를 즐겁게 바라본다. SHIHO 는 스태프 일을 하지 않고 세트를 가리지 않는다.
      구도: 세트가 화면 가운데를 차지하는 주인공, 앞쪽 아래에 카메라 오퍼레이터, 오른쪽에 세트를 손보는 스태프 1명, 왼쪽 끝에 SHIHO. 세트는 밝게, 주변 스튜디오는 어둡게. 배경막·세트 앞에는 아무도 서지 않는다. 카메라를 정면으로 보는 사람 없음(쉬는 시간 장면에서는 한 사람이 어깨 너머로 돌아보며 웃는 것까지 허용). 기존 영화·만화의 실존 캐릭터 의상, 실존 배우, 로고, 슬레이트 글씨는 넣지 않는다. 이 그림의 caption 과 filename 은 특정 실제 작품의 촬영 현장이라고 쓰지 않는다(예: '[이미지 2: 멜로 영화 오픈 세트의 쉬는 시간, AI로 재구성한 촬영 현장]'처럼 장르와 'AI로 재구성'을 적는다).
@@ -112,7 +146,7 @@ JSON 만 출력:
  "blocks": [{{"type": "p", "text": "261억 원."}}, {{"type": "p", "text": "..."}}, {{"type": "image", "no": 0}}, {{"type": "h", "text": "소제목"}}, {{"type": "p", "text": "..."}}, {{"type": "image", "no": 1}}],
  "images": [{{"no": 0, "kind": "shiho", "role": "썸네일", "filename": "...", "prompt": "...", "caption": "[이미지 1: ...]"}},
             {{"no": 1, "kind": "scene", "role": "장면", "filename": "...", "prompt": "...", "caption": "[이미지 2: ...]"}}],
- "stocks": [{{"name": "...", "market": "코스피|코스닥|NASDAQ|NYSE|Tadawul|...", "code": "...", "reason": "..."}}], "stock_note": "...",
+ "stocks": [{{"name": "...", "market": "코스피|코스닥|NASDAQ|NYSE|TSE|Tadawul|...", "code": "...", "reason": "..."}}], "stock_note": "...",
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
 REVIEW_RESEARCH = """당신은 네이버 블로그 '리뷰&리뷰'의 리서치 담당입니다.
@@ -281,7 +315,7 @@ BTS_SCENES = [
 
 
 def pick_bts() -> str:
-    """BTS 촬영장 상황을 무작위로 고른다. 최근 5번 쓴 상황은 피한다."""
+    """BTS 촬영장 후보 셋을 무작위로 고른다(최근 5번 쓴 상황은 피함). 작가가 글에 맞는 하나를 고른다."""
     import random
     from . import storage
     key = "blog/bts_recent.json"
@@ -290,12 +324,12 @@ def pick_bts() -> str:
     except Exception:
         recent = []
     choices = [i for i in range(len(BTS_SCENES)) if i not in recent] or list(range(len(BTS_SCENES)))
-    i = random.choice(choices)
+    picks = random.sample(choices, min(3, len(choices)))
     try:
-        storage.put_bytes(key, json.dumps((recent + [i])[-5:]).encode(), "application/json")
+        storage.put_bytes(key, json.dumps((recent + picks[:1])[-5:]).encode(), "application/json")
     except Exception:
         pass
-    return BTS_SCENES[i]
+    return " / ".join(f"({n + 1}) {BTS_SCENES[i]}" for n, i in enumerate(picks))
 
 
 def write(cfg: dict, blog: str, topic: dict) -> dict:
@@ -306,6 +340,7 @@ def write(cfg: dict, blog: str, topic: dict) -> dict:
         extra["crew_character"] = (bc.get("crew_character") or bc.get("character", "")).strip()
     sys_w = PROMPTS[blog][1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
     user = (f"오늘은 {_now():%Y년 %m월 %d일}입니다. 아래 글감으로 원고를 쓰세요. 필요하면 웹 검색으로 사실을 다시 확인하세요.\n"
+            + ("편집장이 돌려보낸 원고입니다. editor_fix 의 지적을 모두 고쳐 새로 쓰세요.\n" if topic.get("editor_fix") else "")
             + json.dumps(topic, ensure_ascii=False))
     art = _ask(cfg, sys_w, user, search=True)
     art["images"] = sorted(art.get("images", []), key=lambda x: x.get("no", 0))[:n]
@@ -331,6 +366,8 @@ def tidy(art: dict) -> dict:
     seen: set[str] = set()
     keep = []
     for bl in art.get("blocks", []):
+        if bl.get("type") == "h":  # 소제목 앞 ■ 는 게시용 텍스트에서 한 번만 붙인다
+            bl["text"] = re.sub(r"^[■\s]+", "", bl.get("text", ""))
         if bl.get("type") == "h":
             seen = set()
         if bl.get("type") in ("p", "h", "memo"):
@@ -359,7 +396,7 @@ def tidy(art: dict) -> dict:
 
 VERIFY = """당신은 CINEPARK 의 검수 담당입니다. 아래 기업 목록의 상장 여부, 거래소, 종목코드를 웹 검색으로 하나씩 확인해 고칩니다.
 - 합병·사명 변경이 있었으면 지금 이름과 지금 코드로 고친다(예: 합병 후 새 법인).
-- 한국 거래소는 '코스피' 또는 '코스닥', 해외는 NASDAQ, NYSE, Tadawul 처럼 쓴다.
+- 한국 거래소는 '코스피' 또는 '코스닥', 해외는 NASDAQ, NYSE, TSE(도쿄증권거래소), Tadawul 처럼 쓴다.
 - 비상장이거나 확인되지 않으면 listed 를 false 로 둔다.
 JSON 만 출력: {"stocks": [{"name": "...", "market": "...", "code": "...", "listed": true, "fixed": "고친 점(없으면 빈 문자열)"}]}"""
 
@@ -386,7 +423,7 @@ def verify_stocks(cfg: dict, art: dict) -> list[str]:
         x.update({"name": v.get("name") or x.get("name"), "market": v.get("market") or x.get("market"),
                   "code": v.get("code") or x.get("code")})
         out.append(x)
-    art["stocks"] = out
+    art["stocks"] = sorted(out, key=lambda x: 0 if x.get("market") in ("코스피", "코스닥", "KOSPI", "KOSDAQ", "코넥스") else 1)  # 국내 종목 먼저
     return notes
 
 
@@ -410,6 +447,8 @@ def check(blog: str, art: dict) -> list[str]:
             probs.append("그림 글자(label) 빠짐")
     if not art.get("images"):
         probs.append("그림 계획 없음")
+    if art.get("editor_fix"):
+        probs.append("편집장 반려: " + "; ".join(art["editor_fix"])[:200])
     return probs
 
 
@@ -454,6 +493,27 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
             _log("dev", f"{bc['name']} 그림 {im['no'] + 1} 실패: {str(e)[:120]}", "error")
 
 
+EDITOR = """당신은 네이버 영화 블로그 CINEPARK 의 편집장입니다. 그림을 그리기 전에 원고를 검토합니다(그림 비용이 크므로 부족한 원고는 여기서 돌려보냅니다).
+아래 여섯 가지를 보고 하나라도 걸리면 ok=false.
+1. 특정 작품이 중심인 글인데, 무엇에 관한 작품인지(인물·사건·장면)가 본문에 구체적으로 없다.
+2. 제목·도입이 던진 질문('왜 1위?', '어떤 돈?')에 본문이 답하지 않는다.
+3. '~은 다릅니다', '단정할 수 없습니다', '확인되지 않았습니다' 같은 유보 문장이 네 번 이상이거나, 소제목마다 유보로 끝난다.
+4. 출처에 텔레그램·커뮤니티 모음 사이트·상표 출원 문서 같은 믿기 어려운 자료가 있다.
+5. 영화잡지 기획기사가 아니라 속보 기사처럼 읽힌다: 뉴스 사실의 나열뿐이고, 관점(angle)과 배경(선례·비교·업계 구조·비평)이 없다.
+6. 상장사와의 연결이 근거 없이 억지스럽거나(사업 경로 설명 없이 이름만 나열), 주가 전망·매수 권유처럼 읽히는 문장이 있다.
+JSON 만 출력: {"ok": true|false, "fix": ["고칠 점 한 줄", "..."]}"""
+
+
+def edit_check(cfg: dict, art: dict) -> dict:
+    """편집장 검토. 웹 검색 없이 원고만 본다."""
+    body = {"title": art.get("title"), "blocks": [b for b in art.get("blocks", []) if b.get("type") in ("p", "h")],
+            "sources": art.get("sources", [])}
+    try:
+        return _ask(cfg, EDITOR, json.dumps(body, ensure_ascii=False), search=False)
+    except Exception:
+        return {"ok": True, "fix": []}
+
+
 def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None,
                  mode: str = "실시간", for_date: str | None = None) -> str:
     """글감 → 원고 → 그림 → 점검 → 보관. 패키지 id 를 돌려준다."""
@@ -483,6 +543,18 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
         _log("writer", f"{name} 원고 쓰는 중: {topic.get('title_idea', '')[:30]}", "working")
         art = tidy(write(cfg, blog, topic))
         _log("writer", f"{name} 원고 완성: {art.get('title', '')[:30]}", "done")
+        if blog == "cinepark":
+            ed = edit_check(cfg, art)
+            if not ed.get("ok", True):
+                fix = ed.get("fix", [])
+                _log("review", f"{name} 편집장 반려 → 다시 쓰기: {'; '.join(fix)[:120]}", "working")
+                art = tidy(write(cfg, blog, dict(topic, editor_fix=fix)))
+                ed = edit_check(cfg, art)
+            if not ed.get("ok", True):
+                art["editor_fix"] = ed.get("fix", [])
+                _log("review", f"{name} 편집장 2차 반려 — 그림은 그리지 않습니다: {'; '.join(art['editor_fix'])[:120]}", "error")
+            else:
+                _log("review", f"{name} 편집장 통과", "done")
         if art.get("stocks"):
             _set_step(blog, "원고 쓰는 중 · 종목 확인")
             _log("review", f"{name} 관련 종목 거래소·코드 확인 중", "working")
@@ -494,7 +566,11 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
                 art["stock_fixes"] = [f"확인 실패: {str(e)[:80]}"]
         _set_step(blog, "그림 그리는 중")
         b = load()
-        draw_images(cfg, blog, pid, art, b)
+        if art.get("editor_fix"):
+            for im in art.get("images", []):
+                im["error"] = "편집장 반려로 그림을 그리지 않음"
+        else:
+            draw_images(cfg, blog, pid, art, b)
         ok = sum(1 for im in art["images"] if im.get("r2_key"))
         _log("image", f"{name} 그림 {ok}/{len(art['images'])}장 완성", "done" if ok == len(art["images"]) else "error")
         probs = check(blog, art)
