@@ -10,7 +10,7 @@ import json
 import os
 import re
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 
 def _client():
@@ -21,6 +21,7 @@ def _client():
 def _shrink(data: bytes, max_side: int = 1536) -> bytes:
     """참고 이미지는 1536px 이하 PNG 로 줄여 보낸다 (입력 비용·업로드 크기 절약)."""
     im = Image.open(io.BytesIO(data))
+    im = ImageOps.exif_transpose(im)  # 휴대폰 사진의 방향 정보(EXIF)대로 바로 세운다
     im = im.convert("RGB")
     im.thumbnail((max_side, max_side))
     out = io.BytesIO()

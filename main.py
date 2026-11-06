@@ -113,6 +113,18 @@ if not connected:
     st.error(f"사무실 기록(R2)에 연결하지 못했습니다. '설정 · 연결'에서 비밀값을 확인해 주세요.\n\n{state['_error']}")
     state = {"history": [], "queue": {}, "agent_now": {}, "agent_log": []}
 
+if connected and not st.session_state.get("changes_announced"):
+    # 새 코드가 올라온 뒤 처음 열 때, 설계·개발·보안이 반영한 내용을 책상에 띄운다
+    try:
+        from office import changelog
+        _s = fresh_state()
+        if changelog.announce(_s):
+            save(_s)
+            state = _s
+    except Exception:
+        pass
+    st.session_state["changes_announced"] = True
+
 queue = state.get("queue", {})
 today = P.now_kst().date().isoformat()
 

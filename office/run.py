@@ -222,6 +222,13 @@ def work(lane_name: str = "work") -> None:
     import time
     from . import jobs
     t0 = time.time()
+    try:  # 설계·개발·보안 책상: 새로 반영된 변경 알림 + 하루 한 번 보안 점검
+        from . import changelog, storage
+        st = _state()
+        if changelog.announce(st) | changelog.security_check(st):
+            storage.save_state(st)
+    except Exception as e:
+        log(f"보안 점검을 건너뜁니다: {type(e).__name__}")
     n = jobs.recover_stale()
     if n:
         log(f"멈춰 있던 지시서 {n}건을 다시 대기로 돌렸습니다.")
