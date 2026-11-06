@@ -145,7 +145,7 @@ blog:
         Wide cinematic establishing shot, 16:9 landscape, 24mm wide-angle lens, eye-level camera.
         The film set is brightly lit and is the primary visual focus; the surrounding studio stays darker, lit by practical film lights.
         The artificial nature of the set stays visible: backdrop edges, support bars, clamps, scaffolding.
-        When reference images are attached, the woman from them keeps the same face, hairstyle, body proportions and clothing;
+        When reference images are attached, the woman from them keeps the same face, hairstyle and body proportions, wearing the outfit described;
         her entire figure is clearly visible at the far left of the frame and she does not block the set.
         Background crew are few, small, discreet and out of focus, a natural mix of men and women, and nobody stands in front of the set or the backdrop.
         No 2D anime drawing, no watercolor illustration, no cel shading, no flat cartoon rendering. No distorted anatomy, extra limbs or unnatural hands.
@@ -154,6 +154,10 @@ blog:
         SHIHO, a young Korean woman with long straight black hair in a high ponytail, wearing a white
         short-sleeved collared button-up shirt tucked into light blue wide-leg jeans, white sneakers and a
         beige leather shoulder bag, matching the woman in the attached reference images exactly
+      crew_character: >-
+        SHIHO, a young adult Korean woman with long glossy black hair in a high ponytail with a few loose strands framing her face,
+        wearing a fitted white sleeveless top, light blue wide-leg jeans, white sneakers and a small beige crossbody shoulder bag,
+        matching the face of the woman in the attached reference images
     review:
       name: 리뷰&리뷰
       images: 6                  # 썸네일 1 + 본문 5, 모든 그림 위쪽에 짧은 글자(label)

@@ -416,7 +416,8 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.warning(f"최근 실패 ({errs[0]['t'][5:16]}): {errs[0]['error'][:200]}")
 
     st.divider()
-    pkgs = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id), key=lambda p: p["made"], reverse=True)
+    pkgs = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id and not p.get("deleted")),
+                  key=lambda p: p["made"], reverse=True)
     if not pkgs:
         st.caption("아직 만든 패키지가 없습니다.")
     for i, p in enumerate(pkgs[:15]):
@@ -446,6 +447,16 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                                    file_name=f"{bc['name']}_{p['id']}.zip", mime="application/zip", key=f"z_{p['id']}")
             except Exception as e:
                 st.caption(f"묶음을 만들지 못했습니다: {e}")
+            dc1, dc2 = st.columns([3, 1])
+            sure = dc1.checkbox("이 패키지를 지웁니다 (예약 글이면 그날 다시 만들지 않습니다)", key=f"dc_{p['id']}")
+            if dc2.button("삭제", key=f"del_{p['id']}", disabled=not sure):
+                b2 = blog.load()
+                if p["id"] in b2["packages"]:
+                    b2["packages"][p["id"]]["deleted"] = P.now_kst().isoformat(timespec="seconds")
+                    blog.save(b2)
+                blog_state_cached.clear()
+                st.toast(f"'{a.get('title', '')}' 패키지를 지웠습니다.")
+                st.rerun()
             if p.get("others"):
                 st.markdown("**다른 글감**")
                 for k, t in enumerate(p["others"]):

@@ -96,7 +96,7 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
      먼저 순간을 하나로 정한다(촬영 중 / 테이크 사이 쉬는 시간 / 세팅 중). 모든 인물의 행동은 그 순간에 실제로 하는 일이어야 한다. 쉬는 시간에 반사판·붐마이크를 들고 있거나 조명을 비추는 스태프는 없다(쉬는 시간의 스태프는 분장 수정, 대본 확인, 모니터 재생, 장비 정리, 물 마시기를 한다). 배우는 자동차·소품·장비 위에 앉지 않는다. 쉬는 시간의 배우는 접이식 배우 의자에 앉거나 서 있다. 거리·마을 장면은 실제 거리보다 오픈 세트(합판 건물 정면, 뒤쪽 비계)로 재현한다.
      인물은 실제 현장처럼 남녀가 자연스럽게 섞인다. 뒤쪽 배경 스태프는 작게. SHIHO 는 이 현장을 구경하러 온 사람으로 화면 맨 왼쪽에 온몸이 보이게 서 있고, 장비 케이스에 기대어 두 손으로 턱을 괴고 세트를 즐겁게 바라본다. SHIHO 는 스태프 일을 하지 않고 세트를 가리지 않는다.
      구도: 세트가 화면 가운데를 차지하는 주인공, 앞쪽 아래에 카메라 오퍼레이터, 오른쪽에 세트를 손보는 스태프 1명, 왼쪽 끝에 SHIHO. 세트는 밝게, 주변 스튜디오는 어둡게. 배경막·세트 앞에는 아무도 서지 않는다. 카메라를 정면으로 보는 사람 없음(쉬는 시간 장면에서는 한 사람이 어깨 너머로 돌아보며 웃는 것까지 허용). 기존 영화·만화의 실존 캐릭터 의상, 실존 배우, 로고, 슬레이트 글씨는 넣지 않는다. 이 그림의 caption 과 filename 은 특정 실제 작품의 촬영 현장이라고 쓰지 않는다(예: '[이미지 2: 멜로 영화 오픈 세트의 쉬는 시간, AI로 재구성한 촬영 현장]'처럼 장르와 'AI로 재구성'을 적는다).
-     prompt 에 'A wide behind-the-scenes view inside a film studio.' 로 시작하고, SHIHO 묘사({character})와 그녀의 위치·동작을 넣는다.
+     prompt 에 'A wide behind-the-scenes view inside a film studio.' 로 시작하고, SHIHO 묘사({crew_character})와 그녀의 위치·동작을 넣는다. 이 그림에서 SHIHO 는 이 옷(민소매)을 입는다.
   2번 kind "object": 이 이야기를 상징하는 사물 정물(예: 계약서와 만년필, 필름 릴과 극장 티켓, 촬영용 카메라, 스트리밍 리모컨). 사람 없음, 손도 없음. 사물은 2~3개만 정하고 prompt 끝에 'Nothing else is on the surface.' 를 넣는다.
   3번 kind "scene": 자연 풍광, 사람 없음. 이야기의 나라·도시와 이어지는 자연을 고른다(예: 두바이 이야기면 이른 아침의 사막 모래언덕, 뉴욕이면 가을 센트럴파크의 빈 산책로, 칸이면 잔잔한 지중해 해변, 한국 영화면 안개 낀 강가나 억새 들판). 이어지는 곳이 없으면 이야기 분위기에 맞는 바다·숲길·호수·들판 중 하나. 하늘과 빈 공간을 넓게, 부드러운 낮빛, 건물·랜드마크 없이.
   4번 kind "shiho": {character}. 0번과 다른 장소·시간대(낮을 우선)·동작으로. 동작은 다음 중 하나를 고른다:
@@ -300,6 +300,8 @@ def write(cfg: dict, blog: str, topic: dict) -> dict:
     bc = cfg["blog"]["blogs"][blog]
     n = bc["images"]
     extra = {"bts": pick_bts()} if "{bts}" in PROMPTS[blog][1] else {}
+    if "{crew_character}" in PROMPTS[blog][1]:
+        extra["crew_character"] = (bc.get("crew_character") or bc.get("character", "")).strip()
     sys_w = PROMPTS[blog][1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
     user = (f"오늘은 {_now():%Y년 %m월 %d일}입니다. 아래 글감으로 원고를 쓰세요. 필요하면 웹 검색으로 사실을 다시 확인하세요.\n"
             + json.dumps(topic, ensure_ascii=False))
