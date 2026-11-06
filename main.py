@@ -257,6 +257,16 @@ elif page == "Threads 데스크":
                     R.produce()
             load_state_cached.clear()
             st.rerun()
+        rc1, rc2 = st.columns([3, 1])
+        sure_all = rc1.checkbox("예약 게시물을 전부 빼고 새 규칙으로 다시 만듭니다 (20분 안에 올라갈 것은 그대로 둡니다)", key="rebuild_ok")
+        if rc2.button("예약 전부 새로 만들기", disabled=not sure_all):
+            if server_ready():
+                give_order("rebuild", {}, "image", "Threads 예약 전부 새로 만들기")
+            else:
+                with st.spinner("예약 게시물을 전부 새로 만드는 중입니다. 15장 안팎이라 20분 넘게 걸립니다. 창을 닫지 마십시오."):
+                    R.rebuild()
+            load_state_cached.clear()
+            st.rerun()
         cols = st.columns(3)
         for i, k in enumerate(keys):
             v = queue[k]

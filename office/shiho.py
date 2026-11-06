@@ -13,6 +13,7 @@ from . import jobs
 ACTIONS = """
 - produce: 게시 재고 채우기. args 없음.
 - remake: 특정 게시물을 빼고 새로 만들기. args: {"slot": "YYYY-MM-DD_HHMM"}
+- rebuild: Threads 예약 게시물을 전부 빼고 새로 만들기. args 없음.
 - post_now: 특정 게시물을 지금 게시. args: {"slot": "YYYY-MM-DD_HHMM"}
 - next_cat: 다음 고양이 품종·장면 지정. args: {"breed": 품종id 또는 null, "scene": 장면id 또는 null}
 - exclude_breed: 품종 빼기/되살리기. args: {"breed": 품종id, "on": true(빼기)|false(되살리기)}
@@ -54,7 +55,7 @@ def interpret(cfg: dict, order: str, today: str) -> dict:
     return data
 
 
-WHO = {"produce": "shiho", "remake": "image", "post_now": "channel", "next_cat": "image",
+WHO = {"produce": "shiho", "rebuild": "image", "remake": "image", "post_now": "channel", "next_cat": "image",
        "exclude_breed": "image", "ban_word": "review", "add_example": "writer", "blog_make": "research", "note": "shiho"}
 
 
@@ -75,10 +76,10 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
         t, args = a.get("type"), a.get("args") or {}
         who = WHO.get(t, "shiho")
         try:
-            if t in ("produce", "remake", "post_now") and _server_ready():
+            if t in ("produce", "remake", "post_now", "rebuild") and _server_ready():
                 # 오래 걸리는 일은 지시서로 넘겨 GitHub 서버(엔진)가 처리 → 창을 닫아도 계속됨
                 slot = args.get("slot", "")
-                if t != "produce" and slot not in state.get("queue", {}):
+                if t not in ("produce", "rebuild") and slot not in state.get("queue", {}):
                     done.append(f"{slot} 게시물을 찾지 못했습니다.")
                     continue
                 job, kicked = jobs.order(t, {"slot": slot} if slot else {}, "SHIHO")
@@ -86,6 +87,9 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
                 act(state, who, f"{job['label']} {slot} 대기 (지시서 {job['id']})", "working")
                 done.append(f"지시서를 넘겼습니다({(job['label'] + ' ' + slot).strip()}). 서버에서 처리하니 창을 닫으셔도 됩니다."
                             + ("" if kicked else " 서버 신호가 닿지 않아 한 시간 안의 순찰 때 처리됩니다."))
+            elif t == "rebuild":
+                act(state, "shiho", "Mr. MOON 지시: 예약 전부 새로 만들기 → 이미지·작가 담당", "done")
+                done.append(run_module.save_and_rebuild(state))
             elif t == "produce":
                 act(state, "shiho", "Mr. MOON 지시: 재고 채우기 → 이미지·작가 담당", "done")
                 run_module.save_and_produce(state)

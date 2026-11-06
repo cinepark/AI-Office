@@ -18,9 +18,9 @@ import uuid
 from .staff import KST
 
 JOBS_KEY = "office/jobs.json"
-THREADS_TYPES = {"produce", "remake", "post_now"}
+THREADS_TYPES = {"produce", "remake", "post_now", "rebuild"}
 BLOG_TYPES = {"blog_make"}
-LABEL = {"produce": "Threads 재고 채우기", "remake": "Threads 게시물 다시 만들기", "post_now": "Threads 지금 게시",
+LABEL = {"produce": "Threads 재고 채우기", "remake": "Threads 게시물 다시 만들기", "post_now": "Threads 지금 게시", "rebuild": "Threads 예약 전부 새로 만들기",
          "blog_make": "블로그 패키지 만들기"}
 
 

@@ -217,6 +217,51 @@ def produce() -> None:
         log(f"✘ 블로그 예약 패키지 실패: {e}")
 
 
+def save_and_rebuild(state: dict) -> str:
+    """화면(SHIHO)에서 직접 실행할 때: 화면 기록을 먼저 저장 → 다시 만들기 → 화면 기록을 새로 읽는다."""
+    from . import storage
+    storage.save_state(state)
+    r = rebuild()
+    state.clear()
+    state.update(_state())
+    return r
+
+
+def rebuild() -> str:
+    """게시 예정 재고를 전부 빼고 새 규칙으로 다시 만든다 (오늘 남은 시간 + 3일치).
+    빠진 게시물의 여행 사진은 다시 뽑지 않는다. 한 번에 만드는 일이라 하루 이미지 상한 대신 16장 상한을 쓴다."""
+    from . import storage
+    st = _state()
+    now = P.now_kst()
+    today = now.date()
+    targets = []
+    for key, slot in P.upcoming_slot_keys(CFG, today, CFG["stock_days"] + 1):
+        when = dt.datetime.strptime(key, "%Y-%m-%d_%H%M").replace(tzinfo=now.tzinfo)
+        if when < now + dt.timedelta(minutes=20):
+            continue  # 곧 게시될 것·지난 것은 건드리지 않는다
+        if st["queue"].get(key, {}).get("status") == "posted":
+            continue
+        targets.append((key, slot))
+    for key, _ in targets:
+        if key in st["queue"]:
+            st["queue"][key]["status"] = "skipped"
+    act(st, "shiho", f"Mr. MOON 지시: 예약 {len(targets)}건 전부 새로 만들기 → 이미지·작가 담당", "done")
+    storage.save_state(st)
+    made = 0
+    for key, slot in targets[:16]:
+        try:
+            st["queue"][key] = make_item(st, key, slot)
+            made += 1
+            log(f"✔ {key} 새로 만듦")
+            storage.save_state(st)
+        except Exception as e:
+            log(f"✘ {key} 실패: {e}")
+            traceback.print_exc()
+    act(st, "shiho", f"예약 전부 새로 만들기 끝 — {made}/{len(targets)}건", "done" if made == len(targets) else "error")
+    storage.save_state(st)
+    return f"예약 {made}/{len(targets)}건 새로 만듦"
+
+
 def work(lane_name: str = "work") -> None:
     """업무 지시서 처리 (python -m office.run work | blogwork). 남은 지시서가 없거나 38분이 지나면 끝낸다."""
     import time
@@ -267,6 +312,8 @@ def _do_job(job: dict) -> str:
         st["queue"][key] = make_item(st, key, slot)
         storage.save_state(st)
         return f"{key} 새로 만듦"
+    if t == "rebuild":
+        return rebuild()
     if t == "post_now":
         st = _state()
         publish_item(st, a["slot"])
@@ -433,5 +480,6 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "selftest"
     {"produce": produce, "post": post, "refresh": refresh, "selftest": selftest,
      "skip": lambda: skip(sys.argv[2]),
+     "rebuild": rebuild,
      "blog": lambda: blog_now(sys.argv[2] if len(sys.argv) > 2 else "cinepark"),
      "work": lambda: work("work"), "blogwork": lambda: work("blogwork")}[cmd]()

@@ -22,6 +22,7 @@ CHANGES = [
     {"id": "2026-11-06-cats", "who": "dev", "text": "Threads 고양이 장면 40개, 계절 장면, 시점·시간대 무작위로 중복 방지"},
     {"id": "2026-11-06-delete", "who": "design", "text": "블로그 패키지 삭제 버튼 추가"},
     {"id": "2026-11-06-exif", "who": "dev", "text": "휴대폰 여행 사진이 눕는 문제 수정: 사진 방향 정보(EXIF)대로 바로 세움"},
+    {"id": "2026-11-06-rebuild", "who": "dev", "text": "Threads '예약 전부 새로 만들기' 버튼 (중복·누운 사진 일괄 교체)"},
     {"id": "2026-11-06-security", "who": "security", "text": "매일 비밀값·Threads 토큰 남은 기간 자동 점검 시작"},
 ]
 
