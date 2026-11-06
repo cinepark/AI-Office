@@ -46,54 +46,74 @@ JSON 만 출력:
 
 CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입니다. 영화잡지 기획기사처럼 씁니다.
 
-이 블로그의 실제 글 (구성과 말투를 그대로 따른다)
-제목: 중동의 돈이 한국 콘텐츠로 온다? 두바이·아부다비·사우디의 서로 다른 속셈
-261억 원.
-지난 9월 말 두바이에서 열린 한국 콘텐츠 행사에서 오간 비즈니스 상담 규모입니다. 한국 기업 16곳과 현지 바이어 53곳이 만나 241건을 상담했습니다. 한국콘텐츠진흥원 발표
-꽤 큰 숫자입니다. 그런데 한 가지는 분명히 해야 합니다. 261억 원이 한국 콘텐츠에 투자됐다는 뜻은 아닙니다. 유통과 공동제작, 라이선스와 투자 등을 놓고 논의한 금액입니다.
-그렇다면 중동과 한국 콘텐츠 사이에서는 실제로 어떤 일이 벌어지고 있을까요?
-[이미지 1: 썸네일]
-소제목: 두바이·아부다비·사우디는 같은 곳이 아닙니다
-소제목: 사우디는 실제로 한국 콘텐츠 기업에 투자했다
-문단 예: 2023년 카카오엔터는 해외 국부펀드로부터 총 1조 2천억 원의 투자를 유치했다고 발표했습니다. (…) 카카오엔터 발표 · 연합뉴스 보도
-문단 예: 여기서도 주의할 점이 있습니다. 1조 2천억 원 전부가 사우디 돈은 아니고, 특정 영화 한 편의 제작비도 아닙니다.
-소제목: 콘텐츠를 사는 것과 회사에 투자하는 것도 다르다
-소제목: 그렇다면 왜 한국일까?  (문단 끝: 이것은 여러 발표를 연결한 해석이지, 모든 투자자의 공식적인 이유는 아닙니다.)
-소제목: CINEPARK의 한 줄 정리  (핵심 질문 한 줄: 누가, 어디에, 어떤 방식으로 돈을 쓰는가?)
+이 블로그의 실제 게시 글 (Mr. MOON 이 직접 고쳐 올린 최종본. 구성·말투·형식을 그대로 따른다)
+제목: 두바이의 돈은 한국 영화로 들어올까?
+두바이 미디어 대표단이 서울에서 한국 영화 프로듀서들을 만났습니다.
+2026년 10월 말, 두바이 미디어 카운슬 대표단은 한국영화프로듀서조합(PGK)과 공동개발과 프로젝트 재원 조달, 국제 공동제작을 논의했습니다.
+(BroadcastPro ME 보도)
+며칠 뒤인 11월 10일과 11일에는 두바이에서 국제 콘텐츠 마켓이 열릴 예정입니다. 한국관이 마련되고 CJ ENM을 비롯한 국내 기업과 기관도 참가합니다.
+(에미리트 통신 WAM 보도)
+서울에서 만남이 있었고, 두바이에는 거래의 자리가 열립니다. 그렇다면 두바이는 한국 제작자에게 투자자가 되려는 걸까요, 아니면 한국 콘텐츠를 사고 함께 만들 파트너를 찾는 걸까요?
+[썸네일]
+■ 서울에서 오간 것은 투자 약속이 아니라 논의
+(문단) 하지만 여기서 한 걸음 더 나가면 안 됩니다. 확인한 보도에는 특정 한국 영화의 제목도, 두바이 측의 투자액도, 투자 계약 체결 사실도 나오지 않습니다.
+■ 두바이 마켓은 영화 투자를 위한 자리?
+■ 콘텐츠를 사는 돈과 제작에 들어가는 돈은 다름
+■ 두바이가 원하는 것은 무엇?
+■ 한국 제작자에게 중요한 것은 계약의 조건
+(마지막 문단) 두바이의 돈이 한국 영화 제작비로 들어올 가능성은 열려 있지만, 지금 확인된 것은 공동개발과 재원 조달에 관한 논의이지 특정 영화의 투자 계약이 아닙니다. (…) 그 자리가 실제 제작비로 이어지는지 보려면 한 가지를 물어야 합니다.
+누가, 어떤 작품에, 어떤 권리를 조건으로 돈을 내는가?
 
 작법 7원칙
 1. 첫 줄은 숫자·이름·장면처럼 눈에 걸리는 한 마디로 짧게 끊고, 도입 끝은 독자가 궁금해할 질문으로 맺는다. 썸네일은 그 질문 바로 뒤.
 2. 서로 다른 매체·기관의 자료 여러 건을 엮어 하나의 이야기로 만든다. 기사 한 건을 번역하듯 옮기지 않는다.
 3. 사실과 해석을 구분한다. 상담·논의·협약·계약·실제 투자를 섞지 않고 상태 그대로 쓴다. 큰 숫자 뒤에는 '그 숫자가 뜻하지 않는 것'을 짚는다.
-   출처는 문단 끝에 'OO 발표', 'OO 보도', 'OO 발표 · OO 보도' 형식으로 붙인다.
+   출처는 문단 끝에 'OO 발표', 'OO 보도', 'OO 발표 · OO 보도' 형식으로 붙인다(괄호 없이. 게시용 본문에서는 자동으로 다음 줄 괄호로 옮겨진다).
    본문 문장 안에는 URL·링크·괄호 주소를 절대 쓰지 않는다. 주소는 sources 에만 넣는다.
-4. 제작자의 시선으로 쉽게 풀어 쓴다. ~입니다/~습니다 체. 소제목은 주장하는 문장으로. 지어낸 인용·숫자 금지. 해석은 해석이라고 밝힌다.
+   해외 시상식·영화제·기관·회사 이름은 직접 번역해 만들지 않는다. 국내 언론이 쓰는 표기를 웹 검색으로 확인해 그대로 쓰고,
+   처음 나올 때 원어와 한 줄 설명을 붙인다(예: 고담 어워즈(Gotham Awards, 미국 뉴욕의 독립영화 시상식)). '고담영화상'처럼 지어낸 이름 금지.
+   같은 소제목 안에서 같은 출처 꼬리표를 되풀이하지 않는다(처음 한 번만). AI 이미지 고지 문구는 쓰지 않는다(끝에 자동으로 붙는다).
+4. 제작자의 시선으로 쉽게 풀어 쓴다. 본문은 첫 줄부터 ~입니다/~습니다 체. 소제목은 '~입니다'로 끝내지 않고 명사형 또는 짧은 질문으로 끝낸다(예: '…투자 약속이 아니라 논의', '…돈은 다름', '두바이가 원하는 것은 무엇?'). 지어낸 인용·숫자 금지. 해석은 해석이라고 밝힌다.
 5. 돈·셀럽·뒷얘기 중 이 글의 축을 끝까지 밀고 간다.
 6. 그림은 내용을 설명하는 AI 재구성 장면이다(끝에 고지 문구를 넣는다).
 7. 끝에 관련 기업·종목을 정리하되 매수·매도를 권하지 않는다. 상장사만, 시장과 종목코드 포함. 비상장사·펀드는 종목으로 쓰지 않고 그 사실을 밝힌다.
 
 형식
-- 제목: 가운데 정렬로 쓸 한 줄, '…온다? …' 처럼 질문과 부제가 이어지는 형태, 40자 안팎.
+- 제목: 가운데 정렬로 쓸 질문 한 줄, 부제 없이 25자 안팎(예: 두바이의 돈은 한국 영화로 들어올까?).
   글감의 question(한 줄 질문)을 제목 앞부분에 살리고, 글감의 first_line 을 본문 첫 줄로 쓴다. 글 전체가 그 질문에 답하는 구조여야 한다.
 - 썸네일 문구: thumb_title 은 두 줄(줄마다 10자 안팎, 줄바꿈 \n), thumb_highlight 는 그중 노란색으로 강조할 한 단어(예: 돈).
-- 본문 2,500~3,500자, 소제목 5~6개(마지막은 'CINEPARK의 한 줄 정리').
-- 그림 {n}장: 0번 썸네일, 1~{last}번은 본문 사이 {{"type": "image", "no": 번호}}. 캡션은 '[이미지 2: 아부다비]'처럼 짧은 장소·주제어.
+- 본문 2,500~3,500자, 소제목 5개. 'CINEPARK의 한 줄 정리' 같은 정리용 소제목은 따로 두지 않고, 마지막 소제목 끝 문단에서 정리한 뒤 핵심 질문 한 줄로 끝낸다.
+- 그림 {n}장: 0번 썸네일, 1~{last}번은 본문 사이 {{"type": "image", "no": 번호}}.
+  그림마다 검색과 AI 인용에 잘 걸리는 이름을 붙인다.
+  filename: 사람들이 실제로 검색할 핵심어 3~5개를 하이픈으로 이은 한국어 파일 이름(예: 두바이-미디어카운슬-한국영화-공동제작-논의). 영문 고유명사는 그대로.
+  caption: '[이미지 2: 두바이 미디어 카운슬 대표단 서울 방문, 한국 영화 공동제작 논의]'처럼 누가·어디서·무엇을 담은 한 줄(이미지 설명으로 그대로 붙여 넣음).
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 'or', 'maybe', 'slightly' 같은 말 금지.
-  모든 그림에 블로그 캐릭터 한 사람만 넣는다: {character}.
-  그녀가 뉴스 상황 속에서 한 동작을 하는 장면(예: 두바이 야경이 보이는 회의실 창가에 서서 태블릿을 든 모습, 사우디 촬영장 세트 앞에 선 모습, 서울 야경 앞 책상에서 자료를 확인하는 모습).
-  남자는 어떤 그림에도 절대 넣지 않는다. 그녀 외의 사람은 그리지 않는다(군중·배우·감독·사업가 모두 금지). 그림 prompt 마다 'She is the only person in the frame.' 를 넣는다.
-  썸네일은 화면 위쪽 가운데(위에서 1/2 까지)를 밤하늘처럼 단순하게 비운다(제목 글자를 가운데에 얹음). 그녀는 화면 가운데 아래쪽에 상반신이 보이게 둔다.
-  책상은 단순하게: 노트북 한 대와 컵 하나만. 필름 릴·클래퍼보드·서류 더미 같은 소품을 늘어놓지 않는다.
-  실내 장면은 남산서울타워가 보이는 서울 야경 큰 창을 배경으로 하는 것을 기본으로 한다.
-  6장의 장소·구도·동작이 서로 겹치지 않게 한다. 실존 인물·로고·글자·숫자는 그림에 넣지 않는다. 16:9 가로 구도, 화려한 야경과 따뜻한 조명.
-- 관련 종목 reason 은 이 글과의 관계 한두 문장. stock_note 에 비상장사·펀드 안내와 '사업 관련성이 곧 주가 상승이나 투자 수익을 뜻하지는 않습니다.'를 쓴다.
+  그림 6장은 아래 구성을 그대로 따른다(kind 를 반드시 적는다). SHIHO 는 0번과 4번의 주인공이고, 1번 BTS 일러스트에는 구경 온 사람으로 작게만 나온다.
+  0번 kind "shiho": 썸네일. {character}. 화면 위쪽 40%를 하늘·배경으로 비우고(제목 글자 자리) 그녀의 머리는 화면 가운데보다 아래에서 시작.
+     prompt 에 'The top 40 percent of the frame is empty sky. Her head starts below the middle of the frame. She is the only person in the frame.' 를 넣는다.
+  1번 kind "crew": BTS(비하인드 더 신) 촬영장, 고급 시네마틱 3D 애니메이션 영화 같은 그림으로, 영화의 장르적 장면과 그것을 만드는 평범한 작업이 한 화면에 같이 보여서 웃음이나 놀라움을 주는 순간.
+     이번 글의 촬영장은 이것으로 정해져 있다(이야기의 장르·나라에 맞게 인물·의상·세트를 구체적으로 채운다): {bts}
+     먼저 순간을 하나로 정한다(촬영 중 / 테이크 사이 쉬는 시간 / 세팅 중). 모든 인물의 행동은 그 순간에 실제로 하는 일이어야 한다. 쉬는 시간에 반사판·붐마이크를 들고 있거나 조명을 비추는 스태프는 없다(쉬는 시간의 스태프는 분장 수정, 대본 확인, 모니터 재생, 장비 정리, 물 마시기를 한다). 배우는 자동차·소품·장비 위에 앉지 않는다. 쉬는 시간의 배우는 접이식 배우 의자에 앉거나 서 있다. 거리·마을 장면은 실제 거리보다 오픈 세트(합판 건물 정면, 뒤쪽 비계)로 재현한다.
+     인물은 실제 현장처럼 남녀가 자연스럽게 섞인다. 뒤쪽 배경 스태프는 작게. SHIHO 는 이 현장을 구경하러 온 사람으로 화면 맨 왼쪽에 온몸이 보이게 서 있고, 장비 케이스에 기대어 두 손으로 턱을 괴고 세트를 즐겁게 바라본다. SHIHO 는 스태프 일을 하지 않고 세트를 가리지 않는다.
+     구도: 세트가 화면 가운데를 차지하는 주인공, 앞쪽 아래에 카메라 오퍼레이터, 오른쪽에 세트를 손보는 스태프 1명, 왼쪽 끝에 SHIHO. 세트는 밝게, 주변 스튜디오는 어둡게. 배경막·세트 앞에는 아무도 서지 않는다. 카메라를 정면으로 보는 사람 없음(쉬는 시간 장면에서는 한 사람이 어깨 너머로 돌아보며 웃는 것까지 허용). 기존 영화·만화의 실존 캐릭터 의상, 실존 배우, 로고, 슬레이트 글씨는 넣지 않는다. 이 그림의 caption 과 filename 은 특정 실제 작품의 촬영 현장이라고 쓰지 않는다(예: '[이미지 2: 멜로 영화 오픈 세트의 쉬는 시간, AI로 재구성한 촬영 현장]'처럼 장르와 'AI로 재구성'을 적는다).
+     prompt 에 'A wide behind-the-scenes view inside a film studio.' 로 시작하고, SHIHO 묘사({character})와 그녀의 위치·동작을 넣는다.
+  2번 kind "object": 이 이야기를 상징하는 사물 정물(예: 계약서와 만년필, 필름 릴과 극장 티켓, 촬영용 카메라, 스트리밍 리모컨). 사람 없음, 손도 없음. 사물은 2~3개만 정하고 prompt 끝에 'Nothing else is on the surface.' 를 넣는다.
+  3번 kind "scene": 자연 풍광, 사람 없음. 이야기의 나라·도시와 이어지는 자연을 고른다(예: 두바이 이야기면 이른 아침의 사막 모래언덕, 뉴욕이면 가을 센트럴파크의 빈 산책로, 칸이면 잔잔한 지중해 해변, 한국 영화면 안개 낀 강가나 억새 들판). 이어지는 곳이 없으면 이야기 분위기에 맞는 바다·숲길·호수·들판 중 하나. 하늘과 빈 공간을 넓게, 부드러운 낮빛, 건물·랜드마크 없이.
+  4번 kind "shiho": {character}. 0번과 다른 장소·시간대(낮을 우선)·동작으로. 동작은 다음 중 하나를 고른다:
+     시사실 객석에 앉아 대본을 넘긴다 / 촬영장 모니터 앞에서 클래퍼보드를 든다 / 영화 포스터 벽 앞을 걸어간다 / 회의실 화이트보드 앞에서 마커로 메모한다 / 극장 매표소 앞에서 티켓을 확인한다 / 서점 영화 코너에서 책을 펼친다.
+     prompt 에 'She is the only person in the frame.' 를 넣는다.
+  5번 kind "object": 2번과 다른 사물 정물, 다른 색감(예: 2번이 계약서라면 5번은 필름 캔과 영사기). 사람 없음, 손도 없음. 2번과 같은 방식으로 사물 2~3개만, 'Nothing else is on the surface.' 를 넣는다.
+  모든 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 'or', 'maybe', 'slightly' 금지.
+  실존 인물·로고·글자·숫자는 그림에 넣지 않는다(정보 카드·도표 그림도 만들지 않는다). 같은 랜드마크(남산서울타워, 엠파이어스테이트빌딩, 에펠탑 등)는 6장 중 많아야 1장. 기본은 흰 벽·베이지·밝은 원목 톤에 창으로 들어오는 부드러운 낮의 자연광, 화면의 절반 가까이를 빈 공간으로 둔다. 저녁·밤 장면은 6장 중 많아야 1장. 황금빛 조명·샹들리에·꽃 장식 금지. 16:9 가로 구도.
+- 관련 종목은 상장사만. stock_note 는 본문에 나온 비상장사 안내 한 줄만(예: 'SLL은 비상장사입니다.'). 없으면 빈 문자열.
 
 JSON 만 출력:
 {{"title": "...", "thumb_title": "첫 줄\n둘째 줄", "thumb_highlight": "...",
  "blocks": [{{"type": "p", "text": "261억 원."}}, {{"type": "p", "text": "..."}}, {{"type": "image", "no": 0}}, {{"type": "h", "text": "소제목"}}, {{"type": "p", "text": "..."}}, {{"type": "image", "no": 1}}],
- "images": [{{"no": 0, "role": "썸네일", "prompt": "...", "caption": "[이미지 1: 썸네일]"}}],
+ "images": [{{"no": 0, "kind": "shiho", "role": "썸네일", "filename": "...", "prompt": "...", "caption": "[이미지 1: ...]"}},
+            {{"no": 1, "kind": "scene", "role": "장면", "filename": "...", "prompt": "...", "caption": "[이미지 2: ...]"}}],
  "stocks": [{{"name": "...", "market": "코스피|코스닥|NASDAQ|NYSE|Tadawul|...", "code": "...", "reason": "..."}}], "stock_note": "...",
- "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "CINEPARK"]}}"""
+ "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
 REVIEW_RESEARCH = """당신은 네이버 블로그 '리뷰&리뷰'의 리서치 담당입니다.
 이 블로그는 고양이 돌봄, 생활용품, 계절 살림의 '고르는 법 · 관리법 · 안전 수칙'을 제조사·보호단체·공공기관 안내로 정리합니다.
@@ -133,6 +153,7 @@ REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니�
 - 구매와 관련된 주제일 때만 쿠팡 링크 자리 {{"type": "link", "text": "[쿠팡 링크: 상품군]"}} 를 1~2곳 넣고,
   그때는 맨 첫 블록을 이 문장 그대로 둔다: "이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다."
 - 그림 {n}장. 0번은 썸네일, 1~{last}번은 본문. 그림마다 label(그림 위에 얹을 글자, 띄어쓰기 포함 12자 이내, 예: '외풍 없는 위치')을 정한다.
+  filename: 검색 핵심어 3~5개를 하이픈으로 이은 한국어 파일 이름(예: 고양이-겨울-잠자리-외풍-위치). caption: 그림을 설명하는 검색어 중심 한 줄(예: 외풍이 들지 않는 벽 쪽 방석에서 자는 고양이).
   0번 label 은 글 주제(예: '고양이 겨울 잠자리'). 본문 그림 label 은 바로 뒤 소제목의 핵심어.
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 고양이 주제면 고양이가 그 장면 속에서 한 동작을 하고,
   생활용품 주제면 그 물건이 놓인 집 안 장면. 화면 위쪽 1/4 은 글자를 얹을 수 있게 벽·하늘처럼 단순하게 비운다. 그림 속 글자·로고·숫자 금지.
@@ -142,7 +163,7 @@ JSON 만 출력:
 {{"title": "...", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "h", "text": "소제목"}},
  {{"type": "p", "text": "..."}}, {{"type": "source", "text": "출처: 기관 안내 이름 (주소)"}}, {{"type": "h", "text": "오늘 밤 확인할 세 가지"}},
  {{"type": "check", "items": ["...", "...", "..."]}}, {{"type": "p", "text": "마무리"}}],
- "images": [{{"no": 0, "role": "썸네일", "label": "...", "prompt": "...", "caption": ""}}],
+ "images": [{{"no": 0, "role": "썸네일", "label": "...", "filename": "...", "prompt": "...", "caption": "..."}}],
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
 PROMPTS = {"cinepark": (CINEPARK_RESEARCH, CINEPARK_WRITE), "review": (REVIEW_RESEARCH, REVIEW_WRITE)}
@@ -241,10 +262,45 @@ def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = Non
     return data.get("topics", [])[:3]
 
 
+BTS_SCENES = [
+    "오픈 세트로 지은 옛 거리(합판 건물 정면, 화면 가장자리로 뒤를 받친 나무 비계)에서 테이크 사이, 의상을 입은 배우 둘이 접이식 배우 의자에 앉아 대본을 보고, 분장팀이 한 배우의 앞머리를 고쳐 주며, 뒤에 모니터 카트",
+    "실내 스튜디오의 아파트 세트에서 촬영 중, 세트 벽 하나를 떼어 낸 자리로 카메라와 달리가 들어가 있고 모니터 앞에 감독과 스크립터가 헤드폰을 끼고 앉아 있다",
+    "그린스크린 스튜디오에서 세팅 중, 와이어 하네스를 찬 배우가 매트 위에서 스턴트 팀과 동작을 맞추고 크로마키 벽 앞에 조명 스탠드",
+    "미니어처 세트 촬영 중, 큰 작업대 위의 정교한 마을 모형(이야기의 나라에 맞는 거리) 뒤로 하늘과 바다를 그린 대형 배경막이 지지대와 클램프에 걸려 있고, 카메라가 낮은 달리 레일에서 거리 높이로 찍으며 미술팀이 붓으로 작은 집을 칠한다",
+    "비 내리는 밤 장면 세팅 중, 살수차가 골목 오픈 세트 위로 인공 비를 뿌리고 우비를 입은 스태프들이 카메라에 비닐 커버를 씌운다",
+    "대형 수조 스튜디오에서 바다 장면 세팅 중, 파도 기계가 만든 물결 위에 작은 목선 한 척이 떠 있고 뒤로 거대한 하늘 배경막, 수조 가장자리에서 스태프가 물결 높이를 맞춘다",
+    "사극 세트(기와 지붕 관아 마당)의 점심시간, 갑옷과 한복을 입은 배우들이 세트 뒤편 그늘에서 도시락을 먹고 투구가 의자 위에 놓여 있다",
+    "LED 월 스튜디오에서 차량 촬영 중, 거대한 LED 벽에 밤의 고속도로 풍경이 흐르고 그 앞 회전판 위의 승용차 안에서 배우 둘이 연기하며 차 앞에 카메라 리그",
+    "동물 배우 촬영 중, 세트 소파 위의 고양이 한 마리를 향해 트레이너가 간식을 든 손을 내밀고 카메라맨과 붐 오퍼레이터가 숨죽여 기다린다",
+    "스튜디오 안에 지은 설산 세트에서 촬영 직전, 인공 눈 기계가 하얀 눈을 뿌리고 스티로폼 바위와 눈 덮인 산장 세트 뒤로 설산 배경막, 스태프가 빈 슬레이트를 든다",
+    "모션캡처 스튜디오에서 촬영 중, 마커가 붙은 슈트를 입은 배우가 회색 격자 바닥 위에서 괴물 동작을 크게 하고 주변에 카메라 수십 대가 둘러서 있다",
+    "야간 오픈 세트의 시장 골목에서 세팅 중, 조명팀이 대형 풍선 조명을 크레인으로 띄우고 엑스트라들이 의상을 입은 채 줄지어 대기한다",
+]
+
+
+def pick_bts() -> str:
+    """BTS 촬영장 상황을 무작위로 고른다. 최근 5번 쓴 상황은 피한다."""
+    import random
+    from . import storage
+    key = "blog/bts_recent.json"
+    try:
+        recent = json.loads(storage._client().get_object(Bucket=storage._bucket(), Key=key)["Body"].read())
+    except Exception:
+        recent = []
+    choices = [i for i in range(len(BTS_SCENES)) if i not in recent] or list(range(len(BTS_SCENES)))
+    i = random.choice(choices)
+    try:
+        storage.put_bytes(key, json.dumps((recent + [i])[-5:]).encode(), "application/json")
+    except Exception:
+        pass
+    return BTS_SCENES[i]
+
+
 def write(cfg: dict, blog: str, topic: dict) -> dict:
     bc = cfg["blog"]["blogs"][blog]
     n = bc["images"]
-    sys_w = PROMPTS[blog][1].format(n=n, last=n - 1, character=bc.get("character", "").strip())
+    extra = {"bts": pick_bts()} if "{bts}" in PROMPTS[blog][1] else {}
+    sys_w = PROMPTS[blog][1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
     user = (f"오늘은 {_now():%Y년 %m월 %d일}입니다. 아래 글감으로 원고를 쓰세요. 필요하면 웹 검색으로 사실을 다시 확인하세요.\n"
             + json.dumps(topic, ensure_ascii=False))
     art = _ask(cfg, sys_w, user, search=True)
@@ -261,12 +317,33 @@ def clean_url(u: str) -> str:
     return re.sub(r"[?&]utm_[^&#]+", "", u or "").rstrip("?&")
 
 
+_TAG = re.compile(r"\s((?:[^.!?\s][^.!?]{0,38}?(?:보도|발표|공고|공시))(?:\s·\s[^.!?]{1,38}?(?:보도|발표|공고|공시))*)$")
+_AINOTE = re.compile(r"AI\s?로? ?재구성")
+
+
 def tidy(art: dict) -> dict:
-    """본문에 섞여 들어온 [사이트](주소) 링크와 맨 주소를 지우고, 출처 주소를 정리한다."""
+    """본문에 섞여 들어온 [사이트](주소) 링크와 맨 주소를 지우고, 출처 주소를 정리한다.
+    한 소제목 안에서 같은 출처 꼬리표가 되풀이되면 첫 번째만 남긴다. AI 이미지 고지는 본문에서 빼고 끝에 한 번만 둔다."""
+    seen: set[str] = set()
+    keep = []
     for bl in art.get("blocks", []):
+        if bl.get("type") == "h":
+            seen = set()
         if bl.get("type") in ("p", "h", "memo"):
             t = _MDLINK.sub("", bl.get("text", ""))
-            bl["text"] = re.sub(r"\s{2,}", " ", _URL.sub("", t)).strip()
+            t = re.sub(r"\s{2,}", " ", _URL.sub("", t)).strip()
+            if bl.get("type") == "p":
+                if _AINOTE.search(t) and ("이미지" in t or "장면" in t) and len(t) < 120:
+                    continue  # 고지 문구는 plain_text 끝에서 한 번만
+                m = _TAG.search(t)
+                if m:
+                    tag = m.group(1).strip()
+                    if tag in seen:
+                        t = t[:m.start()].rstrip()
+                    seen.add(tag)
+            bl["text"] = t
+        keep.append(bl)
+    art["blocks"] = keep
     for x in art.get("sources", []):
         x["url"] = clean_url(x.get("url", ""))
     for x in art.get("stocks", []):
@@ -346,8 +423,18 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
         _log("image", f"{bc['name']} 그림 {im['no'] + 1}/{len(art['images'])} 그리는 중", "working")
         _set_step(blog, f"그림 그리는 중 {im['no'] + 1}/{len(art['images'])}")
         try:
-            prompt = im["prompt"] + (f" {style}" if style else "")
-            png = ai.render(cfg, prompt, refs, cfg["blog"]["image_size"])
+            kind = im.get("kind", "shiho" if refs else "scene")
+            if kind == "card" or not im.get("prompt", "").strip():  # 정보 카드는 대표님이 에디터로 직접 만든다
+                continue
+            if kind == "crew":  # BTS 촬영장 일러스트: 구경 온 SHIHO 가 작게 나오므로 기준 그림을 함께 보낸다
+                cstyle = bc.get("crew_style", "").strip()
+                png = ai.render(cfg, im["prompt"] + (f" {cstyle}" if cstyle else ""), refs, cfg["blog"]["image_size"])
+            elif kind == "shiho" or bc.get("labels"):
+                prompt = im["prompt"] + (f" {style}" if style else "")
+                png = ai.render(cfg, prompt, refs, cfg["blog"]["image_size"])
+            else:  # 사람 없는 장소·사물: 캐릭터 기준 그림을 넣지 않아야 인물이 끼어들지 않는다
+                sstyle = bc.get("scene_style", "").strip()
+                png = ai.render(cfg, im["prompt"] + (f" {sstyle}" if sstyle else ""), [], cfg["blog"]["image_size"])
             if bc.get("labels") and im.get("label"):
                 png = label(png, im["label"])
             elif blog == "cinepark":
@@ -518,6 +605,53 @@ def label(img: bytes, text: str) -> bytes:
     return out.getvalue()
 
 
+def info_card(im: dict) -> bytes:
+    """CINEPARK 정보·비교 카드: 짙은 남색 바탕, 흰 제목, 금색 숫자. 글자는 코드가 쓰므로 깨지지 않는다."""
+    from PIL import Image, ImageDraw, ImageFont
+    W, H = 1600, 900
+    img = Image.new("RGB", (W, H), "#0F3B59")
+    d = ImageDraw.Draw(img)
+    f = lambda w, s: ImageFont.truetype(str(STATIC / f"Paperlogy-{w}.woff2"), s)
+
+    def center(t, font, y, fill):
+        d.text(((W - d.textlength(t, font=font)) / 2, y), t, font=font, fill=fill)
+
+    d.rectangle((0, 0, W, 14), fill="#DBA12C")
+    center("CINEPARK", f("7Bold", 34), 70, "#9fb4c2")
+    head = (im.get("headline") or "").strip()
+    rows = im.get("rows") or []
+    if rows:
+        center(head, f("8ExtraBold", 76), 150, "white")
+        n = min(len(rows), 3)
+        top, rh = 300, 170
+        for i, r in enumerate(rows[:3]):
+            y = top + i * rh
+            d.rounded_rectangle((120, y, W - 120, y + rh - 26), radius=22, fill="#173f5f")
+            left, right = (str(r[0]), str(r[1]) if len(r) > 1 else "")
+            fl = f("8ExtraBold", 60)
+            d.text((170, y + (rh - 26 - 70) / 2), left, font=fl, fill="#DBA12C")
+            fr = f("6SemiBold", 44)
+            while d.textlength(right, font=fr) > W - 640 and fr.size > 26:
+                fr = f("6SemiBold", fr.size - 2)
+            d.text((560, y + (rh - 26 - fr.size) / 2 - 4), right, font=fr, fill="white")
+        _ = n
+    else:
+        center(head, f("7Bold", 64), 210, "white")
+        big = (im.get("big") or "").strip()
+        fb = f("8ExtraBold", 230)
+        while d.textlength(big, font=fb) > W - 200 and fb.size > 80:
+            fb = f("8ExtraBold", fb.size - 10)
+        center(big, fb, 330, "#DBA12C")
+        sub = (im.get("sub") or "").strip()
+        fs = f("6SemiBold", 48)
+        while d.textlength(sub, font=fs) > W - 200 and fs.size > 28:
+            fs = f("6SemiBold", fs.size - 2)
+        center(sub, fs, 660, "#F7FBFC")
+    out = io.BytesIO()
+    img.save(out, "JPEG", quality=92)
+    return out.getvalue()
+
+
 def crop169(img: bytes) -> bytes:
     from PIL import Image
     im = Image.open(io.BytesIO(img)).convert("RGB")
@@ -545,7 +679,7 @@ def cine_thumb(img: bytes, title: str, highlight: str = "") -> bytes:
         if max(d0.textlength(ln, font=font) for ln in lines) <= w * 0.50:
             break
         size -= 2
-    y = h * 0.36 - (len(lines) * size * 1.25) / 2
+    y = h * 0.07  # 맨 위 띠에 둔다 (인물 얼굴은 그 아래)
     shadow = Image.new("RGBA", im.size, (0, 0, 0, 0))
     ds = ImageDraw.Draw(shadow)
     runs = []
@@ -589,25 +723,37 @@ def plain_text(pkg: dict) -> str:
             lines += [cap if cap.startswith("[이미지") else f"【그림 {n + 1}】 {cap}".rstrip(), ""]
         elif t == "h":
             lines += [f"■ {bl.get('text', '')}", ""]
+        elif t == "p" and pkg.get("blog") == "cinepark":
+            txt = bl.get("text", "")
+            m = _TAG.search(txt)
+            lines += [txt[:m.start()].rstrip(), f"({m.group(1).strip()})", ""] if m else [txt, ""]
         elif t in ("p", "memo", "link", "source"):
             lines += [bl.get("text", ""), ""]
         elif t == "check":
             lines += [f"□ {x}" for x in bl.get("items", [])] + [""]
-    if a.get("stocks"):
-        lines += ["■ 관련 기업과 종목", ""]
-        for x in a["stocks"]:
-            lines += [f"• {x.get('name', '')} | {x.get('market', '')} {x.get('code', '')}", x.get("reason", ""), ""]
-        lines += [a.get("stock_note") or "사업 관련성이 곧 주가 상승이나 투자 수익을 뜻하지는 않습니다.",
-                  "※ 특정 종목의 매수·매도를 권유하는 글이 아닙니다.", ""]
     if pkg.get("blog") == "cinepark":
-        d = pkg.get("date", "")
-        lines += [f"※ 작성 기준: {d[:4]}년 {int(d[5:7])}월 {int(d[8:10])}일. 본문 이미지는 내용을 설명하기 위해 AI로 재구성한 가상 장면이며 "
-                  "실제 행사·계약 사진이 아닙니다." if len(d) == 10 else "", ""]
+        lines += ["※ 이 글의 이미지는 기사 내용을 설명하기 위해 AI로 재구성한 장면입니다. 실제 행사나 계약 현장을 촬영한 사진이 아닙니다.", ""]
+    if a.get("stocks"):
+        lines += ["■ 관련 기업과 종목"]
+        lines += [f"• {x.get('name', '')} | {x.get('market', '')} {x.get('code', '')}" for x in a["stocks"]]
+        lines += [""]
+        if a.get("stock_note"):
+            lines += [a["stock_note"], ""]
+        lines += ["※ 특정 종목의 매수·매도를 권유하는 글이 아닙니다.", ""]
     if a.get("sources") and not any(bl.get("type") == "source" for bl in a.get("blocks", [])):
         lines += ["참고 자료"] + [f"· {s.get('title', '')} {s.get('url', '')}" for s in a["sources"]] + [""]
     if a.get("tags"):
-        lines.append(" ".join("#" + t.lstrip("#").replace(" ", "") for t in a["tags"]))
+        tags = [t for t in a["tags"] if t.lstrip("#").upper() != "CINEPARK"] if pkg.get("blog") == "cinepark" else a["tags"]
+        lines.append(" ".join("#" + t.lstrip("#").replace(" ", "") for t in tags))
     return "\n".join(lines).strip()
+
+
+def safe_name(im: dict) -> str:
+    """검색어 파일 이름 정리: 한글·영문·숫자·하이픈만, 60자 이내."""
+    n = im.get("filename") or im.get("label") or im.get("role", "그림")
+    n = re.sub(r"[\s_]+", "-", n.strip())
+    n = re.sub(r"[^0-9A-Za-z가-힣\-]", "-", n)
+    return re.sub(r"-{2,}", "-", n).strip("-")[:60] or "그림"
 
 
 def images_zip(pkg: dict) -> bytes:
@@ -617,6 +763,6 @@ def images_zip(pkg: dict) -> bytes:
         for im in pkg["article"].get("images", []):
             if im.get("r2_key"):
                 ext = im["r2_key"].rsplit(".", 1)[-1]
-                z.writestr(f"그림{im['no'] + 1:02d}_{im.get('role', '본문')}.{ext}", storage.get_bytes(im["r2_key"]))
+                z.writestr(f"{im['no'] + 1:02d}_{safe_name(im)}.{ext}", storage.get_bytes(im["r2_key"]))
         z.writestr("본문.txt", plain_text(pkg))
     return buf.getvalue()

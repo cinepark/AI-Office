@@ -16,7 +16,7 @@ st.set_page_config(page_title="AI OFFICE", page_icon="static/favicon.svg", layou
 
 # Streamlit Secrets → 환경변수 (업무 코드는 환경변수를 읽음)
 for k in ["OPENAI_API_KEY", "THREADS_ACCESS_TOKEN", "THREADS_USER_ID", "R2_ENDPOINT", "R2_ACCESS_KEY_ID",
-          "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "GOOGLE_SA_JSON"]:
+          "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "GOOGLE_SA_JSON", "GH_TOKEN"]:
     try:
         if k in st.secrets and not os.environ.get(k):
             os.environ[k] = str(st.secrets[k])
@@ -117,6 +117,56 @@ queue = state.get("queue", {})
 today = P.now_kst().date().isoformat()
 
 
+# ───────────────────────── 업무 지시서 ─────────────────────────
+def server_ready() -> bool:
+    return bool(os.environ.get("GH_TOKEN", "").strip())
+
+
+def give_order(job_type: str, args: dict, who: str, label: str) -> None:
+    """버튼 → 지시서 → GitHub 서버. 창을 닫아도 서버가 끝까지 처리한다."""
+    from office import jobs
+    job, kicked = jobs.order(job_type, args, "Mr. MOON")
+    s0 = fresh_state()
+    act(s0, "shiho", f"지시서 {job['id']}: {label} → {STAFF_BY_ID[who][1]}", "done")
+    act(s0, who, f"{label} 대기 (지시서 {job['id']})", "working")
+    save(s0)
+    jobs_cached.clear()
+    st.toast(f"지시서를 넘겼습니다: {label}. 창을 닫으셔도 서버가 처리합니다." if kicked else
+             f"지시서를 남겼습니다: {label}. 서버 신호가 닿지 않아 한 시간 안의 순찰 때 처리됩니다.")
+
+
+@st.cache_data(ttl=10, show_spinner=False)
+def jobs_cached() -> list[dict]:
+    from office import jobs
+    if os.environ.get("OFFICE_DEMO"):
+        return []
+    try:
+        return jobs.recent(12)
+    except Exception:
+        return []
+
+
+@st.fragment(run_every=10)
+def jobs_panel() -> None:
+    """오른쪽 SHIHO 대화창 아래: 업무 지시서 현황 (10초마다 새로 고침)."""
+    jobs_cached.clear()
+    rows = jobs_cached()
+    st.markdown("<div class='eyebrow'>업무 지시서</div>", unsafe_allow_html=True)
+    if not rows:
+        st.caption("아직 지시서가 없습니다. 데스크 버튼이나 SHIHO에게 지시하면 여기에 쌓이고, 서버가 처리합니다.")
+        return
+    mark = {"pending": "<span class='spin'></span>대기", "running": "<span class='spin'></span>진행 중",
+            "done": "✅ 완료", "error": "⚠️ 실패"}
+    html_rows = []
+    for j in rows[:8]:
+        arg = j["args"].get("slot") or j["args"].get("hint") or j["args"].get("blog") or ""
+        html_rows.append(f"<div style='display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid #eef3f5;font-size:.84rem'>"
+                         f"<span><b>{html.escape(j['label'])}</b> <span style='color:#8aa0ae'>{html.escape(str(arg))[:24]}</span><br>"
+                         f"<span style='color:#8aa0ae;font-size:.74rem'>{j['created'][5:16].replace('T', ' ')} · {html.escape(j.get('result') or j.get('step', ''))[:40]}</span></span>"
+                         f"<span style='white-space:nowrap'>{mark.get(j['status'], j['status'])}</span></div>")
+    st.markdown("".join(html_rows), unsafe_allow_html=True)
+
+
 # ───────────────────────── SHIHO 대화 ─────────────────────────
 def shiho_chat(box_height: int) -> None:
     """Mr. MOON 은 SHIHO 에게만 지시합니다. 오피스 화면 오른쪽에 붙어 있습니다."""
@@ -174,7 +224,8 @@ if page == "오피스":
     with left:
         office_view()
     with right:
-        shiho_chat(560)
+        shiho_chat(520)
+        jobs_panel()
 
 
 # ───────────────────────── Threads 데스크 ─────────────────────────
@@ -187,8 +238,11 @@ elif page == "Threads 데스크":
         if not keys:
             st.info("게시 예정 재고가 없습니다. 아래 버튼이나 매일 21시 자동 생성으로 채워집니다.")
         if st.button("지금 3일치 재고 채우기 (SHIHO에게 지시)", type="primary"):
-            with st.spinner("담당자들이 그림과 멘트를 만드는 중입니다. 한 건에 1~2분 걸립니다."):
-                R.produce()
+            if server_ready():
+                give_order("produce", {}, "image", "Threads 재고 채우기")
+            else:
+                with st.spinner("담당자들이 그림과 멘트를 만드는 중입니다. 한 건에 1~2분 걸립니다."):
+                    R.produce()
             load_state_cached.clear()
             st.rerun()
         cols = st.columns(3)
@@ -219,7 +273,10 @@ elif page == "Threads 데스크":
                             act(s, "writer", f"{k} 멘트를 Mr. MOON 수정본으로 교체", "done")
                             save(s)
                         st.rerun()
-                    if b2.button("빼고 새로", key=f"x_{k}"):
+                    if b2.button("빼고 새로", key=f"x_{k}") and server_ready():
+                        give_order("remake", {"slot": k}, "image", f"{k[5:10]} {k[-4:-2]}:{k[-2:]} 다시 만들기")
+                        st.rerun()
+                    elif st.session_state.get(f"x_{k}") and not server_ready():
                         with st.spinner("새로 만드는 중…"):
                             s = fresh_state()
                             s["queue"][k]["status"] = "skipped"
@@ -227,7 +284,10 @@ elif page == "Threads 데스크":
                             s["queue"][k] = R.make_item(s, k, slot)
                             save(s)
                         st.rerun()
-                    if b3.button("지금 게시", key=f"p_{k}"):
+                    if b3.button("지금 게시", key=f"p_{k}") and server_ready():
+                        give_order("post_now", {"slot": k}, "channel", f"{k[5:10]} {k[-4:-2]}:{k[-2:]} 지금 게시")
+                        st.rerun()
+                    elif st.session_state.get(f"p_{k}") and not server_ready():
                         with st.spinner("Threads에 올리는 중…"):
                             s = fresh_state()
                             R.publish_item(s, k)
@@ -283,6 +343,15 @@ def progress_box(blog_id: str) -> None:
     """만드는 동안 8초마다 스스로 새로 고침. 끝나면 데스크 전체를 다시 그려 패키지를 보여 준다."""
     blog_state_cached.clear()
     run = blog_state_cached().get("running", {}).get(blog_id)
+    jobs_cached.clear()
+    waiting = [j for j in jobs_cached() if j["type"] == "blog_make" and j["args"].get("blog") == blog_id
+               and j["status"] in ("pending", "running")]
+    if not run and waiting:
+        st.session_state[f"was_{blog_id}"] = True
+        st.markdown(f"<div class='prog'><div class='top'><span class='spin'></span>서버가 지시서를 받는 중"
+                    f"<span class='el'>지시서 {waiting[0]['id']}</span></div></div>", unsafe_allow_html=True)
+        st.caption("보통 1분 안에 서버가 일을 시작합니다. 창을 닫으셔도 됩니다.")
+        return
     if run:
         st.session_state[f"was_{blog_id}"] = True
         st.markdown(progress_html(run), unsafe_allow_html=True)
@@ -296,7 +365,7 @@ def progress_box(blog_id: str) -> None:
                 blog_state_cached.clear()
                 st.rerun(scope="app")
         else:
-            st.caption("자동으로 새로 고쳐집니다. 창을 닫아도 작업은 계속됩니다.")
+            st.caption("자동으로 새로 고쳐집니다. 서버에서 처리 중이라 창을 닫으셔도 됩니다.")
     elif st.session_state.pop(f"was_{blog_id}", False):
         st.rerun()
 
@@ -316,13 +385,18 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         hint = st.text_input("주제 지정 (비우면 리서치 담당이 고릅니다)", key=f"hint_{blog_id}",
                              placeholder="예: 넷플릭스 한국 오리지널 제작비" if blog_id == "cinepark" else "예: 겨울 전기요")
         run = b.get("running", {}).get(blog_id)
-        if run:
+        waiting = [j for j in jobs_cached() if j["type"] == "blog_make" and j["args"].get("blog") == blog_id
+                   and j["status"] in ("pending", "running")]
+        if run or waiting:
             progress_box(blog_id)
         elif st.button(f"지금 {bc['name']} 패키지 만들기", type="primary", key=f"go_{blog_id}"):
             s0 = fresh_state()
             act(s0, "shiho", f"Mr. MOON 지시: {bc['name']} 패키지 지금 만들기", "done")
             save(s0)
-            blog.start_background(R.CFG, blog_id, hint.strip())
+            if server_ready():
+                give_order("blog_make", {"blog": blog_id, "hint": hint.strip()}, "research", f"{bc['name']} 패키지")
+            else:
+                blog.start_background(R.CFG, blog_id, hint.strip())
             blog_state_cached.clear()
             st.rerun()
     with c2:
@@ -378,7 +452,11 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                     oc1, oc2 = st.columns([4, 1])
                     oc1.markdown(f"[{t.get('axis', '')}] **{t.get('question') or t.get('title_idea', '')}** — {t.get('why_now') or t.get('hook_question', '')}")
                     if oc2.button("이걸로 만들기", key=f"o_{p['id']}_{k}"):
-                        blog.start_background(R.CFG, blog_id, "", t)
+                        if server_ready():
+                            give_order("blog_make", {"blog": blog_id, "hint": "", "topic": t}, "research",
+                                       f"{bc['name']} 패키지 (다른 글감)")
+                        else:
+                            blog.start_background(R.CFG, blog_id, "", t)
                         blog_state_cached.clear()
                         st.rerun()
 

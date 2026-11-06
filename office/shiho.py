@@ -8,6 +8,8 @@ from __future__ import annotations
 import json
 import re
 
+from . import jobs
+
 ACTIONS = """
 - produce: 게시 재고 채우기. args 없음.
 - remake: 특정 게시물을 빼고 새로 만들기. args: {"slot": "YYYY-MM-DD_HHMM"}
@@ -56,6 +58,12 @@ WHO = {"produce": "shiho", "remake": "image", "post_now": "channel", "next_cat":
        "exclude_breed": "image", "ban_word": "review", "add_example": "writer", "blog_make": "research", "note": "shiho"}
 
 
+def _server_ready() -> bool:
+    """GitHub 서버에 일을 넘길 수 있는지 (Streamlit 비밀값에 GH_TOKEN 이 있어야 함)."""
+    import os
+    return bool(os.environ.get("GH_TOKEN", "").strip())
+
+
 def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str]:
     """업무 실행. run_module = office.run (순환 import 방지용 주입). 실행 결과 문장 목록을 돌려준다."""
     from .staff import STAFF_BY_ID, act
@@ -67,7 +75,18 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
         t, args = a.get("type"), a.get("args") or {}
         who = WHO.get(t, "shiho")
         try:
-            if t == "produce":
+            if t in ("produce", "remake", "post_now") and _server_ready():
+                # 오래 걸리는 일은 지시서로 넘겨 GitHub 서버(엔진)가 처리 → 창을 닫아도 계속됨
+                slot = args.get("slot", "")
+                if t != "produce" and slot not in state.get("queue", {}):
+                    done.append(f"{slot} 게시물을 찾지 못했습니다.")
+                    continue
+                job, kicked = jobs.order(t, {"slot": slot} if slot else {}, "SHIHO")
+                act(state, "shiho", f"지시서 {job['id']}: {job['label']} {slot} → {STAFF_BY_ID[who][1]}", "done")
+                act(state, who, f"{job['label']} {slot} 대기 (지시서 {job['id']})", "working")
+                done.append(f"지시서를 넘겼습니다({(job['label'] + ' ' + slot).strip()}). 서버에서 처리하니 창을 닫으셔도 됩니다."
+                            + ("" if kicked else " 서버 신호가 닿지 않아 한 시간 안의 순찰 때 처리됩니다."))
+            elif t == "produce":
                 act(state, "shiho", "Mr. MOON 지시: 재고 채우기 → 이미지·작가 담당", "done")
                 run_module.save_and_produce(state)
                 done.append("재고를 채웠습니다.")
@@ -109,7 +128,12 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
                 from . import blog
                 name = cfg["blog"]["blogs"][args["blog"]]["name"]
                 act(state, "shiho", f"Mr. MOON 지시: {name} 글감 패키지 → 리서치·작가·이미지 담당", "done")
-                if blog.start_background(cfg, args["blog"], args.get("topic") or ""):
+                if _server_ready():
+                    job, kicked = jobs.order("blog_make", {"blog": args["blog"], "hint": args.get("topic") or ""}, "SHIHO")
+                    act(state, "research", f"{name} 패키지 대기 (지시서 {job['id']})", "working")
+                    done.append(f"{name} 패키지 지시서를 넘겼습니다. 서버에서 10분 안팎 걸리고, 창을 닫으셔도 됩니다. 끝나면 {name} 데스크에 올라옵니다."
+                                + ("" if kicked else " 서버 신호가 닿지 않아 한 시간 안의 순찰 때 처리됩니다."))
+                elif blog.start_background(cfg, args["blog"], args.get("topic") or ""):
                     done.append(f"{name} 패키지를 만들기 시작했습니다. 10분 안팎 걸리고, 끝나면 {name} 데스크에 올라옵니다.")
                 else:
                     done.append(f"{name} 패키지를 이미 만들고 있습니다. 끝나면 {name} 데스크에 올라옵니다.")

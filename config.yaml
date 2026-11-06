@@ -29,7 +29,7 @@ google_drive:
 
 style: >-
   Pen line drawing with loose watercolor washes on off-white cold-press paper.
-  Warm indoor light. Square composition.
+  Square composition.
 
 travel_style: >-
   Redraw this photo as a pen line drawing with loose watercolor washes on off-white
@@ -61,12 +61,38 @@ scenes:
   - { id: door,      name: 닫힌 문,       text: "sits in front of a closed bathroom door, staring at the gap under the door" }
   - { id: tower,     name: 캣타워 상자,   text: "sleeps on top of the flattened cardboard box a new cat tower came in, while the new cat tower stands unused behind it" }
   - { id: pen,       name: 펜 떨어뜨리기, text: "pushes a pen off the edge of a desk with one front paw, looking at the viewer" }
-  - { id: heater,    name: 난로 앞,       text: "sleeps belly-up in front of a small electric heater, four paws in the air" }
-  - { id: mandarin,  name: 귤,           text: "sniffs a peeled mandarin orange on a low wooden table, nose wrinkled" }
-  - { id: heatedmat, name: 전기장판,      text: "lies flattened on a heated floor mat under the edge of a thick quilt, only its face showing" }
+  - { id: heater,    name: 난로 앞,       text: "sleeps belly-up in front of a small electric heater, four paws in the air", months: [11, 12, 1, 2, 3] }
+  - { id: mandarin,  name: 귤,           text: "sniffs a peeled mandarin orange on a low wooden table, nose wrinkled", months: [11, 12, 1, 2] }
+  - { id: heatedmat, name: 전기장판,      text: "lies flattened on a heated floor mat under the edge of a thick quilt, only its face showing", months: [11, 12, 1, 2, 3] }
   - { id: hallway,   name: 새벽 우다다,   text: "runs down a dark hallway at night with its tail straight up and eyes wide open" }
   - { id: sink,      name: 세면대 물방울, text: "sits on the edge of a white bathroom sink, staring at one water drop hanging from the faucet" }
 
+  - { id: fridge,    name: 냉장고 위,     text: "lies on top of a white refrigerator with one front paw dangling over the edge, looking down at the kitchen" }
+  - { id: bathtub,   name: 빈 욕조,       text: "sits alone inside a dry empty bathtub, looking up at the viewer" }
+  - { id: newspaper, name: 펼친 신문,     text: "sits squarely in the middle of an open newspaper spread on a low table" }
+  - { id: yoga,      name: 요가 매트,     text: "lies stretched across the middle of a rolled-out purple yoga mat on a living room floor" }
+  - { id: plant,     name: 화분 잎,       text: "sniffs the long leaf of a potted monstera plant on a windowsill, one paw raised toward it" }
+  - { id: suitcase,  name: 여행 가방,     text: "curls up asleep inside an open suitcase half packed with folded clothes" }
+  - { id: shoes,     name: 현관 신발,     text: "sits among a row of shoes at the front entrance, staring at the closed front door" }
+  - { id: blanket,   name: 이불 속,       text: "pokes only its head out from under a thick white duvet on a bed" }
+  - { id: bookshelf, name: 책장 빈칸,     text: "squeezes its whole body into an empty gap on a wooden bookshelf between rows of books" }
+  - { id: bowl,      name: 빈 밥그릇,     text: "sits beside an empty ceramic food bowl on the kitchen floor, staring straight at the viewer" }
+  - { id: mirror,    name: 거울,          text: "sits in front of a full-length mirror, touching its own reflection with one front paw" }
+  - { id: sunbeam,   name: 햇빛 한 칸,    text: "lies flat on its side in a single square patch of sunlight on the wooden floor" }
+  - { id: chair,     name: 의자 빼앗기,   text: "sleeps curled on a desk chair seat while the chair is pushed back from an empty desk" }
+  - { id: string,    name: 털실 뭉치,     text: "lies on its back hugging a ball of red yarn, the loose thread tangled around its paws" }
+  - { id: bag,       name: 에코백,        text: "sits upright inside a canvas tote bag hanging open on the floor, only its head showing" }
+  - { id: christmas, name: 트리 아래,     text: "lies under a small decorated Christmas tree batting at a low glass ornament", months: [12] }
+  - { id: snowwin,   name: 첫눈 창가,     text: "presses its nose against a window glass while snow falls outside", months: [12, 1, 2] }
+  - { id: fan,       name: 선풍기 앞,     text: "sits in front of a standing electric fan with its fur blown back by the wind", months: [6, 7, 8] }
+  - { id: watermelon,name: 수박,          text: "sniffs a slice of red watermelon on a plate on the floor with a suspicious face", months: [7, 8] }
+  - { id: bed_middle,name: 침대 한가운데, text: "sleeps stretched out sideways across the exact middle of a neatly made double bed" }
+  - { id: stairs,    name: 계단,          text: "lies on one step of a wooden staircase, front legs hanging over the edge of the step" }
+  - { id: tv,        name: TV 앞,         text: "sits directly in front of a turned-on television, its back to the viewer, blocking the screen" }
+  - { id: bath_after,name: 목욕 후,       text: "sits wrapped in a small white towel after a bath, its wet fur sticking up and eyes half closed" }
+  - { id: brush,     name: 빗질,          text: "lies on a cushion beside a pet brush and a little pile of shed fur" }
+  - { id: window_bird,name: 새 구경,      text: "crouches low on a windowsill with its tail twitching, watching a small bird on a branch outside" }
+  - { id: toilet_roll,name: 휴지 풀기,    text: "sits next to a toilet paper roll that has been unrolled across the bathroom floor" }
 caption:
   max_chars: 40
   max_emoji: 1
@@ -100,10 +126,30 @@ blog:
         - refs/shiho_sheet.jpg
       image_style: >-
         Match the face, hair and outfit of the woman in the attached reference images exactly.
-        Glossy semi-realistic 3D render, warm golden lighting, 16:9 landscape.
-        Clean minimal setting: a simple desk with only a laptop and one cup, no clutter, no stacks of props.
-        Large window with the Seoul night view and N Seoul Tower when indoors.
-        She is the only person in the frame. No men anywhere in the image. No text, letters or numbers.
+        Semi-realistic 3D render with soft photographic quality, soft diffused daylight from a window, airy and bright, 16:9 landscape.
+        Calm minimal interior: white walls, beige and light oak tones.
+        Show only the objects named in the description and nothing else. Sparse minimal setting with large areas of empty space,
+        no decorative props, no flowers, no clutter.
+        She is the only person in the frame. No text, letters or numbers.
+      scene_style: >-
+        Realistic photograph like a calm lifestyle editorial photo shot on a full-frame camera, soft diffused daylight from a window unless the description states evening, airy and bright, 16:9 landscape.
+        Calm minimal palette: for interiors white walls, beige and light oak tones; for landscapes soft natural colors. Muted colors.
+        Show only the objects named in the description and nothing else. Sparse minimal composition with large areas of empty space,
+        no decorative props, no flowers, no extra film reels, no clutter.
+        No people anywhere in the image, no hands, no silhouettes. No text, letters, numbers or logos.
+      crew_style: >-
+        Premium high-end cinematic 3D rendering, stylised realism with sophisticated 3D character design, physically based materials,
+        natural skin shading, detailed hair strands, believable fabric folds, global illumination, soft contact shadows,
+        subtle volumetric lighting, realistic depth of field, extremely detailed set pieces and environmental storytelling,
+        warm and cool colour harmony, the production quality of a high-budget animated feature film.
+        Wide cinematic establishing shot, 16:9 landscape, 24mm wide-angle lens, eye-level camera.
+        The film set is brightly lit and is the primary visual focus; the surrounding studio stays darker, lit by practical film lights.
+        The artificial nature of the set stays visible: backdrop edges, support bars, clamps, scaffolding.
+        When reference images are attached, the woman from them keeps the same face, hairstyle, body proportions and clothing;
+        her entire figure is clearly visible at the far left of the frame and she does not block the set.
+        Background crew are few, small, discreet and out of focus, a natural mix of men and women, and nobody stands in front of the set or the backdrop.
+        No 2D anime drawing, no watercolor illustration, no cel shading, no flat cartoon rendering. No distorted anatomy, extra limbs or unnatural hands.
+        No costumes of existing film or comic characters. No text, letters, numbers, subtitles, signs, watermarks or logos.
       character: >-
         SHIHO, a young Korean woman with long straight black hair in a high ponytail, wearing a white
         short-sleeved collared button-up shirt tucked into light blue wide-leg jeans, white sneakers and a

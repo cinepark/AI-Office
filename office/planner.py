@@ -62,10 +62,10 @@ def pick_cat(cfg: dict, history: list[dict], today: dt.date, rng: random.Random 
     cats = [h for h in history if h.get("kind") == "cat"]
     last_breed = cats[-1]["breed"] if cats else None
     recent_pairs = {(h.get("breed"), h.get("scene")) for h in _recent(cats, 7, today)}
-    recent_scenes = [h.get("scene") for h in cats[-8:]]  # 장면 14개 중 최근 8개는 쉬게 함
+    recent_scenes = [h.get("scene") for h in cats[-24:]]  # 장면 40개 중 최근 24개(약 12일)는 쉬게 함
 
     breeds = [b for b in cfg["breeds"] if b["id"] != last_breed] or cfg["breeds"]
-    scenes = cfg["scenes"]
+    scenes = [s for s in cfg["scenes"] if today.month in s.get("months", range(1, 13))] or cfg["scenes"]  # 계절 장면은 그 달에만
     candidates = [(b, s) for b in breeds for s in scenes
                   if (b["id"], s["id"]) not in recent_pairs and s["id"] not in recent_scenes]
     if not candidates:
@@ -75,9 +75,23 @@ def pick_cat(cfg: dict, history: list[dict], today: dt.date, rng: random.Random 
     return rng.choice(candidates)
 
 
-def cat_prompt(cfg: dict, breed: dict, scene: dict) -> str:
+CAT_VIEWS = [
+    "Close-up at the cat's eye level.",
+    "Seen from directly above.",
+    "Low angle from the floor.",
+    "Wide view showing the whole room around the cat.",
+    "Side view with the cat small on the right third of the frame.",
+    "Three-quarter view from the left.",
+]
+CAT_TIMES = ["Morning light.", "Bright afternoon light.", "Evening lamp light.", "Soft grey light of a cloudy day."]
+
+
+def cat_prompt(cfg: dict, breed: dict, scene: dict, rng: random.Random | None = None) -> str:
+    """같은 장면이 다시 나와도 같은 그림이 되지 않도록 시점·시간대를 무작위로 바꾼다."""
+    rng = rng or random.Random()
     return (f"Match the drawing style of the attached reference images. "
-            f"{breed['look'][0].upper() + breed['look'][1:]} {scene['text']}. {cfg['style']}")
+            f"{breed['look'][0].upper() + breed['look'][1:]} {scene['text']}. "
+            f"{rng.choice(CAT_VIEWS)} {rng.choice(CAT_TIMES)} {cfg['style']}")
 
 
 def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],

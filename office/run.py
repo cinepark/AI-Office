@@ -217,6 +217,60 @@ def produce() -> None:
         log(f"✘ 블로그 예약 패키지 실패: {e}")
 
 
+def work(lane_name: str = "work") -> None:
+    """업무 지시서 처리 (python -m office.run work | blogwork). 남은 지시서가 없거나 38분이 지나면 끝낸다."""
+    import time
+    from . import jobs
+    t0 = time.time()
+    n = jobs.recover_stale()
+    if n:
+        log(f"멈춰 있던 지시서 {n}건을 다시 대기로 돌렸습니다.")
+    done = 0
+    while time.time() - t0 < 38 * 60:
+        job = jobs.claim(lane_name)
+        if not job:
+            break
+        log(f"▶ 지시서 {job['id']} {job['label']} 시작")
+        try:
+            result = _do_job(job)
+            jobs.finish(job["id"], True, result)
+            log(f"✔ 지시서 {job['id']} 완료")
+        except Exception as e:
+            jobs.finish(job["id"], False, f"{type(e).__name__}: {e}")
+            log(f"✘ 지시서 {job['id']} 실패: {type(e).__name__}")
+            traceback.print_exc()
+        done += 1
+    log(f"지시서 처리 {done}건 ({lane_name}).")
+
+
+def _do_job(job: dict) -> str:
+    from . import storage
+    t, a = job["type"], job.get("args") or {}
+    if t == "produce":
+        produce()
+        return "재고 채우기 완료"
+    if t == "remake":
+        st = _state()
+        key = a["slot"]
+        if key not in st["queue"]:
+            raise KeyError(f"{key} 게시물이 없습니다")
+        st["queue"][key]["status"] = "skipped"
+        slot = next(x for x in CFG["slots"] if x["time"].replace(":", "") == key[-4:])
+        act(st, "shiho", f"지시서: {key} 다시 만들기 → 이미지·작가 담당", "done")
+        st["queue"][key] = make_item(st, key, slot)
+        storage.save_state(st)
+        return f"{key} 새로 만듦"
+    if t == "post_now":
+        st = _state()
+        publish_item(st, a["slot"])
+        return f"{a['slot']} 게시함"
+    if t == "blog_make":
+        from . import blog
+        pid = blog.make_package(CFG, a.get("blog", "cinepark"), a.get("hint", ""), a.get("topic"), mode="실시간")
+        return f"패키지 {pid}"
+    raise ValueError(f"모르는 지시서 종류: {t}")
+
+
 def blog_now(which: str = "cinepark") -> None:
     """수동 실행용: python -m office.run blog cinepark"""
     from . import blog
@@ -372,4 +426,5 @@ if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "selftest"
     {"produce": produce, "post": post, "refresh": refresh, "selftest": selftest,
      "skip": lambda: skip(sys.argv[2]),
-     "blog": lambda: blog_now(sys.argv[2] if len(sys.argv) > 2 else "cinepark")}[cmd]()
+     "blog": lambda: blog_now(sys.argv[2] if len(sys.argv) > 2 else "cinepark"),
+     "work": lambda: work("work"), "blogwork": lambda: work("blogwork")}[cmd]()
