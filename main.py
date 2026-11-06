@@ -80,6 +80,29 @@ def save(state: dict) -> None:
     load_state_cached.clear()
 
 
+def office_sync(blog_id: str, title: str, what: str) -> None:
+    """블로그 데스크에서 패키지를 지우거나 '네이버에 올림'을 누르면 사무실 화면도 같이 바뀐다.
+    그 글을 말하고 있던 담당 책상은 '대기'로 돌리고, 블로그실 칸에는 남은 패키지 수를 보여 준다."""
+    from office import blog
+    try:
+        s = fresh_state()
+        name = R.CFG["blog"]["blogs"][blog_id]["name"]
+        key = (title or "")[:10]
+        for sid, n in list(s.get("agent_now", {}).items()):
+            if key and key in n.get("text", "") and sid not in ("dev", "design", "security"):
+                act(s, sid, "대기 — 다음 글감을 기다립니다", "idle")
+        act(s, "shiho", f"Mr. MOON: {name} '{title[:24]}' {what}", "done")
+        b = blog.load()
+        left = sum(1 for p in b.get("packages", {}).values()
+                   if p["blog"] == blog_id and not p.get("deleted") and not p.get("posted"))
+        room = "cinepark" if blog_id == "cinepark" else "channel"
+        act(s, room, f"{name} 올릴 패키지 {left}건" if left else f"{name} 올릴 패키지 없음 · 다음 예약 21:00",
+            "done" if left else "idle")
+        save(s)
+    except Exception as e:
+        st.caption(f"사무실 화면 갱신 실패: {e}")
+
+
 @st.cache_data(ttl=3000, show_spinner=False)
 def img_url(key: str) -> str:
     from office import storage
@@ -483,6 +506,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                     b2["packages"][p["id"]]["posted_url"] = purl.strip()
                     blog.save(b2)
                 blog_state_cached.clear()
+                office_sync(blog_id, a.get("title", ""), "네이버 게시 완료")
                 st.toast(f"'{a.get('title', '')}' 게시 완료로 옮겼습니다.")
                 st.rerun()
             dc1, dc2 = st.columns([3, 1])
@@ -493,6 +517,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                     b2["packages"][p["id"]]["deleted"] = P.now_kst().isoformat(timespec="seconds")
                     blog.save(b2)
                 blog_state_cached.clear()
+                office_sync(blog_id, a.get("title", ""), "패키지 삭제")
                 st.toast(f"'{a.get('title', '')}' 패키지를 지웠습니다.")
                 st.rerun()
             if p.get("others"):

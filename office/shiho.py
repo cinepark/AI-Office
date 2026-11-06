@@ -65,6 +65,16 @@ def _server_ready() -> bool:
     return bool(os.environ.get("GH_TOKEN", "").strip())
 
 
+def _blog_id(v) -> str | None:
+    """'CINEPARK', '씨네파크', '리뷰&리뷰', '리뷰앤리뷰' 처럼 말해도 알아듣는다."""
+    t = str(v or "").lower().replace(" ", "")
+    if any(k in t for k in ("cinepark", "씨네파크", "시네파크")):
+        return "cinepark"
+    if any(k in t for k in ("review", "리뷰")):
+        return "review"
+    return None
+
+
 def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str]:
     """업무 실행. run_module = office.run (순환 import 방지용 주입). 실행 결과 문장 목록을 돌려준다."""
     from .staff import STAFF_BY_ID, act
@@ -128,7 +138,8 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
                 s.setdefault("examples_extra", []).append(args["text"])
                 act(state, "writer", f"말투 예시 추가: {args['text']}", "done")
                 done.append("말투 예시에 추가했습니다.")
-            elif t == "blog_make" and args.get("blog") in cfg.get("blog", {}).get("blogs", {}):
+            elif t == "blog_make" and _blog_id(args.get("blog")):
+                args["blog"] = _blog_id(args.get("blog"))
                 from . import blog
                 name = cfg["blog"]["blogs"][args["blog"]]["name"]
                 act(state, "shiho", f"Mr. MOON 지시: {name} 글감 패키지 → 리서치·작가·이미지 담당", "done")
@@ -145,7 +156,7 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
                 to = args.get("to") if args.get("to") in STAFF_BY_ID else "shiho"
                 state.setdefault("orders", []).append({"to": to, "text": args.get("text", ""), "status": "접수"})
                 act(state, to, f"지시 접수(다음 단계 업무): {args.get('text', '')[:40]}", "idle")
-                done.append(f"{STAFF_BY_ID[to][1]}에게 접수해 두었습니다. 아직 자동 실행되는 업무는 아닙니다.")
+                done.append(f"{STAFF_BY_ID[to][1]}에게 메모로 남겼습니다. 바로 실행할 수 있는 지시(재고 채우기·다시 만들기·지금 게시·블로그 패키지 만들기 등)로 말씀해 주시면 곧바로 처리합니다.")
         except Exception as e:
             act(state, "dev", f"지시 실행 실패({t}): {str(e)[:150]}", "error")
             done.append(f"'{t}' 실행 중 문제가 생겼습니다: {str(e)[:120]}")

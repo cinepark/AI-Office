@@ -30,6 +30,7 @@ CHANGES = [
     {"id": "2026-11-06-magazine", "who": "dev", "text": "CINEPARK 영화잡지 기준: 관점(angle)·배경 자료 4곳 이상, 편집장이 속보형 원고 반려"},
     {"id": "2026-11-06-market", "who": "dev", "text": "CINEPARK 돈·셀럽·뒷얘기를 한·미·일 상장사 사업 경로와 연결(공시·IR 근거), 주가 전망 금지"},
     {"id": "2026-11-06-kr-first", "who": "dev", "text": "상장사 연결은 국내 종목 우선, 해외(미·일)는 국내 회사와 얽힌 경우 함께"},
+    {"id": "2026-11-06-sync", "who": "dev", "text": "블로그 패키지 삭제·게시가 사무실 화면에 바로 반영, SHIHO가 'CINEPARK 글감' 지시를 바로 실행"},
     {"id": "2026-11-06-security", "who": "security", "text": "매일 비밀값·Threads 토큰 남은 기간 자동 점검 시작"},
 ]
 
