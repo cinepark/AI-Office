@@ -431,6 +431,10 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.markdown("**실시간** · 지금 바로 만들기")
         hint = st.text_input("주제 지정 (비우면 리서치 담당이 고릅니다)", key=f"hint_{blog_id}",
                              placeholder="예: 넷플릭스 한국 오리지널 제작비" if blog_id == "cinepark" else "예: 겨울 전기요")
+        kind = "feature"
+        if blog_id == "cinepark":
+            kind = "info" if st.radio("글 종류", ["기획기사", "정보글 (순위·목록·업데이트)"], horizontal=True,
+                                      key="kind_cinepark").startswith("정보") else "feature"
         run = b.get("running", {}).get(blog_id)
         waiting = [j for j in jobs_cached() if j["type"] == "blog_make" and j["args"].get("blog") == blog_id
                    and j["status"] in ("pending", "running")]
@@ -441,9 +445,9 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             act(s0, "shiho", f"Mr. MOON 지시: {bc['name']} 패키지 지금 만들기", "done")
             save(s0)
             if server_ready():
-                give_order("blog_make", {"blog": blog_id, "hint": hint.strip()}, "research", f"{bc['name']} 패키지")
+                give_order("blog_make", {"blog": blog_id, "hint": hint.strip(), "kind": kind}, "research", f"{bc['name']} 패키지")
             else:
-                blog.start_background(R.CFG, blog_id, hint.strip())
+                blog.start_background(R.CFG, blog_id, hint.strip(), None, kind)
             blog_state_cached.clear()
             st.rerun()
     with c2:
@@ -471,12 +475,17 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.caption("올릴 패키지가 없습니다. 올린 글은 아래 '올린 글 기록'에 있습니다." if done else "아직 만든 패키지가 없습니다.")
     for i, p in enumerate(pkgs[:15]):
         a = p["article"]
-        with st.expander(f"{p['date'][5:].replace('-', '/')} · {p['mode']} · {a.get('title', '(제목 없음)')}", expanded=(i == 0)):
+        kind_tag = " · 정보글" if p.get("kind") == "info" else ""
+        with st.expander(f"{p['date'][5:].replace('-', '/')} · {p['mode']}{kind_tag} · {a.get('title', '(제목 없음)')}", expanded=(i == 0)):
             st.markdown(f"<h3 style='text-align:center;color:{NAVY}'>{html.escape(a.get('title', ''))}</h3>", unsafe_allow_html=True)
             if p.get("problems"):
                 st.warning("검수 주의: " + ", ".join(p["problems"]))
             if a.get("stock_fixes"):
                 st.caption("검수 담당 종목 확인: " + " / ".join(a["stock_fixes"]))
+            if a.get("low_demand"):
+                st.warning("편집장: 이 글감은 검색 수요가 낮다고 판단했습니다. 올리기 전에 주제를 다시 보시는 것을 권합니다.")
+            if a.get("search_questions"):
+                st.caption("사람들이 검색창·AI에 묻는 질문: " + " / ".join(a["search_questions"][:5]))
             ims = [im for im in a.get("images", [])]
             cols = st.columns(3)
             for j, im in enumerate(ims):

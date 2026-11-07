@@ -19,7 +19,7 @@ ACTIONS = """
 - exclude_breed: 품종 빼기/되살리기. args: {"breed": 품종id, "on": true(빼기)|false(되살리기)}
 - ban_word: 멘트 금지어 추가. args: {"word": "..."}
 - add_example: 멘트 말투 예시 추가. args: {"text": "..."}
-- blog_make: 네이버 블로그 글감 패키지(글감·원고·그림)를 지금 만들기. args: {"blog": "cinepark" 또는 "review", "topic": "지정 주제" 또는 null}
+- blog_make: 네이버 블로그 글감 패키지(글감·원고·그림)를 지금 만들기. args: {"blog": "cinepark" 또는 "review", "topic": "지정 주제" 또는 null, "kind": "feature"(기획기사) 또는 "info"(순위·목록 정보글, 업데이트 글)}
   (CINEPARK = 영화 블로그, 리뷰&리뷰 = 쿠팡 상품 정보 블로그)
 - note: 위에 없는 일. 실행하지 않고 접수만. args: {"to": 담당자id, "text": "..."}
 """
@@ -144,11 +144,11 @@ def execute(state: dict, cfg: dict, actions: list[dict], run_module) -> list[str
                 name = cfg["blog"]["blogs"][args["blog"]]["name"]
                 act(state, "shiho", f"Mr. MOON 지시: {name} 글감 패키지 → 리서치·작가·이미지 담당", "done")
                 if _server_ready():
-                    job, kicked = jobs.order("blog_make", {"blog": args["blog"], "hint": args.get("topic") or ""}, "SHIHO")
+                    job, kicked = jobs.order("blog_make", {"blog": args["blog"], "hint": args.get("topic") or "", "kind": args.get("kind") or "feature"}, "SHIHO")
                     act(state, "research", f"{name} 패키지 대기 (지시서 {job['id']})", "working")
                     done.append(f"{name} 패키지 지시서를 넘겼습니다. 서버에서 10분 안팎 걸리고, 창을 닫으셔도 됩니다. 끝나면 {name} 데스크에 올라옵니다."
                                 + ("" if kicked else " 서버 신호가 닿지 않아 한 시간 안의 순찰 때 처리됩니다."))
-                elif blog.start_background(cfg, args["blog"], args.get("topic") or ""):
+                elif blog.start_background(cfg, args["blog"], args.get("topic") or "", None, args.get("kind") or "feature"):
                     done.append(f"{name} 패키지를 만들기 시작했습니다. 10분 안팎 걸리고, 끝나면 {name} 데스크에 올라옵니다.")
                 else:
                     done.append(f"{name} 패키지를 이미 만들고 있습니다. 끝나면 {name} 데스크에 올라옵니다.")

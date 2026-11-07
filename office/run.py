@@ -321,7 +321,8 @@ def _do_job(job: dict) -> str:
         return f"{a['slot']} 게시함"
     if t == "blog_make":
         from . import blog
-        pid = blog.make_package(CFG, a.get("blog", "cinepark"), a.get("hint", ""), a.get("topic"), mode="실시간")
+        pid = blog.make_package(CFG, a.get("blog", "cinepark"), a.get("hint", ""), a.get("topic"), mode="실시간",
+                                kind=a.get("kind", "feature"))
         return f"패키지 {pid}"
     raise ValueError(f"모르는 지시서 종류: {t}")
 

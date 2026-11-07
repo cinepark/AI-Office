@@ -25,8 +25,18 @@ _lock = threading.Lock()
 # ───────────────────────── 작법 ─────────────────────────
 CINEPARK_RESEARCH = """당신은 네이버 영화 블로그 CINEPARK 의 리서치 담당입니다. 영화잡지형 포스팅의 글감을 찾습니다.
 
-글감 기준 (Mr. MOON 이 정한 기준)
-- 반드시 '영화'와 관련된 이야기. 그중에서도 사람들이 끌리는 세 가지 고리 중 하나가 있어야 한다:
+블로그의 정체성 (Mr. MOON 이 정한 것)
+- CINEPARK 는 전 세계 영화 산업(영화 이야기가 없으면 드라마·애니·OTT 등 콘텐츠 산업)의 자금, 사람, 비하인드 더 신을 다루는,
+  이제는 사라진 영화잡지의 피처(feature) 기사 같은 블로그다. 할리우드·영국·일본·유럽·중국·인도·중동·동남아 어디의 이야기든 된다. 한국과의 연결은 있으면 살리고, 없어도 된다.
+- 글감은 피처의 네 갈래 중 하나로 정한다(archetype):
+  ① 돈의 경로: 제작비·투자·세액공제·인수합병·출연료가 실제로 어디서 어디로 흘렀나. 공시·감사보고서·정부 지원 자료·IR 같은 1차 자료로 재구성한다
+     (예: 영국 자회사 감사보고서로 '쥬라기 월드: 도미니언'의 실제 제작비와 영국 세액공제 환급액을 밝혀낸 기사).
+  ② 사람: 한 편의 영화·한 회사의 방향을 바꾼 프로듀서·임원·감독·배우의 결정과 이력.
+  ③ 제작기·뒷얘기: 촬영 지연, 예산 초과, 재촬영, 캐스팅 교체, 배급 협상처럼 화면 뒤에서 벌어진 일.
+  ④ 업계 구조·결산: 배급사 철수, 극장 폐관, 제작위원회 방식, 스트리밍과 극장의 관계처럼 판이 바뀌는 흐름.
+
+글감 기준
+- 반드시 '영화'(없으면 콘텐츠 산업)와 관련된 이야기. 그중에서도 사람들이 끌리는 세 가지 고리 중 하나가 있어야 한다:
   돈(제작비·투자·흥행 수익·배우 출연료·인수합병·해외 자본) / 셀럽(배우·감독의 행보·캐스팅·발언·논란) / 뒷얘기(제작 비하인드·갈등·숨은 사연·기록).
 - 기준이 되는 글감: "중동의 돈이 한국 콘텐츠로 온다? 두바이·아부다비·사우디의 서로 다른 속셈"
   → 세계 영화계에서 벌어지는 일을 한국 독자가 바로 궁금해할 한 줄 질문으로 바꾼 것. 두바이 머니, 한국 영화, 실제로 들어오나? 처럼
@@ -41,6 +51,10 @@ CINEPARK_RESEARCH = """당신은 네이버 영화 블로그 CINEPARK 의 리서�
   해외 상장사는 이 이야기의 주인공 회사이거나 국내 투자자가 많이 사는 종목일 때 함께 잇는다. 국내 연결이 있는 글감을 더 높게 친다.
 - 글감마다 angle 을 정한다: 이 글만의 관점 한 줄. 뉴스 요약이 아니라 '그래서 이 일은 무엇을 보여 주나'에 대한 답이다
   (예: 뉴스 '세 시간 다큐 북미 1위' → angle '극장이 다큐를 다시 부른 이유는 사건이 아니라 접근권이다').
+- 돈·셀럽·뒷얘기는 글감을 고르는 기준이지 제목 단어가 아니다. title_idea 에 '돈', '머니', '팔릴까', '얼마' 같은 말을 넣지 않는다.
+  제목은 작품·사람·회사 이름을 넣어, 제목만 읽어도 무슨 이야기인지 알 수 있는 질문으로 짓는다. 뜻이 흐려지는 비유('면접장에서 팔릴까')는 쓰지 않는다.
+- 검색 수요를 확인한다: 이 주제로 사람들이 네이버·구글 검색창과 AI(챗봇·네이버 AI 브리핑)에 실제로 어떤 질문을 하는지 웹 검색으로 찾아
+  search_questions 에 5개까지 적고(근거 포함), 수요가 높은지(demand) 판단한다. 사람들이 묻지 않는 주제는 고르지 않는다.
 - 최근 2주 안의 뉴스나 지금 진행 중인 이슈에서 찾는다. 웹 검색으로 사실과 출처를 확인한다.
 - 사실마다 상태를 구분한다: 확정(공식 발표·계약 완료) / 보도(매체 보도) / 협상(논의·검토) / 소문.
 - 특정 작품(영화·다큐·시리즈)이 중심인 글감이면 work 칸을 반드시 채운다: 어떤 이야기인지(인물·사건·핵심 장면),
@@ -52,8 +66,10 @@ CINEPARK_RESEARCH = """당신은 네이버 영화 블로그 CINEPARK 의 리서�
 JSON 만 출력:
 {{"topics": [{{"axis": "돈|셀럽|뒷얘기", "format": "기획기사|정보", "question": "한 줄 질문 (예: 중동의 돈이 한국 영화로 온다?)",
  "title_idea": "제목 아이디어 (질문 + 부제)", "angle": "이 글만의 관점 한 줄",
+ "search_questions": [{{"q": "사람들이 검색창·AI에 실제로 묻는 질문", "where": "근거(네이버 연관검색어·지식iN·구글 '관련 질문'·커뮤니티·뉴스 댓글 등)"}}],
+ "demand": "high|mid|low", "demand_why": "검색 수요 판단 근거 한 줄",
  "context": [{{"text": "배경·선례·비교·비평 한 줄", "source": "매체·기관명", "url": "주소"}}], "hook_question": "도입 끝에 던질 질문", "why_now": "지금 써야 하는 이유",
- "korea_link": "한국 영화·관객과의 연결고리", "first_line": "첫 줄로 쓸 숫자·이름·장면 한 마디",
+ "archetype": "돈의 경로|사람|제작기·뒷얘기|업계 구조", "primary_sources": ["공시·감사보고서·정부 자료·인터뷰 원문 등 1차 자료"], "people": ["이 이야기의 핵심 인물과 그 사람의 이력·발언(출처)"], "korea_link": "한국과의 연결고리(있으면)", "first_line": "첫 줄로 쓸 숫자·이름·장면 한 마디 (명사로 끝내거나 ~습니다 체, ~이다 금지)",
  "facts": [{{"text": "사실 한 줄", "status": "확정|보도|협상|소문", "source": "매체·기관명", "url": "주소"}}],
  "work": {{"title": "국내 표기 제목 (원제)", "what": "어떤 이야기인지 3~4문장: 인물·사건·핵심 장면", "makers": "감독·주요 인물 이력 한두 줄",
    "why_hit": ["화제·흥행 이유 한 줄 (출처)", "..."]}},
@@ -80,12 +96,20 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
 (마지막 문단) 두바이의 돈이 한국 영화 제작비로 들어올 가능성은 열려 있지만, 지금 확인된 것은 공동개발과 재원 조달에 관한 논의이지 특정 영화의 투자 계약이 아닙니다. (…) 그 자리가 실제 제작비로 이어지는지 보려면 한 가지를 물어야 합니다.
 누가, 어떤 작품에, 어떤 권리를 조건으로 돈을 내는가?
 
-영화잡지의 기준 (가장 중요하다)
-- 이 글은 속보 기사가 아니라 버라이어티·사이트 앤 사운드·키노 같은 영화잡지의 기획기사다. 독자가 뉴스에서 이미 본 사실을 되풀이하면 읽을 이유가 없다.
-- 글감의 angle(관점)을 글 전체의 뼈대로 삼는다. 소제목들은 그 관점을 한 걸음씩 증명하는 순서로 놓는다. 뉴스 → 반박 → 유보를 반복하는 나열식 구성 금지.
-- 뉴스는 도입에서 짧게 쓰고, 본문은 context(선례·비교·업계 구조·비평·숨은 사람)로 채운다. 여러 매체의 자료를 엮어 독자가 혼자서는 연결하지 못했을 그림을 보여 준다.
-- 장면으로 쓴다: 작품의 한 장면, 시사회장의 반응, 협상 테이블, 박스오피스 표의 한 줄처럼 눈에 보이는 디테일을 넣는다.
-- 마지막 소제목은 '그래서 한국 영화(관객)에게 무엇이 남나'를 제작자의 시선으로 정리한다. 다 읽은 독자가 남에게 말해 주고 싶은 한 문장이 있어야 한다.
+피처 기사 작법 (가장 중요하다)
+- 이 글은 속보가 아니라 이제는 사라진 영화잡지의 피처 기사다(버라이어티·할리우드 리포터의 롱리드, 사이트 앤 사운드, 키네마 준보 특집, 키노·필름2.0 같은).
+  독자가 뉴스에서 이미 본 사실을 되풀이하면 읽을 이유가 없다. '이건 처음 알았다'는 대목이 소제목마다 하나씩 있어야 한다.
+- 시작 전에 '이 글은 ○○에 관한 이야기다'를 한 문장으로 정한다(글감의 angle). 왜·어떻게·그래서 무엇이 달라지나, 이 세 질문이 글을 끌고 간다.
+- 리드(도입): 뉴스 요약이 아니라 장면·숫자·인물 하나로 연다. 독자 눈앞에 그림이 그려지게. (예: 숫자 한 줄, 협상장의 한 장면, 한 인물의 한마디)
+- 넛그래프(도입 마지막 문단): '이 이야기를 왜 지금 읽어야 하나'를 한 문단으로. 리드에서 보여 준 장면이 더 큰 흐름의 한 조각임을 밝힌다.
+- 본문: 글감의 archetype 에 맞게 쌓는다.
+  돈의 경로 → 1차 자료(공시·감사보고서·세액공제 자료·IR)로 돈의 흐름을 단계별로 재구성하고, 숫자는 늘 비교 대상과 함께(다른 작품, 이전 해, 업계 평균).
+  사람 → 그 사람이 내린 결정 하나를 중심에 두고, 이력과 과거 결정, 공개된 인터뷰 발언(매체 표기)으로 그 결정의 이유를 보여 준다.
+  제작기·뒷얘기 → 시간 순서로, 일이 꼬인 순간과 그 대가(일정·예산)를 구체적으로.
+  업계 구조 → 판이 바뀐 증거 서너 개(사건·숫자)를 모으고, 누가 이기고 누가 잃는지.
+- 인물에게 이름과 직함을 붙이고, 공개된 인터뷰·발언은 매체를 밝혀 인용한다. 지어낸 인용 금지.
+- 여러 나라 매체(미국·영국·일본·현지 매체)와 1차 자료를 엮어, 독자가 혼자서는 연결하지 못했을 그림을 보여 준다.
+- 키커(마지막 소제목): 앞으로 무엇을 지켜봐야 하는지, 한국 영화·관객·투자자에게 무엇이 남는지를 제작자의 시선으로 정리한다. 다 읽은 독자가 남에게 전하고 싶은 한 문장으로 끝낸다.
 
 작법 7원칙
 1. 첫 줄은 숫자·이름·장면처럼 눈에 걸리는 한 마디로 짧게 끊고, 도입 끝은 독자가 궁금해할 질문으로 맺는다. 썸네일은 그 질문 바로 뒤.
@@ -98,6 +122,8 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
    같은 소제목 안에서 같은 출처 꼬리표를 되풀이하지 않는다(처음 한 번만). AI 이미지 고지 문구는 쓰지 않는다(끝에 자동으로 붙는다).
 4. 제작자의 시선으로 쉽게 풀어 쓴다. 본문은 첫 줄부터 ~입니다/~습니다 체. 소제목은 '~입니다'로 끝내지 않고 명사형 또는 짧은 질문으로 끝낸다(예: '…투자 약속이 아니라 논의', '…돈은 다름', '두바이가 원하는 것은 무엇?'). 지어낸 인용·숫자 금지. 해석은 해석이라고 밝힌다.
 5. 돈·셀럽·뒷얘기 중 이 글의 축을 끝까지 밀고 간다.
+5-0. 글감의 search_questions 는 독자가 실제로 검색창과 AI에 묻는 질문이다. 본문이 이 질문들에 빠짐없이 답하게 하고,
+   소제목 가운데 두세 개는 그 질문을 자연스러운 질문형 소제목으로 쓴 뒤 바로 아래 첫 문장에서 답부터 말한다(AI 브리핑이 인용하기 좋은 구조).
 5-1. 특정 작품이 중심인 글이면, 독자는 '그래서 어떤 작품인데? 왜 그렇게 됐는데?'부터 궁금하다.
    첫 번째 소제목에서 무엇에 관한 작품인지 인물·사건·장면으로 구체적으로 보여 주고(글감의 work.what, makers),
    두 번째 소제목에서 왜 화제·흥행이 됐는지 평단·관객이 꼽은 이유를 근거와 함께 쓴다(work.why_hit). 돈·배급·한국 개봉 이야기는 그다음이다.
@@ -112,9 +138,11 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
    비상장사·펀드는 종목으로 쓰지 않고 그 사실을 밝힌다.
 
 형식
-- 제목: 가운데 정렬로 쓸 질문 한 줄, 부제 없이 25자 안팎(예: 두바이의 돈은 한국 영화로 들어올까?).
-  글감의 question(한 줄 질문)을 제목 앞부분에 살리고, 글감의 first_line 을 본문 첫 줄로 쓴다. 글 전체가 그 질문에 답하는 구조여야 한다.
-- 썸네일 문구: thumb_title 은 두 줄(줄마다 10자 안팎, 줄바꿈 \n), thumb_highlight 는 그중 노란색으로 강조할 한 단어(예: 돈).
+- 제목: 가운데 정렬로 쓸 질문 한 줄, 부제 없이 25자 안팎. 작품·사람·회사 이름이 들어가 제목만 읽어도 무슨 이야기인지 알 수 있어야 한다
+  (예: 세 시간짜리 테라노스 다큐는 어떻게 북미 1위에 올랐을까?). '돈', '머니', '팔릴까', '얼마' 같은 주제어는 제목에 쓰지 않는다
+  (돈·셀럽·뒷얘기는 글의 축이지 제목 단어가 아니다. 기준 원고의 제목은 말투 참고용이다). 뜻이 흐려지는 비유 제목 금지.
+  글감의 question(한 줄 질문)을 제목 앞부분에 살리고, 글감의 first_line 을 본문 첫 줄로 쓴다(첫 줄도 명사로 끝내거나 ~습니다 체, '~이다'로 끝내지 않는다). 글 전체가 그 질문에 답하는 구조여야 한다.
+- 썸네일 문구: thumb_title 은 두 줄(줄마다 10자 안팎, 줄바꿈 \n). 첫 줄은 작품·사람·회사 이름, 둘째 줄은 이 글의 핵심 사실(예: '유 캔 씨 에브리씽\n북미 1위 다큐'). thumb_highlight 는 그중 노란색으로 강조할 한 단어(예: 1위). '돈' 같은 주제어는 썸네일에도 쓰지 않는다.
 - 본문 2,500~3,500자, 소제목 5개. 'CINEPARK의 한 줄 정리' 같은 정리용 소제목은 따로 두지 않고, 마지막 소제목 끝 문단에서 정리한 뒤 핵심 질문 한 줄로 끝낸다.
 - 그림 {n}장: 0번 썸네일, 1~{last}번은 본문 사이 {{"type": "image", "no": 번호}}.
   그림마다 검색과 AI 인용에 잘 걸리는 이름을 붙인다.
@@ -138,6 +166,7 @@ CINEPARK_WRITE = """당신은 네이버 영화 블로그 CINEPARK 의 작가입�
      prompt 에 'She is the only person in the frame.' 를 넣는다.
   5번 kind "object": 2번과 다른 사물 정물, 다른 색감(예: 2번이 계약서라면 5번은 필름 캔과 영사기). 사람 없음, 손도 없음. 2번과 같은 방식으로 사물 2~3개만, 'Nothing else is on the surface.' 를 넣는다.
   모든 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 'or', 'maybe', 'slightly' 금지.
+  그림 prompt 에는 실존 작품명·캐릭터명(예: 치이카와)·배우 이름·로고·포스터를 쓰지 않는다. 그림 모델이 거절한다. 장르·분위기·장소만 묘사한다.
   실존 인물·로고·글자·숫자는 그림에 넣지 않는다(정보 카드·도표 그림도 만들지 않는다). 같은 랜드마크(남산서울타워, 엠파이어스테이트빌딩, 에펠탑 등)는 6장 중 많아야 1장. 기본은 흰 벽·베이지·밝은 원목 톤에 창으로 들어오는 부드러운 낮의 자연광, 화면의 절반 가까이를 빈 공간으로 둔다. 저녁·밤 장면은 6장 중 많아야 1장. 황금빛 조명·샹들리에·꽃 장식 금지. 16:9 가로 구도.
 - 관련 종목은 상장사만. stock_note 는 본문에 나온 비상장사 안내 한 줄만(예: 'SLL은 비상장사입니다.'). 없으면 빈 문자열.
 
@@ -202,7 +231,80 @@ JSON 만 출력:
  "images": [{{"no": 0, "role": "썸네일", "label": "...", "filename": "...", "prompt": "...", "caption": "..."}}],
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
+INFO_RESEARCH = """당신은 네이버 블로그 'CINEPARK'(영화 프로듀서의 블로그)의 리서치 담당입니다. 오늘은 '정보글' 글감을 찾습니다.
+정보글은 시간이 지나도 사람들이 계속 검색하는 순위·목록·정리 글입니다. 이 블로그에서 지금도 손님을 데려오는 글이 이런 글입니다
+(형식 예: '[최신] 베트남 영화 역대 흥행순위 TOP 15'. 단 베트남·인도네시아 흥행순위는 대표님이 매년 1월 직접 정리하므로 글감으로 내지 않는다).
+- 사람들이 검색창과 AI에 실제로 묻는 질문이 분명한 주제를 고른다(예: '○○ 역대 흥행 순위', '○○ 감독 작품 순서', '넷플릭스 ○월 신작', '천만 영화 목록').
+  search_questions 에 실제 질문 5개와 근거를 적고 demand 를 판단한다.
+- 미리 정한 분야는 없다. 지금 검색 수요가 실제로 확인되는 순위·목록만 고른다. 수요 근거가 약하면 내지 않는다.
+- 순위·숫자는 공식 집계나 믿을 수 있는 출처로 확인한다(영화관입장권통합전산망 KOBIS, 각국 집계 사이트, 제작사·배급사 보도자료, Box Office Mojo, The Numbers, 주요 언론).
+  출처와 집계 기준일을 함께 적는다. 확인 못 한 숫자는 넣지 않는다.
+- 블로그에 이미 같은 주제 글이 있으면(아래 '최근에 이미 쓴 글') 새 글 대신 '[최신] … (YYYY년 M월 업데이트)' 업데이트 글감으로 낸다.
+- 국내 상장사와 이어지면(투자·배급·합작) market_link 에 적는다.
+{hint}
+후보 3개, 가장 좋은 것을 맨 앞에.
+JSON 만 출력:
+{{"topics": [{{"title_idea": "[최신] 검색어가 그대로 들어간 제목 (YYYY년 M월 업데이트)", "question": "독자가 궁금한 한 줄",
+ "search_questions": [{{"q": "실제 질문", "where": "근거"}}], "demand": "high|mid|low", "demand_why": "근거 한 줄",
+ "data_source": "집계 출처와 기준일", "items": [{{"rank": 1, "title": "국내 표기 (원제)", "year": "개봉연도", "figure": "관객수·매출 등 숫자", "makers": "감독·제작·배급", "note": "프로듀서가 덧붙일 뒷얘기 한 줄", "source": "출처"}}],
+ "facts": [{{"text": "사실", "source": "출처", "url": "주소"}}],
+ "market_link": [{{"company": "상장사", "market": "코스피|코스닥|NYSE|NASDAQ|TSE", "code": "코드", "how": "이어지는 경로"}}]}}]}}"""
+
+INFO_GOLD = """제목: [최신]인도네시아 흥행영화 TOP 12(2026년 1월 업데이트)
+(문단) 안녕하세요. 영화 프로듀서의 블로그, CINEPARK입니다.
+(문단) 지난 2021년 7월에 인도네시아 흥행영화와 관련한 포스팅을 업로드한 바 있는데요. 그 뒤로 계속해서 흥행순위가 바뀌었기 때문에 업데이트를 해 왔습니다.
+(문단) 인도네시아에는 한국의 '영화관입장권통합전산망(KOBIS)'이 없어요. ... 그나마 다행히도 영화의 관객수를 수집해 공유하는 사이트가 있는데요. 필름인도네시아(filmindonesia.or.id)입니다. 앞 선 표는 필름인도네시아와 Bicara Box Office의 데이터를 바탕으로 합니다.
+(항목) 1위 <Agak Laen:Menyala Pantiku!>(2025) / 누적관객수 10,602,907명
+(문단) 2024년에 개봉해 9백만명 이상의 관객을 동원했던 영화 <조금달라(Agak Laen)> 속편인 ... 천만을 넘어서며 인도네시아 역대 흥행순위 1위에 올랐습니다.
+(항목) 2위 <JUMBO>(2025) / 누적관객수 10,197,894명
+(문단) 인도네시아 제작 애니메이션 영화 <JUMBO>가 ... 인도네시아 첫번째로 천만을 넘어선 애니메이션이 되었습니다. ... VISINEMA의 대표이자 감독인 Angga Dwimas Sasongko는 ... 이번 애니메이션에서는 감독이 아닌 프로듀서(제작)으로 참여했습니다.
+(마무리) 흥행영화 TOP12의 공통점 중 하나가 소설, 만화, 영화 등 원작이 있는 점입니다. 흥행영화에 오리지널 시나리오가 많은 한국영화와 가장 큰 차별점이라 할 수 있겠습니다.
+
+(베트남 글의 항목 형식)
+1위 / 제목 | MAI (마) / 흥행성적 | VND 5,200억동 / 감독 | Trấn Thành(쩐탄) / 제작 | CJHK Entertainment / 제공/배급 | CJ Entertainment / 개봉일 | 2024년 1월 22일
+(문단) <마이 MAI>는 CJ ENM과 HK Entertainment의 합작회사인 CJHK Entertainment가 제작, 투자한 작품으로 개봉 20일만에 베트남 역대 박스오피스 기록을 갈아치웠습니다.
+(끝) 흥행작이 나오면 업데이트할 예정입니다. (데이터 출처 - ...) / 1st Updated - 2020.12.6. / 2nd Updated - ..."""
+
+INFO_WRITE = """당신은 네이버 블로그 'CINEPARK'(영화 프로듀서의 블로그)의 작가 담당입니다. 오늘은 정보글을 씁니다.
+아래는 Mr. MOON 이 직접 쓴 정보글입니다. 이 글들이 지금도 검색으로 손님을 데려오는 글입니다. 구성·말투·항목 형식을 따른다.
+
+[기준 정보글]
+""" + INFO_GOLD + """
+
+규칙
+- 제목: '[최신]'으로 시작하고, 사람들이 치는 검색어(나라·분야 + 역대 흥행순위 / TOP N / 작품 순서 등)를 그대로 넣고, 끝에 '(YYYY년 M월 업데이트)'. '돈' 같은 주제어 금지.
+- 도입: '안녕하세요. 영화 프로듀서의 블로그, CINEPARK입니다.'로 시작. 이 순위를 왜 정리하는지, 데이터를 어디서 가져왔는지(집계 기준일 포함) 프로듀서의 말로 설명한다. 말투는 기준 글처럼 친근한 ~습니다/~요 체.
+- 항목: 순위마다 소제목(h)으로 '○위 <국내 표기(원제)>(연도)'를 쓰고, 바로 아래 문단에 '제목 | … / 흥행성적 | … / 감독 | … / 제작 | … / 제공/배급 | … / 개봉일 | …'처럼 표 형식 한 줄씩,
+  그다음 2~4문장으로 프로듀서의 뒷얘기(제작사·감독 이력, 한국 회사와의 합작, 한국 영화 리메이크, 흥행 이유)를 쓴다. 각 항목 끝에 {{"type": "poster", "text": "작품 국내 표기 (포스터 출처)"}} 블록을 넣어 대표님이 공식 포스터를 넣을 자리를 남긴다.
+- 마무리: 순위 전체에서 보이는 공통점이나 흐름을 한국 영화와 비교해 한 문단(기준 글의 '원작이 있는 점' 문단처럼). 그다음 '흥행작이 나오면 업데이트할 예정입니다.', 데이터 출처, 업데이트 기록(이번 업데이트 날짜).
+- 숫자는 글감의 items·data_source 에 있는 확인된 것만 쓴다. 지어내지 않는다. 해외 고유명사는 국내 언론 표기 + 원어.
+- 상장사와 이어지면 끝에 '관련 기업과 종목'(국내 먼저, 시장·코드, 이어지는 이유). 매수·매도 권유 금지.
+- 그림은 썸네일 1장만 만든다(나머지는 대표님이 공식 포스터를 넣는다).
+  0번 kind "shiho": 썸네일. {character}. 화면 위쪽 40%를 하늘·배경으로 비우고(제목 글자 자리) 그녀의 머리는 화면 가운데보다 아래. 이 나라·주제가 느껴지는 장소(예: 동남아 도시의 극장 앞). 그림 prompt 는 영어 한 단락, 실존 작품명·캐릭터·로고 금지.
+- 썸네일 문구: thumb_title 은 두 줄(첫 줄 나라·분야, 둘째 줄 '역대 흥행 TOP 12' 같은 핵심), thumb_highlight 는 강조 한 단어(예: TOP 12).
+JSON 만 출력:
+{{"title": "...", "thumb_title": "첫 줄\\n둘째 줄", "thumb_highlight": "...",
+ "blocks": [{{"type": "p", "text": "..."}}, {{"type": "image", "no": 0}}, {{"type": "h", "text": "1위 <...>(2025)"}}, {{"type": "p", "text": "제목 | ... / 흥행성적 | ..."}}, {{"type": "p", "text": "뒷얘기"}}, {{"type": "poster", "text": "..."}}],
+ "images": [{{"no": 0, "kind": "shiho", "role": "썸네일", "filename": "검색어-썸네일", "prompt": "...", "caption": "[이미지 1: ...]"}}],
+ "stocks": [{{"name": "...", "market": "...", "code": "...", "reason": "..."}}], "stock_note": "...",
+ "sources": [{{"title": "...", "url": "..."}}], "tags": ["..."]}}"""
+
+INFO_EDITOR = """당신은 CINEPARK 의 편집장입니다. 정보글(순위·목록) 원고를 점검합니다. 하나라도 걸리면 ok=false.
+1. 제목에 사람들이 실제로 검색할 말(나라·분야 + 순위/TOP N 등)이 없거나 '[최신] … (YYYY년 M월 업데이트)' 형식이 아니다.
+2. 데이터 출처와 집계 기준일이 본문에 없다.
+3. 순위 항목에 숫자(관객수·매출)나 기본 정보(감독·제작·배급·개봉일)가 빠진 것이 있거나, 뒷얘기 없이 숫자만 나열했다.
+4. 원고가 search_questions(사람들이 실제로 묻는 질문)에 답하지 않는다.
+5. 반말체 문장이 있다.
+JSON 만 출력: {"ok": true|false, "fix": ["고칠 점", "..."]}"""
+
+
 PROMPTS = {"cinepark": (CINEPARK_RESEARCH, CINEPARK_WRITE), "review": (REVIEW_RESEARCH, REVIEW_WRITE)}
+INFO_PROMPTS = (INFO_RESEARCH, INFO_WRITE)
+
+
+def _prompts(blog: str, kind: str) -> tuple:
+    return INFO_PROMPTS if (blog == "cinepark" and kind == "info") else PROMPTS[blog]
+
 
 
 # ───────────────────────── 보관 ─────────────────────────
@@ -284,16 +386,20 @@ def _on_topic(hint: str, topic: dict) -> bool:
     return not keys or keys[0] in text  # 첫 단어(주제의 중심)가 반드시 들어 있어야 함
 
 
-def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = None) -> list[dict]:
+def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = None, kind: str = "feature") -> list[dict]:
     av = f"\n최근에 이미 쓴 글(같은 주제 피하기): {' / '.join(avoid[-20:])}\n" if avoid else ""
     fmt = {"hint": (f"\n★ Mr. MOON 지정 주제: \"{hint}\"\n이 지정 주제가 최우선이다. 세 글감 모두 이 주제 안에서 고른다. 다른 주제로 바꾸지 않는다.\n"
                     f"최근 2주 뉴스가 부족하면 기간을 넓혀(최근 1년 안의 발표·보도와 진행 중인 흐름) 이 주제를 다룬다.\n"
                     f"위의 기준 글감과 같은 주제여도 괜찮다. 지금 시점의 새 자료로 다시 쓴다.\n") if hint else ""}
-    if "{avoid}" in PROMPTS[blog][0]:
+    ex = cfg["blog"]["blogs"][blog].get("exclude_topics", [])
+    if ex:  # 대표님이 직접 정리하는 주제: 글감으로 내지 않는다
+        av += "\n글감으로 고르지 않는 주제(대표님이 직접 정리함): " + " / ".join(ex) + "\n"
+    pr = _prompts(blog, kind)
+    if "{avoid}" in pr[0]:
         fmt["avoid"] = av
     else:
         fmt["hint"] += av
-    sys_r = PROMPTS[blog][0].format(**fmt)
+    sys_r = pr[0].format(**fmt)
     data = _ask(cfg, sys_r, f"오늘은 {_now():%Y년 %m월 %d일}입니다. 글감 3개를 찾아 주세요.", search=True)
     return data.get("topics", [])[:3]
 
@@ -332,13 +438,14 @@ def pick_bts() -> str:
     return " / ".join(f"({n + 1}) {BTS_SCENES[i]}" for n, i in enumerate(picks))
 
 
-def write(cfg: dict, blog: str, topic: dict) -> dict:
+def write(cfg: dict, blog: str, topic: dict, kind: str = "feature") -> dict:
     bc = cfg["blog"]["blogs"][blog]
-    n = bc["images"]
-    extra = {"bts": pick_bts()} if "{bts}" in PROMPTS[blog][1] else {}
-    if "{crew_character}" in PROMPTS[blog][1]:
+    pr = _prompts(blog, kind)
+    n = 1 if pr is INFO_PROMPTS else bc["images"]
+    extra = {"bts": pick_bts()} if "{bts}" in pr[1] else {}
+    if "{crew_character}" in pr[1]:
         extra["crew_character"] = (bc.get("crew_character") or bc.get("character", "")).strip()
-    sys_w = PROMPTS[blog][1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
+    sys_w = pr[1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
     user = (f"오늘은 {_now():%Y년 %m월 %d일}입니다. 아래 글감으로 원고를 쓰세요. 필요하면 웹 검색으로 사실을 다시 확인하세요.\n"
             + ("편집장이 돌려보낸 원고입니다. editor_fix 의 지적을 모두 고쳐 새로 쓰세요.\n" if topic.get("editor_fix") else "")
             + json.dumps(topic, ensure_ascii=False))
@@ -452,6 +559,35 @@ def check(blog: str, art: dict) -> list[str]:
     return probs
 
 
+GENERIC = {  # 그림 모델이 거절했을 때(실존 캐릭터·작품명 등) 다시 시도하는 무난한 장면
+    "shiho": "SHIHO stands in a quiet cinema lobby in the daytime, holding a folded film program and looking at a blank poster frame.",
+    "crew": "A wide behind-the-scenes view inside a film studio: a camera operator on a low dolly films a brightly lit living-room set, "
+            "a set painter touches up a wall of the set, and SHIHO watches from the far left leaning on a black equipment case.",
+    "scene": "An empty cinema auditorium in the daytime, rows of red seats facing a blank white screen.",
+    "object": "A still life on a pale wooden table: a closed screenplay and two cinema tickets. Nothing else is on the surface.",
+}
+
+
+def _render_safe(cfg: dict, bc: dict, blog: str, im: dict, kind: str, refs: list, style: str) -> bytes:
+    """그림 한 장. 거절·오류가 나면 무난한 장면으로 한 번 더 그린다."""
+    from . import ai
+    if kind == "crew":
+        st_, use_refs = bc.get("crew_style", "").strip(), refs
+    elif kind == "shiho" or bc.get("labels"):
+        st_, use_refs = style, refs
+    else:  # 사람 없는 장소·사물: 캐릭터 기준 그림을 넣지 않아야 인물이 끼어들지 않는다
+        st_, use_refs = bc.get("scene_style", "").strip(), []
+    try:
+        return ai.render(cfg, im["prompt"] + (f" {st_}" if st_ else ""), use_refs, cfg["blog"]["image_size"])
+    except Exception as e:
+        _log("dev", f"{bc['name']} 그림 {im['no'] + 1} 1차 실패 → 무난한 장면으로 다시: {str(e)[:80]}", "working")
+        g = GENERIC.get("scene" if (kind not in GENERIC and not use_refs) else kind, GENERIC["scene"])
+        if bc.get("labels"):
+            g = im["prompt"].split(".")[0] + "."  # 리뷰&리뷰: 첫 문장(동물·물건 묘사)만 남긴다
+        im["fallback"] = True
+        return ai.render(cfg, g + (f" {st_}" if st_ else ""), use_refs, cfg["blog"]["image_size"])
+
+
 def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
     from . import ai, drive, storage
     bc = cfg["blog"]["blogs"][blog]
@@ -469,15 +605,7 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
             kind = im.get("kind", "shiho" if refs else "scene")
             if kind == "card" or not im.get("prompt", "").strip():  # 정보 카드는 대표님이 에디터로 직접 만든다
                 continue
-            if kind == "crew":  # BTS 촬영장 일러스트: 구경 온 SHIHO 가 작게 나오므로 기준 그림을 함께 보낸다
-                cstyle = bc.get("crew_style", "").strip()
-                png = ai.render(cfg, im["prompt"] + (f" {cstyle}" if cstyle else ""), refs, cfg["blog"]["image_size"])
-            elif kind == "shiho" or bc.get("labels"):
-                prompt = im["prompt"] + (f" {style}" if style else "")
-                png = ai.render(cfg, prompt, refs, cfg["blog"]["image_size"])
-            else:  # 사람 없는 장소·사물: 캐릭터 기준 그림을 넣지 않아야 인물이 끼어들지 않는다
-                sstyle = bc.get("scene_style", "").strip()
-                png = ai.render(cfg, im["prompt"] + (f" {sstyle}" if sstyle else ""), [], cfg["blog"]["image_size"])
+            png = _render_safe(cfg, bc, blog, im, kind, refs, style)
             if bc.get("labels") and im.get("label"):
                 png = label(png, im["label"])
             elif blog == "cinepark":
@@ -494,28 +622,86 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
 
 
 EDITOR = """당신은 네이버 영화 블로그 CINEPARK 의 편집장입니다. 그림을 그리기 전에 원고를 검토합니다(그림 비용이 크므로 부족한 원고는 여기서 돌려보냅니다).
-아래 여섯 가지를 보고 하나라도 걸리면 ok=false.
+아래 열 가지를 보고 하나라도 걸리면 ok=false.
 1. 특정 작품이 중심인 글인데, 무엇에 관한 작품인지(인물·사건·장면)가 본문에 구체적으로 없다.
 2. 제목·도입이 던진 질문('왜 1위?', '어떤 돈?')에 본문이 답하지 않는다.
 3. '~은 다릅니다', '단정할 수 없습니다', '확인되지 않았습니다' 같은 유보 문장이 네 번 이상이거나, 소제목마다 유보로 끝난다.
 4. 출처에 텔레그램·커뮤니티 모음 사이트·상표 출원 문서 같은 믿기 어려운 자료가 있다.
 5. 영화잡지 기획기사가 아니라 속보 기사처럼 읽힌다: 뉴스 사실의 나열뿐이고, 관점(angle)과 배경(선례·비교·업계 구조·비평)이 없다.
+9. 원고가 글감의 search_questions(사람들이 실제로 묻는 질문)에 답하지 않는다.
+10. 피처 기사의 뼈대가 없다: 리드가 장면·숫자·인물이 아니라 뉴스 요약이거나, '왜 지금 읽어야 하나'를 밝히는 넛그래프가 없거나, 이름 있는 인물·1차 자료 없이 기사 요약만으로 채웠다.
+7. 제목만 읽고 무슨 작품·사람·회사 이야기인지 알 수 없거나, 비유로 뜻이 흐리거나, '돈'·'팔릴까' 같은 주제어를 제목에 썼다.
+8. 본문 문장이 '~이다', '~했다' 같은 반말체로 끝난다(첫 줄 포함). 본문은 처음부터 끝까지 ~습니다 체이거나 명사로 끝나는 짧은 줄이어야 한다.
 6. 상장사와의 연결이 근거 없이 억지스럽거나(사업 경로 설명 없이 이름만 나열), 주가 전망·매수 권유처럼 읽히는 문장이 있다.
 JSON 만 출력: {"ok": true|false, "fix": ["고칠 점 한 줄", "..."]}"""
 
 
-def edit_check(cfg: dict, art: dict) -> dict:
-    """편집장 검토. 웹 검색 없이 원고만 본다."""
+TOPIC_EDITOR = """당신은 네이버 영화 블로그 CINEPARK 의 편집장입니다. 원고를 쓰기 전에 글감을 고릅니다.
+기준: 이 주제가 검색량을 늘릴 기획기사인가. 웹 검색으로 각 후보에 대해 사람들이 네이버·구글 검색창과 AI(챗봇·네이버 AI 브리핑)에
+지금 실제로 어떤 질문을 하는지 확인한다(연관검색어, 지식iN, 구글 '관련 질문', 커뮤니티, 뉴스 댓글).
+- 사람들이 많이 묻고, 아직 속 시원한 답이 드문 질문이 있는 후보를 고른다.
+- 피처 기사로 쓸 깊이가 있는지도 함께 본다: 1차 자료(공시·감사보고서·정부 자료), 이름 있는 인물, 비하인드, 판이 바뀌는 흐름.
+- 셋 다 수요가 낮으면 pick 을 -1 로 둔다.
+JSON 만 출력: {"pick": 0, "reason": "고른 이유 한 줄", "questions": ["이 글이 답해야 할 실제 질문", "... (5개)"]}"""
+
+
+TITLE_BAN = re.compile(r"돈|머니|팔릴까|팔릴|얼마")
+PLAIN_END = re.compile(r"(이다|였다|했다|한다|된다|있다|없다|었다|았다)[.!]?$")
+
+
+def rule_check(art: dict) -> list[str]:
+    """코드로 바로 잡아낼 수 있는 것: 제목의 주제어, 반말체로 끝나는 본문 문장."""
+    fix = []
+    t = art.get("title", "")
+    if TITLE_BAN.search(t):
+        fix.append(f"제목 '{t}'에 '돈·팔릴까' 같은 주제어가 있음 → 작품·사람·회사 이름이 들어간 질문으로 바꿀 것")
+    th = art.get("thumb_title", "") + " " + art.get("thumb_highlight", "")
+    if TITLE_BAN.search(th):
+        fix.append(f"썸네일 문구 '{th.strip()}'에 '돈' 같은 주제어가 있음 → 첫 줄 작품·사람 이름, 둘째 줄 핵심 사실로 바꿀 것")
+    bad = [b["text"] for b in art.get("blocks", []) if b.get("type") == "p"
+           and any(PLAIN_END.search(x.strip()) for x in re.split(r"(?<=[.!?])\s+", b.get("text", "")) if x.strip())]
+    if bad:
+        fix.append(f"반말체 문장 {len(bad)}곳(예: '{bad[0][:30]}') → ~습니다 체로 고칠 것")
+    return fix
+
+
+def edit_check(cfg: dict, art: dict, kind: str = "feature") -> dict:
+    """편집장 검토. 코드 규칙 먼저, 그다음 웹 검색 없이 원고만 본다."""
+    pre = rule_check(art)
+    if pre:
+        return {"ok": False, "fix": pre}
     body = {"title": art.get("title"), "blocks": [b for b in art.get("blocks", []) if b.get("type") in ("p", "h")],
-            "sources": art.get("sources", [])}
+            "sources": art.get("sources", []), "search_questions": art.get("search_questions", [])}
     try:
-        return _ask(cfg, EDITOR, json.dumps(body, ensure_ascii=False), search=False)
+        return _ask(cfg, INFO_EDITOR if kind == "info" else EDITOR, json.dumps(body, ensure_ascii=False), search=False)
     except Exception:
         return {"ok": True, "fix": []}
 
 
+def pick_by_demand(cfg: dict, name: str, topics: list[dict], fixed: bool) -> tuple[dict, list[dict]]:
+    """편집장이 검색 수요로 글감을 고른다. 주제를 대표님이 정했으면(fixed) 바꾸지 않고 질문만 다듬는다."""
+    _log("review", f"{name} 편집장: 사람들이 검색창·AI에 묻는 질문 확인 중", "working")
+    brief = [{k: t.get(k) for k in ("title_idea", "question", "angle", "search_questions", "demand", "demand_why")} for t in topics]
+    try:
+        r = _ask(cfg, TOPIC_EDITOR, json.dumps(brief, ensure_ascii=False), search=True)
+    except Exception:
+        return topics[0], topics[1:]
+    i = r.get("pick", 0)
+    if fixed or not isinstance(i, int) or not (0 <= i < len(topics)):
+        if i == -1 and not fixed:
+            _log("review", f"{name} 편집장: 세 후보 모두 검색 수요가 낮음 — 그래도 첫 후보로 진행, 데스크에 표시", "error")
+            topics[0]["low_demand"] = True
+        i = 0
+    t = topics[i]
+    if r.get("questions"):
+        t["search_questions"] = [{"q": q, "where": "편집장 확인"} for q in r["questions"][:5]]
+    t["editor_reason"] = r.get("reason", "")
+    _log("review", f"{name} 편집장 선택: '{t.get('title_idea', '')[:28]}' — {t['editor_reason'][:60]}", "done")
+    return t, [x for j, x in enumerate(topics) if j != i]
+
+
 def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None,
-                 mode: str = "실시간", for_date: str | None = None) -> str:
+                 mode: str = "실시간", for_date: str | None = None, kind: str = "feature") -> str:
     """글감 → 원고 → 그림 → 점검 → 보관. 패키지 id 를 돌려준다."""
     name = cfg["blog"]["blogs"][blog]["name"]
     pid = f"{blog}_{_now():%Y%m%d_%H%M%S}"
@@ -529,27 +715,34 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             _log("research", f"{name} 글감 찾는 중" + (f" (지정: {hint[:20]})" if hint else ""), "working")
             prev = [p["article"].get("title", "") for p in sorted(load()["packages"].values(), key=lambda x: x["made"])
                     if p["blog"] == blog]
-            topics = research(cfg, blog, hint, prev)
+            topics = research(cfg, blog, hint, prev, kind)
             if hint and topics and not _on_topic(hint, topics[0]):
                 _log("research", f"{name} 지정 주제와 다른 글감 → 다시 찾는 중", "working")
-                topics = research(cfg, blog, hint + " (반드시 이 주제로)", prev) or topics
+                topics = research(cfg, blog, hint + " (반드시 이 주제로)", prev, kind) or topics
             if not topics:
                 raise RuntimeError("글감을 찾지 못했습니다.")
             topic, others = topics[0], topics[1:]
             _log("research", f"{name} 글감 {len(topics)}개 → '{topic.get('title_idea', '')[:30]}'", "done")
+            if blog == "cinepark":
+                topic, others = pick_by_demand(cfg, name, topics, bool(hint))
         else:
             others = []
         _set_step(blog, "원고 쓰는 중")
         _log("writer", f"{name} 원고 쓰는 중: {topic.get('title_idea', '')[:30]}", "working")
-        art = tidy(write(cfg, blog, topic))
+        art = tidy(write(cfg, blog, topic, kind))
+        art["search_questions"] = [q.get("q", q) if isinstance(q, dict) else q for q in topic.get("search_questions", [])]
+        if topic.get("low_demand"):
+            art["low_demand"] = True
         _log("writer", f"{name} 원고 완성: {art.get('title', '')[:30]}", "done")
         if blog == "cinepark":
-            ed = edit_check(cfg, art)
+            ed = edit_check(cfg, art, kind)
             if not ed.get("ok", True):
                 fix = ed.get("fix", [])
                 _log("review", f"{name} 편집장 반려 → 다시 쓰기: {'; '.join(fix)[:120]}", "working")
-                art = tidy(write(cfg, blog, dict(topic, editor_fix=fix)))
-                ed = edit_check(cfg, art)
+                qs = art.get("search_questions", [])
+                art = tidy(write(cfg, blog, dict(topic, editor_fix=fix), kind))
+                art["search_questions"] = qs
+                ed = edit_check(cfg, art, kind)
             if not ed.get("ok", True):
                 art["editor_fix"] = ed.get("fix", [])
                 _log("review", f"{name} 편집장 2차 반려 — 그림은 그리지 않습니다: {'; '.join(art['editor_fix'])[:120]}", "error")
@@ -575,7 +768,7 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
         _log("image", f"{name} 그림 {ok}/{len(art['images'])}장 완성", "done" if ok == len(art["images"]) else "error")
         probs = check(blog, art)
         _log("review", f"{name} 점검 {'통과' if not probs else '주의: ' + ', '.join(probs)}", "done" if not probs else "error")
-        pkg = {"id": pid, "blog": blog, "mode": mode, "date": for_date or _now().date().isoformat(),
+        pkg = {"id": pid, "blog": blog, "mode": mode, "kind": kind, "date": for_date or _now().date().isoformat(),
                "made": _now().isoformat(timespec="seconds"), "hint": hint, "topic": topic, "others": others,
                "article": art, "problems": probs, "status": "ready"}
         with _lock:
@@ -614,13 +807,13 @@ def clear_running(blog: str) -> None:
         save(b)
 
 
-def start_background(cfg: dict, blog: str, hint: str = "", topic: dict | None = None) -> bool:
+def start_background(cfg: dict, blog: str, hint: str = "", topic: dict | None = None, kind: str = "feature") -> bool:
     """실시간 만들기: 화면 서버에서 따로 돌린다. 이미 만드는 중이면 False."""
     b = load()
     r = b["running"].get(blog)
     if r and (_now() - dt.datetime.fromisoformat(r["t"])).total_seconds() < 2400:
         return False
-    th = threading.Thread(target=_safe, args=(cfg, blog, hint, topic), daemon=True)
+    th = threading.Thread(target=_safe, args=(cfg, blog, hint, topic, "실시간", None, kind), daemon=True)
     th.start()
     return True
 
@@ -644,7 +837,8 @@ def scheduled(cfg: dict, target: dt.date) -> list[str]:
                for p in b["packages"].values()):
             continue
         try:
-            out.append(make_package(cfg, blog, mode="예약", for_date=target.isoformat()))
+            kind = "info" if (blog == "cinepark" and target.weekday() in cfg["blog"]["blogs"][blog].get("info_days", [])) else "feature"
+            out.append(make_package(cfg, blog, mode="예약", for_date=target.isoformat(), kind=kind))
         except Exception as e:
             out.append(f"{blog} 실패: {e}")
     return out
@@ -811,7 +1005,11 @@ def plain_text(pkg: dict) -> str:
             lines += [bl.get("text", ""), ""]
         elif t == "check":
             lines += [f"□ {x}" for x in bl.get("items", [])] + [""]
-    if pkg.get("blog") == "cinepark":
+        elif t == "poster":
+            lines += [f"【포스터: {bl.get('text', '')}】", ""]
+    if pkg.get("blog") == "cinepark" and pkg.get("kind") == "info":
+        lines += ["※ 썸네일 이미지는 AI로 만든 그림입니다. 포스터의 저작권은 각 제작·배급사에 있습니다.", ""]
+    elif pkg.get("blog") == "cinepark":
         lines += ["※ 이 글의 이미지는 기사 내용을 설명하기 위해 AI로 재구성한 장면입니다. 실제 행사나 계약 현장을 촬영한 사진이 아닙니다.", ""]
     if a.get("stocks"):
         lines += ["■ 관련 기업과 종목"]
