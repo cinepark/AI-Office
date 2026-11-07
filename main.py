@@ -507,6 +507,19 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 st.warning("검수 주의: " + ", ".join(p["problems"]))
             if a.get("stock_fixes"):
                 st.caption("검수 담당 종목 확인: " + " / ".join(a["stock_fixes"]))
+            if a.get("factcheck"):
+                st.caption("사실 확인 담당: " + " / ".join(a["factcheck"][:6]))
+            if any(im.get("pending") for im in a.get("images", [])):
+                st.info("밤새 쓴 원고입니다. 읽어 보시고 괜찮으면 '그림 그리기'를 누르세요. 그림은 그때 그립니다.")
+                if st.button("그림 그리기", key=f"draw_{p['id']}", type="primary"):
+                    if server_ready():
+                        give_order("blog_draw", {"pid": p["id"]}, "image", f"{bc['name']} 그림 그리기")
+                    else:
+                        import threading
+                        threading.Thread(target=blog.draw_later, args=(R.CFG, p["id"]), daemon=True).start()
+                        st.toast("그림을 그리기 시작했습니다. 5~10분 뒤 새로고침하면 보입니다.")
+                    blog_state_cached.clear()
+                    st.rerun()
             if a.get("low_demand"):
                 st.warning("편집장: 이 글감은 검색 수요가 낮다고 판단했습니다. 올리기 전에 주제를 다시 보시는 것을 권합니다.")
             if a.get("search_questions"):

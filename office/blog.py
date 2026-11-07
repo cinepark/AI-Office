@@ -361,17 +361,31 @@ def _json(text: str) -> dict:
     return json.loads(m.group(0))
 
 
+DEEP = {"on": False}  # 예약(밤) 작업: 시간을 들여 깊이 생각하게 한다
+
+
 def _ask(cfg: dict, system: str, user: str, search: bool) -> dict:
     from . import ai
     kw = {}
+    if DEEP["on"]:
+        kw["reasoning"] = {"effort": "high"}
     if search:
         kw["tools"] = [{"type": "web_search", "search_context_size": "high",
                         "user_location": {"type": "approximate", "country": "KR", "timezone": "Asia/Seoul"}}]
     last = None
     for _ in range(2):  # JSON 이 깨지면 한 번 더
-        r = ai._client().responses.create(model=cfg["openai"]["text_model"],
-                                          input=[{"role": "system", "content": system},
-                                                 {"role": "user", "content": user}], **kw)
+        try:
+            r = ai._client().responses.create(model=cfg["openai"]["text_model"],
+                                              input=[{"role": "system", "content": system},
+                                                     {"role": "user", "content": user}], **kw)
+        except Exception as e:
+            if "reasoning" not in kw:
+                raise
+            kw.pop("reasoning")  # 이 모델이 깊이 설정을 받지 않으면 빼고 다시
+            _log("dev", f"깊이 설정 없이 다시 요청: {str(e)[:60]}", "working")
+            r = ai._client().responses.create(model=cfg["openai"]["text_model"],
+                                              input=[{"role": "system", "content": system},
+                                                     {"role": "user", "content": user}], **kw)
         try:
             return _json(r.output_text)
         except (ValueError, json.JSONDecodeError) as e:
@@ -646,6 +660,35 @@ TOPIC_EDITOR = """당신은 네이버 영화 블로그 CINEPARK 의 편집장입
 JSON 만 출력: {"pick": 0, "reason": "고른 이유 한 줄", "questions": ["이 글이 답해야 할 실제 질문", "... (5개)"]}"""
 
 
+FACTCHECK = """당신은 CINEPARK 의 사실 확인 담당입니다. 원고의 숫자·이름·날짜·작품명·회사명·직함·인용을 하나씩 웹 검색으로 확인합니다.
+틀린 것만 고칩니다(문장 표현은 건드리지 않음). 출처에서 확인할 수 없는 문장은 remove 에 넣습니다.
+JSON 만 출력: {"fixes": [{"wrong": "원고에 있는 틀린 표현 그대로", "right": "고친 표현", "source": "확인한 출처"}],
+"remove": ["확인할 수 없어 빼야 할 문장 그대로"], "checked": 확인한 항목 수}"""
+
+
+def fact_check(cfg: dict, art: dict) -> list[str]:
+    """밤 작업: 원고의 사실을 하나씩 확인해 틀린 표현을 고치고, 고친 기록을 남긴다."""
+    body = {"title": art.get("title"), "blocks": [b for b in art.get("blocks", []) if b.get("type") in ("p", "h")]}
+    r = _ask(cfg, FACTCHECK, json.dumps(body, ensure_ascii=False), search=True)
+    notes = []
+    for f in r.get("fixes", []):
+        w, rt = f.get("wrong", ""), f.get("right", "")
+        if not w or not rt:
+            continue
+        for b in art.get("blocks", []):
+            if w in b.get("text", ""):
+                b["text"] = b["text"].replace(w, rt)
+                notes.append(f"고침: '{w[:30]}' → '{rt[:30]}' ({f.get('source', '')[:30]})")
+    for sent in r.get("remove", []):
+        for b in art.get("blocks", []):
+            if sent and sent in b.get("text", ""):
+                b["text"] = b["text"].replace(sent, "").strip()
+                notes.append(f"뺌(확인 불가): '{sent[:40]}'")
+    art["blocks"] = [b for b in art.get("blocks", []) if b.get("type") not in ("p", "h") or b.get("text", "").strip()]
+    art["factcheck"] = notes or [f"확인 {r.get('checked', '?')}건 · 고칠 곳 없음"]
+    return notes
+
+
 TITLE_BAN = re.compile(r"돈|머니|팔릴까|팔릴|얼마")
 PLAIN_END = re.compile(r"(이다|였다|했다|한다|된다|있다|없다|었다|았다)[.!]?$")
 
@@ -702,10 +745,12 @@ def pick_by_demand(cfg: dict, name: str, topics: list[dict], fixed: bool) -> tup
 
 
 def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None,
-                 mode: str = "실시간", for_date: str | None = None, kind: str = "feature") -> str:
+                 mode: str = "실시간", for_date: str | None = None, kind: str = "feature",
+                 deep: bool = False, draw: bool = True) -> str:
     """글감 → 원고 → 그림 → 점검 → 보관. 패키지 id 를 돌려준다."""
     name = cfg["blog"]["blogs"][blog]["name"]
     pid = f"{blog}_{_now():%Y%m%d_%H%M%S}"
+    DEEP["on"] = deep
     with _lock:
         b = load()
         t0 = _now().isoformat(timespec="seconds")
@@ -737,6 +782,15 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
         _log("writer", f"{name} 원고 완성: {art.get('title', '')[:30]}", "done")
         if blog == "cinepark":
             ed = edit_check(cfg, art, kind)
+            for _round in range(2 if deep else 0):  # 밤 작업은 편집장과 두 번 더 주고받는다
+                if ed.get("ok", True):
+                    break
+                fix = ed.get("fix", [])
+                _log("review", f"{name} 편집장 반려({_round + 1}차) → 다시 쓰기: {'; '.join(fix)[:100]}", "working")
+                qs = art.get("search_questions", [])
+                art = tidy(write(cfg, blog, dict(topic, editor_fix=fix), kind))
+                art["search_questions"] = qs
+                ed = edit_check(cfg, art, kind)
             if not ed.get("ok", True):
                 fix = ed.get("fix", [])
                 _log("review", f"{name} 편집장 반려 → 다시 쓰기: {'; '.join(fix)[:120]}", "working")
@@ -749,6 +803,14 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
                 _log("review", f"{name} 편집장 2차 반려 — 그림은 그리지 않습니다: {'; '.join(art['editor_fix'])[:120]}", "error")
             else:
                 _log("review", f"{name} 편집장 통과", "done")
+        if deep and not art.get("editor_fix"):
+            _set_step(blog, "원고 쓰는 중 · 사실 확인")
+            _log("review", f"{name} 사실 확인 중 (숫자·이름·날짜)", "working")
+            try:
+                fx = fact_check(cfg, art)
+                _log("review", f"{name} 사실 확인 끝 — " + (f"{len(fx)}곳 고침" if fx else "고칠 곳 없음"), "done")
+            except Exception as e:
+                art["factcheck"] = [f"사실 확인 실패: {str(e)[:80]}"]
         if art.get("stocks"):
             _set_step(blog, "원고 쓰는 중 · 종목 확인")
             _log("review", f"{name} 관련 종목 거래소·코드 확인 중", "working")
@@ -763,10 +825,14 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
         if art.get("editor_fix"):
             for im in art.get("images", []):
                 im["error"] = "편집장 반려로 그림을 그리지 않음"
+        elif not draw:
+            for im in art.get("images", []):
+                im["pending"] = True  # 대표님이 원고를 읽고 '그림 그리기'를 누르면 그린다
         else:
             draw_images(cfg, blog, pid, art, b)
         ok = sum(1 for im in art["images"] if im.get("r2_key"))
-        _log("image", f"{name} 그림 {ok}/{len(art['images'])}장 완성", "done" if ok == len(art["images"]) else "error")
+        if draw:
+            _log("image", f"{name} 그림 {ok}/{len(art['images'])}장 완성", "done" if ok == len(art["images"]) else "error")
         probs = check(blog, art)
         _log("review", f"{name} 점검 {'통과' if not probs else '주의: ' + ', '.join(probs)}", "done" if not probs else "error")
         pkg = {"id": pid, "blog": blog, "mode": mode, "kind": kind, "date": for_date or _now().date().isoformat(),
@@ -778,7 +844,8 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             b2["packages"][pid] = pkg
             b2["running"].pop(blog, None)
             save(b2)
-        _log("shiho", f"{name} 패키지 준비 완료 → {name} 데스크", "done")
+        _log("shiho", f"{name} {'원고' if not draw else '패키지'} 준비 완료 → {name} 데스크", "done")
+        DEEP["on"] = False
         return pid
     except Exception as e:
         with _lock:
@@ -788,6 +855,7 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             del b3["errors"][:-20]
             save(b3)
         _log("dev", f"{name} 패키지 실패: {str(e)[:150]}", "error")
+        DEEP["on"] = False
         raise
 
 
@@ -824,6 +892,25 @@ def _safe(*args) -> None:
         make_package(*args)
     except Exception:
         pass
+
+
+def draw_later(cfg: dict, pid: str) -> str:
+    """대표님이 원고를 읽고 '그림 그리기'를 누르면, 그 패키지의 그림만 그린다."""
+    b = load()
+    pkg = b["packages"][pid]
+    blog, art = pkg["blog"], pkg["article"]
+    for im in art.get("images", []):
+        im.pop("pending", None)
+    draw_images(cfg, blog, pid, art, b)
+    ok = sum(1 for im in art["images"] if im.get("r2_key"))
+    _log("image", f"{cfg['blog']['blogs'][blog]['name']} 그림 {ok}/{len(art['images'])}장 완성", "done" if ok == len(art["images"]) else "error")
+    with _lock:
+        b2 = load()
+        b2["images_made"] = {**b2.get("images_made", {}), **b["images_made"]}
+        b2["packages"][pid]["article"] = art
+        b2["packages"][pid]["problems"] = check(blog, art)
+        save(b2)
+    return f"그림 {ok}장"
 
 
 def prepare_topics(cfg: dict, blog: str, for_date: str) -> str:
@@ -863,8 +950,12 @@ def scheduled(cfg: dict, target: dt.date) -> list[str]:
             continue
         try:
             kind = "info" if (blog == "cinepark" and target.weekday() in cfg["blog"]["blogs"][blog].get("info_days", [])) else "feature"
-            if cfg["blog"]["blogs"][blog].get("schedule_mode") == "topics":
+            smode = cfg["blog"]["blogs"][blog].get("schedule_mode", "full")
+            if smode == "topics":
                 out.append(prepare_topics(cfg, blog, target.isoformat()))
+                continue
+            if smode == "draft":  # 밤새 깊이 쓴 원고(사실 확인까지)만, 그림은 대표님이 읽고 고르면
+                out.append(make_package(cfg, blog, mode="예약", for_date=target.isoformat(), kind=kind, deep=True, draw=False))
                 continue
             out.append(make_package(cfg, blog, mode="예약", for_date=target.isoformat(), kind=kind))
         except Exception as e:
