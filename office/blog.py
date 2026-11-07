@@ -826,6 +826,28 @@ def _safe(*args) -> None:
         pass
 
 
+def prepare_topics(cfg: dict, blog: str, for_date: str) -> str:
+    """'글감만 예약': 밤에는 리서치와 편집장 검토까지만 해서 글감 3개(제목·주요 내용)를 데스크에 올린다.
+    원고와 그림은 대표님이 '이걸로 만들기'를 누를 때 만든다(그림 비용은 고른 글에만 든다)."""
+    name = cfg["blog"]["blogs"][blog]["name"]
+    _log("research", f"{name} 예약 글감 찾는 중 ({for_date})", "working")
+    prev = [p["article"].get("title", "") for p in sorted(load()["packages"].values(), key=lambda x: x["made"])
+            if p["blog"] == blog]
+    topics = research(cfg, blog, "", prev)
+    if not topics:
+        raise RuntimeError("글감을 찾지 못했습니다.")
+    if blog == "cinepark":
+        first, rest = pick_by_demand(cfg, name, topics, False)
+        topics = [first] + rest
+    with _lock:
+        b = load()
+        b.setdefault("topic_sets", {})[blog] = {"date": for_date, "made": _now().isoformat(timespec="seconds"),
+                                                "topics": topics, "used": []}
+        save(b)
+    _log("shiho", f"{name} 예약 글감 {len(topics)}개 준비 → {name} 데스크에서 고르시면 만듭니다", "done")
+    return f"{blog} 글감 {len(topics)}개"
+
+
 def scheduled(cfg: dict, target: dt.date) -> list[str]:
     """예약: target 날짜가 예약 요일이고 아직 그날 예약 패키지가 없으면 만든다."""
     b = load()
@@ -837,8 +859,13 @@ def scheduled(cfg: dict, target: dt.date) -> list[str]:
         if any(p["blog"] == blog and p.get("mode") == "예약" and p.get("date") == target.isoformat()
                for p in b["packages"].values()):
             continue
+        if (b.get("topic_sets", {}).get(blog) or {}).get("date") == target.isoformat():
+            continue
         try:
             kind = "info" if (blog == "cinepark" and target.weekday() in cfg["blog"]["blogs"][blog].get("info_days", [])) else "feature"
+            if cfg["blog"]["blogs"][blog].get("schedule_mode") == "topics":
+                out.append(prepare_topics(cfg, blog, target.isoformat()))
+                continue
             out.append(make_package(cfg, blog, mode="예약", for_date=target.isoformat(), kind=kind))
         except Exception as e:
             out.append(f"{blog} 실패: {e}")

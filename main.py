@@ -467,6 +467,31 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.warning(f"최근 실패 ({errs[0]['t'][5:16]}): {errs[0]['error'][:200]}")
 
     st.divider()
+    ts = b.get("topic_sets", {}).get(blog_id)
+    if ts and ts.get("topics"):
+        st.markdown(f"**예약 글감** · {ts['date'][5:].replace('-', '/')}용 · 고르시면 원고와 그림을 만듭니다")
+        for k, t in enumerate(ts["topics"]):
+            used = k in ts.get("used", [])
+            tc1, tc2 = st.columns([4, 1])
+            why = t.get("angle") or t.get("why_now") or t.get("hook_question", "")
+            qs = " / ".join((q.get("q", q) if isinstance(q, dict) else q) for q in t.get("search_questions", [])[:3])
+            tc1.markdown(f"{'~~' if used else ''}**{t.get('title_idea') or t.get('question', '')}**{'~~' if used else ''}"
+                         f" — {why}" + (f"<br><span style='color:#667'>사람들이 묻는 질문: {html.escape(qs)}</span>" if qs else ""),
+                         unsafe_allow_html=True)
+            if used:
+                tc2.caption("만드는 중·완료")
+            elif tc2.button("이걸로 만들기", key=f"ts_{blog_id}_{k}", type="primary" if k == 0 else "secondary"):
+                fresh = blog.load()
+                fresh.setdefault("topic_sets", {}).setdefault(blog_id, ts).setdefault("used", []).append(k)
+                blog.save(fresh)
+                if server_ready():
+                    give_order("blog_make", {"blog": blog_id, "hint": "", "topic": t}, "research", f"{bc['name']} 패키지 (예약 글감)")
+                else:
+                    blog.start_background(R.CFG, blog_id, "", t)
+                blog_state_cached.clear()
+                st.rerun()
+        st.divider()
+
     allp = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id and not p.get("deleted")),
                   key=lambda p: p["made"], reverse=True)
     pkgs = [p for p in allp if not p.get("posted")]
