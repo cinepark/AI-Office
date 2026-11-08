@@ -1098,6 +1098,29 @@ def cine_thumb(img: bytes, title: str, highlight: str = "") -> bytes:
 
 
 # ───────────────────────── 가져가기 ─────────────────────────
+# 해외 거래소 → 구글 파이낸스 표기 (google.com/finance/quote/종목코드:거래소)
+GF_EXCHANGE = {"NYSE": "NYSE", "NASDAQ": "NASDAQ", "NYSEAMERICAN": "NYSEAMERICAN", "TSE": "TYO", "도쿄증권거래소": "TYO",
+               "TYO": "TYO", "HKEX": "HKG", "홍콩": "HKG", "LSE": "LON", "런던": "LON", "EURONEXT PARIS": "EPA",
+               "XETRA": "ETR", "TADAWUL": "TADAWUL", "SSE": "SHA", "SZSE": "SHE"}
+
+
+def quote_url(stock: dict) -> str:
+    """해외 상장 종목의 시세 페이지 주소. NYSE·NASDAQ 은 거래소 공식 페이지, 그 밖의 해외 거래소는 구글 파이낸스.
+    국내(코스피·코스닥)나 모르는 거래소면 빈 문자열."""
+    mk = str(stock.get("market", "")).upper().replace(" ", "").replace("(", "").replace(")", "")
+    code = str(stock.get("code", "")).strip().upper()
+    if not code or any(k in mk for k in ("코스피", "코스닥", "KOSPI", "KOSDAQ", "코넥스")):
+        return ""
+    if mk in ("NYSE", "뉴욕증권거래소"):  # 거래소 공식 시세 페이지가 있으면 그쪽으로
+        return f"https://www.nyse.com/quote/XNYS:{code}"
+    if mk in ("NASDAQ", "나스닥"):
+        return f"https://www.nasdaq.com/market-activity/stocks/{code.lower()}"
+    for k, v in GF_EXCHANGE.items():
+        if k.upper().replace(" ", "") in mk:
+            return f"https://www.google.com/finance/quote/{code}:{v}"
+    return ""
+
+
 def plain_text(pkg: dict) -> str:
     """네이버 에디터에 붙여 넣을 본문. 그림 자리는 【그림 n】 으로 표시."""
     a = pkg["article"]
@@ -1132,7 +1155,11 @@ def plain_text(pkg: dict) -> str:
         lines += ["※ 이 글의 이미지는 기사 내용을 설명하기 위해 AI로 재구성한 장면입니다. 실제 행사나 계약 현장을 촬영한 사진이 아닙니다.", ""]
     if a.get("stocks"):
         lines += ["■ 관련 기업과 종목"]
-        lines += [f"• {x.get('name', '')} | {x.get('market', '')} {x.get('code', '')}" for x in a["stocks"]]
+        for x in a["stocks"]:
+            lines.append(f"• {x.get('name', '')} | {x.get('market', '')} {x.get('code', '')}")
+            url = quote_url(x)
+            if url:  # 해외 종목만: 국내 종목은 네이버 글감 연동으로 대표님이 넣는다
+                lines.append(f"  주가 보기: {url}")
         lines += [""]
         if a.get("stock_note"):
             lines += [a["stock_note"], ""]
