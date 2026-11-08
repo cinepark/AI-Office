@@ -179,15 +179,17 @@ JSON 만 출력:
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
 REVIEW_RESEARCH = """당신은 네이버 블로그 '리뷰&리뷰'의 리서치 담당입니다.
-이 블로그는 고양이 돌봄, 생활용품, 계절 살림의 '고르는 법 · 관리법 · 안전 수칙'을 제조사·보호단체·공공기관 안내로 정리합니다.
+이 블로그는 생활 속 물건의 '고르는 법 · 관리법 · 안전 수칙'을 제조사·보호단체·공공기관 안내로 정리합니다. 쿠팡 파트너스로 운영됩니다.
 (지난 글 예: 고양이 겨울 잠자리, 담요보다 먼저 살펴볼 위치와 높이 / 경량패딩 세탁 전 확인할 것 / 난방텐트 고르는 법 / 전기매트 vs 온수매트)
 
-웹 검색으로 오늘 날짜 기준 계절·날씨·행사에 맞춰 지금 사람들이 많이 찾는 주제 3개를 제안합니다.
-- 세 주제 중 하나는 고양이 돌봄 주제로 합니다.
-- 근거가 되는 공식 안내(제조사 설명서, 보호단체, 공공기관)를 실제로 찾은 주제만 고릅니다.
+오늘의 분야는 이미 정해져 있다: {categories}
+- 위 분야마다 하나씩, 모두 3개의 주제를 낸다. 분야를 바꾸지 않는다.
+- 각 분야 안에서 웹 검색으로 지금 사람들이 실제로 많이 검색하고 사는 상품·고민을 찾는다(쇼핑 검색 인기, 계절, 신제품, 리콜·안전 소식).
+  계절 주제만 되풀이하지 않는다. '최근에 이미 쓴 글'의 상품군(예: 가습기, 김장)은 다시 고르지 않는다.
+- 근거가 되는 공식 안내(제조사 설명서, 보호단체, 공공기관, 소비자원)를 실제로 찾은 주제만 고릅니다.
 {hint}{avoid}
 JSON 만 출력:
-{{"topics": [{{"axis": "고양이|생활용품|살림", "title_idea": "...", "hook_question": "...", "why_now": "...",
+{{"topics": [{{"axis": "위 분야 이름 그대로", "title_idea": "...", "hook_question": "...", "why_now": "...",
  "criteria": ["확인할 점"], "facts": [{{"text": "...", "source": "기관·제조사명", "url": "..."}}], "buy_related": true}}]}}"""
 
 REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니다.
@@ -401,6 +403,19 @@ def _on_topic(hint: str, topic: dict) -> bool:
     return not keys or keys[0] in text  # 첫 단어(주제의 중심)가 반드시 들어 있어야 함
 
 
+def pick_categories(cfg: dict, blog: str, k: int = 3) -> list[str]:
+    """리뷰&리뷰: 오늘 다룰 분야 3개를 고른다. 최근 글의 분야는 쉬게 하고, 고양이는 사흘에 한 번까지."""
+    import random
+    cats = cfg["blog"]["blogs"][blog].get("categories", [])
+    if not cats:
+        return []
+    recent = [((p.get("topic") or {}).get("axis") or "") for p in sorted(load().get("packages", {}).values(), key=lambda x: x["made"])
+              if p["blog"] == blog][-8:]
+    cat_recent = any("고양이" in a for a in recent[-2:])
+    pool = [c for c in cats if c not in recent and not (cat_recent and "고양이" in c)] or cats
+    return random.sample(pool, min(k, len(pool)))
+
+
 def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = None, kind: str = "feature") -> list[dict]:
     av = f"\n최근에 이미 쓴 글(같은 주제 피하기): {' / '.join(avoid[-20:])}\n" if avoid else ""
     fmt = {"hint": (f"\n★ Mr. MOON 지정 주제: \"{hint}\"\n이 지정 주제가 최우선이다. 세 글감 모두 이 주제 안에서 고른다. 다른 주제로 바꾸지 않는다.\n"
@@ -410,6 +425,8 @@ def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = Non
     if ex:  # 대표님이 직접 정리하는 주제: 글감으로 내지 않는다
         av += "\n글감으로 고르지 않는 주제(대표님이 직접 정리함): " + " / ".join(ex) + "\n"
     pr = _prompts(blog, kind)
+    if "{categories}" in pr[0]:
+        fmt["categories"] = " / ".join(pick_categories(cfg, blog))
     if "{avoid}" in pr[0]:
         fmt["avoid"] = av
     else:

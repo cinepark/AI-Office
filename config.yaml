@@ -165,6 +165,21 @@ blog:
         matching the face of the woman in the attached reference images
     review:
       name: 리뷰&리뷰
+      categories:                # 글감 분야: 매일 이 가운데 3개를 골라 하나씩 후보를 냄 (최근 쓴 분야는 쉼, 고양이는 사흘에 한 번까지)
+        - 고양이 용품·돌봄
+        - 패션·의류 관리
+        - 주방·식품 보관
+        - 청소·세탁
+        - 수면·침구
+        - 욕실·위생
+        - 디지털 소품·소형 가전
+        - 데스크·문구·정리수납
+        - 차량용품
+        - 캠핑·아웃도어
+        - 운동·건강 소품
+        - 반려식물·홈가드닝
+        - 선물 고르기(시즌 선물)
+        - 여행 준비물
       images: 6                  # 썸네일 1 + 본문 5, 모든 그림 위쪽에 짧은 글자(label)
       labels: true
       schedule_days: [0, 1, 2, 3, 4, 5, 6]   # 기본 예약: 매일
