@@ -16,7 +16,7 @@ st.set_page_config(page_title="AI OFFICE", page_icon="static/favicon.svg", layou
 
 # Streamlit Secrets → 환경변수 (업무 코드는 환경변수를 읽음)
 for k in ["OPENAI_API_KEY", "THREADS_ACCESS_TOKEN", "THREADS_USER_ID", "R2_ENDPOINT", "R2_ACCESS_KEY_ID",
-          "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "GOOGLE_SA_JSON", "GH_TOKEN"]:
+          "R2_SECRET_ACCESS_KEY", "R2_BUCKET", "GOOGLE_SA_JSON", "GH_TOKEN", "GEMINI_API_KEY"]:
     try:
         if k in st.secrets and not os.environ.get(k):
             os.environ[k] = str(st.secrets[k])
@@ -520,6 +520,33 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 st.warning("검수 주의: " + ", ".join(p["problems"]))
             if a.get("stock_fixes"):
                 st.caption("검수 담당 종목 확인: " + " / ".join(a["stock_fixes"]))
+            if bc.get("clip"):
+                from office import clip as clipmod
+                cc1, cc2 = st.columns([3, 1])
+                if a.get("clip_key"):
+                    try:
+                        from office import storage as _stg
+                        vid = _stg.get_bytes(a["clip_key"])
+                        cc1.video(vid)
+                        cc2.download_button("클립 받기 (mp4)", data=vid, file_name=f"{(a.get('images') or [{}])[0].get('filename') or 'review-clip'}-클립.mp4",
+                                            mime="video/mp4", key=f"clipdl_{p['id']}", icon=":material/download:")
+                    except Exception as e:
+                        cc1.caption(f"클립을 불러오지 못했습니다: {e}")
+                elif a.get("clip_error"):
+                    cc1.warning(f"클립 실패: {a['clip_error'][:150]}")
+                elif not clipmod.ready():
+                    cc1.caption(":material/movie: 10초 클립은 GEMINI_API_KEY 를 넣으면 패키지마다 자동으로 만들어집니다.")
+                if clipmod.ready() and any(im.get("r2_key") for im in a.get("images", [])):
+                    if cc2.button("클립 다시 만들기" if a.get("clip_key") else "클립 만들기", key=f"clip_{p['id']}",
+                                  icon=":material/movie:"):
+                        if server_ready():
+                            give_order("blog_clip", {"pid": p["id"]}, "video", f"{bc['name']} 10초 클립")
+                        else:
+                            import threading
+                            threading.Thread(target=blog.make_clip, args=(R.CFG, p["id"]), daemon=True).start()
+                            st.toast("클립을 만들기 시작했습니다. 1~3분 뒤 새로고침하면 보입니다.")
+                        blog_state_cached.clear()
+                        st.rerun()
             if a.get("factcheck"):
                 st.caption("사실 확인 담당: " + " / ".join(a["factcheck"][:6]))
             if any(im.get("pending") for im in a.get("images", [])):

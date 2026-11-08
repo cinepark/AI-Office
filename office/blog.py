@@ -220,6 +220,7 @@ REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니�
 - 그림 {n}장. 0번은 썸네일, 1~{last}번은 본문. 그림마다 label(그림 위에 얹을 글자, 띄어쓰기 포함 12자 이내, 예: '외풍 없는 위치')을 정한다.
   filename: 검색 핵심어 3~5개를 하이픈으로 이은 한국어 파일 이름(예: 고양이-겨울-잠자리-외풍-위치). caption: 그림을 설명하는 검색어 중심 한 줄(예: 외풍이 들지 않는 벽 쪽 방석에서 자는 고양이).
   0번 label 은 글 주제(예: '고양이 겨울 잠자리'). 본문 그림 label 은 바로 뒤 소제목의 핵심어.
+- clip_prompt: 0번 썸네일 그림을 10초 세로 영상으로 움직일 영어 지시문 한 단락. 동작은 하나만, 단정적으로(예: '[0-10s] The cat stretches its front paws forward once, then settles back into the cushion. A light curtain moves in the window breeze.'). 카메라 고정, 글자 없음, 방 안의 잔잔한 소리.
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 고양이 주제면 고양이가 그 장면 속에서 한 동작을 하고,
   생활용품 주제면 그 물건이 놓인 집 안 장면. 화면 위쪽 1/4 은 글자를 얹을 수 있게 벽·하늘처럼 단순하게 비운다. 그림 속 글자·로고·숫자 금지.
 - AI 브리핑이 인용하기 좋게 쓴다(이 블로그의 인용수가 빠르게 늘고 있다): 소제목 가운데 두세 개는 사람들이 실제로 묻는 질문형으로 쓰고, 그 아래 첫 문장에서 답을 한 문장으로 먼저 말한 뒤 이유·방법을 잇는다. 숫자·기준(높이 cm, 개수, 기간)을 구체적으로.
@@ -638,6 +639,9 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
             if kind == "card" or not im.get("prompt", "").strip():  # 정보 카드는 대표님이 에디터로 직접 만든다
                 continue
             png = _render_safe(cfg, bc, blog, im, kind, refs, style)
+            if bc.get("clip") and im["no"] == 0:  # 클립용: 글자를 얹기 전 원본을 따로 보관
+                storage.put_bytes(f"blog/{blog}/{pid}/00_raw.jpg", png, "image/jpeg")
+                im["raw_key"] = f"blog/{blog}/{pid}/00_raw.jpg"
             if bc.get("labels") and im.get("label"):
                 png = label(png, im["label"])
             elif blog == "cinepark":
@@ -861,6 +865,11 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             b2["packages"][pid] = pkg
             b2["running"].pop(blog, None)
             save(b2)
+        if draw and cfg["blog"]["blogs"][blog].get("clip"):
+            try:
+                make_clip(cfg, pid)
+            except Exception:
+                pass
         _log("shiho", f"{name} {'원고' if not draw else '패키지'} 준비 완료 → {name} 데스크", "done")
         DEEP["on"] = False
         return pid
@@ -923,6 +932,39 @@ def _safe(*args) -> None:
                 save(b)
         except Exception:
             pass
+
+
+def make_clip(cfg: dict, pid: str) -> str:
+    """패키지 썸네일로 10초 클립을 만든다. 키가 없으면 건너뛴다."""
+    from . import clip, storage
+    if not clip.ready():
+        return "클립 건너뜀(GEMINI_API_KEY 없음)"
+    pkg = load()["packages"][pid]
+    blog, art = pkg["blog"], pkg["article"]
+    name = cfg["blog"]["blogs"][blog]["name"]
+    im0 = next((im for im in art.get("images", []) if im.get("no") == 0), None)
+    src = (im0 or {}).get("raw_key") or (im0 or {}).get("r2_key")
+    if not src:
+        return "클립 건너뜀(썸네일 없음)"
+    _log("video", f"{name} 10초 클립 만드는 중", "working")
+    try:
+        mp4 = clip.make(storage.get_bytes(src), art.get("clip_prompt", ""))
+        key = f"blog/{blog}/{pid}/clip.mp4"
+        storage.put_bytes(key, mp4, "video/mp4")
+        with _lock:
+            b = load()
+            b["packages"][pid]["article"]["clip_key"] = key
+            b["packages"][pid]["article"].pop("clip_error", None)
+            save(b)
+        _log("video", f"{name} 10초 클립 완성", "done")
+        return "클립 완성"
+    except Exception as e:
+        with _lock:
+            b = load()
+            b["packages"][pid]["article"]["clip_error"] = str(e)[:200]
+            save(b)
+        _log("video", f"{name} 클립 실패: {str(e)[:100]}", "error")
+        return f"클립 실패: {str(e)[:80]}"
 
 
 def draw_later(cfg: dict, pid: str) -> str:
@@ -1219,5 +1261,10 @@ def images_zip(pkg: dict) -> bytes:
             if im.get("r2_key"):
                 ext = im["r2_key"].rsplit(".", 1)[-1]
                 z.writestr(f"{im['no'] + 1:02d}_{safe_name(im)}.{ext}", storage.get_bytes(im["r2_key"]))
+        if pkg["article"].get("clip_key"):
+            try:
+                z.writestr("클립_10초.mp4", storage.get_bytes(pkg["article"]["clip_key"]))
+            except Exception:
+                pass
         z.writestr("본문.txt", plain_text(pkg))
     return buf.getvalue()

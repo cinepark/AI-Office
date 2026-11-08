@@ -165,6 +165,7 @@ blog:
         matching the face of the woman in the attached reference images
     review:
       name: 리뷰&리뷰
+      clip: true                 # 패키지마다 썸네일로 10초 세로 클립(GEMINI_API_KEY 있을 때만)
       categories:                # 글감 분야: 매일 이 가운데 3개를 골라 하나씩 후보를 냄 (최근 쓴 분야는 쉼, 고양이는 사흘에 한 번까지)
         - 고양이 용품·돌봄
         - 패션·의류 관리

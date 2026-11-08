@@ -319,6 +319,9 @@ def _do_job(job: dict) -> str:
         st = _state()
         publish_item(st, a["slot"])
         return f"{a['slot']} 게시함"
+    if t == "blog_clip":
+        from . import blog
+        return blog.make_clip(CFG, a["pid"])
     if t == "blog_draw":
         from . import blog
         return blog.draw_later(CFG, a["pid"])
