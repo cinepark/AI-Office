@@ -899,6 +899,11 @@ def start_background(cfg: dict, blog: str, hint: str = "", topic: dict | None = 
     r = b["running"].get(blog)
     if r and (_now() - dt.datetime.fromisoformat(r["t"])).total_seconds() < 2400:
         return False
+    with _lock:  # 화면이 바로 '만드는 중'을 보여 주도록 스레드를 띄우기 전에 먼저 표시한다
+        b = load()
+        t0 = _now().isoformat(timespec="seconds")
+        b["running"][blog] = {"t": t0, "u": t0, "step": "시작하는 중", "mode": "실시간"}
+        save(b)
     th = threading.Thread(target=_safe, args=(cfg, blog, hint, topic, "실시간", None, kind), daemon=True)
     th.start()
     return True
@@ -907,8 +912,17 @@ def start_background(cfg: dict, blog: str, hint: str = "", topic: dict | None = 
 def _safe(*args) -> None:
     try:
         make_package(*args)
-    except Exception:
-        pass
+    except Exception as e:  # 실패를 숨기지 않고 데스크에 남긴다
+        try:
+            with _lock:
+                b = load()
+                b.setdefault("errors", []).append({"blog": args[1], "t": _now().isoformat(timespec="seconds"),
+                                                   "error": f"{type(e).__name__}: {str(e)[:200]}"})
+                b["errors"] = b["errors"][-20:]
+                b.get("running", {}).pop(args[1], None)
+                save(b)
+        except Exception:
+            pass
 
 
 def draw_later(cfg: dict, pid: str) -> str:

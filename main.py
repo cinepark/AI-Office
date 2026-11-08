@@ -124,11 +124,14 @@ with st.sidebar:
     st.markdown(f"<div style='font-weight:800;font-size:1.4rem;color:{NAVY}'>AI<br>OFFICE<span style='color:{YELLOW}'>.</span></div>",
                 unsafe_allow_html=True)
     st.caption("Mr. MOON · 개인 워크스페이스")
-    page = st.radio("WORKSPACE", ["오피스", "Threads 데스크", "CINEPARK 데스크", "리뷰&리뷰 데스크", "설정 · 연결"],
+    NAV_ICON = {"오피스": ":material/apartment:", "Threads 데스크": ":material/alternate_email:",
+                "CINEPARK 데스크": ":material/movie:", "리뷰&리뷰 데스크": ":material/shopping_bag:",
+                "설정 · 연결": ":material/settings:"}
+    page = st.radio("WORKSPACE", list(NAV_ICON), format_func=lambda x: f"{NAV_ICON[x]} {x}",
                     label_visibility="collapsed")
     st.divider()
     st.caption("🟡 작업 중  🟢 완료  🔴 문제  ⚪ 대기")
-    if st.button("새로고침", use_container_width=True):
+    if st.button("새로고침", use_container_width=True, icon=":material/refresh:"):
         load_state_cached.clear()
         img_url.clear()
         st.rerun()
@@ -268,12 +271,12 @@ if page == "오피스":
 elif page == "Threads 데스크":
     st.markdown("<div class='hero'><div class='eyebrow'>TURNER BRO · THREADS</div><h1>Threads 데스크</h1></div>", unsafe_allow_html=True)
     st.caption("승인 없이 정해진 시각에 자동 게시됩니다. 마음에 안 드는 것만 고치거나 빼면 됩니다.")
-    t1, t2 = st.tabs(["게시 예정", "게시 기록"])
+    t1, t2 = st.tabs([":material/schedule: 게시 예정", ":material/history: 게시 기록"])
     with t1:
         keys = sorted(k for k, v in queue.items() if v.get("status") == "ready")
         if not keys:
             st.info("게시 예정 재고가 없습니다. 아래 버튼이나 매일 21시 자동 생성으로 채워집니다.")
-        if st.button("지금 3일치 재고 채우기 (SHIHO에게 지시)", type="primary"):
+        if st.button("지금 3일치 재고 채우기 (SHIHO에게 지시)", type="primary", icon=":material/inventory_2:"):
             if server_ready():
                 give_order("produce", {}, "image", "Threads 재고 채우기")
             else:
@@ -283,7 +286,7 @@ elif page == "Threads 데스크":
             st.rerun()
         rc1, rc2 = st.columns([3, 1])
         sure_all = rc1.checkbox("예약 게시물을 전부 빼고 새 규칙으로 다시 만듭니다 (20분 안에 올라갈 것은 그대로 둡니다)", key="rebuild_ok")
-        if rc2.button("예약 전부 새로 만들기", disabled=not sure_all):
+        if rc2.button("예약 전부 새로 만들기", disabled=not sure_all, icon=":material/autorenew:"):
             if server_ready():
                 give_order("rebuild", {}, "image", "Threads 예약 전부 새로 만들기")
             else:
@@ -310,7 +313,7 @@ elif page == "Threads 데스크":
                     pick = st.radio("멘트", opts, key=f"r_{k}_{ver}", label_visibility="collapsed")
                     new = st.text_area("고치기", value=pick, key=f"t_{k}_{ver}_{opts.index(pick)}", height=70, label_visibility="collapsed")
                     b1, b2, b3 = st.columns(3)
-                    if b1.button("저장", key=f"s_{k}"):
+                    if b1.button("저장", key=f"s_{k}", icon=":material/save:"):
                         s = fresh_state()
                         it = s["queue"][k]
                         if new.strip() != it["caption"]:
@@ -320,7 +323,7 @@ elif page == "Threads 데스크":
                             act(s, "writer", f"{k} 멘트를 Mr. MOON 수정본으로 교체", "done")
                             save(s)
                         st.rerun()
-                    if b2.button("빼고 새로", key=f"x_{k}") and server_ready():
+                    if b2.button("빼고 새로", key=f"x_{k}", icon=":material/cached:") and server_ready():
                         give_order("remake", {"slot": k}, "image", f"{k[5:10]} {k[-4:-2]}:{k[-2:]} 다시 만들기")
                         st.rerun()
                     elif st.session_state.get(f"x_{k}") and not server_ready():
@@ -331,7 +334,7 @@ elif page == "Threads 데스크":
                             s["queue"][k] = R.make_item(s, k, slot)
                             save(s)
                         st.rerun()
-                    if b3.button("지금 게시", key=f"p_{k}") and server_ready():
+                    if b3.button("지금 게시", key=f"p_{k}", icon=":material/send:") and server_ready():
                         give_order("post_now", {"slot": k}, "channel", f"{k[5:10]} {k[-4:-2]}:{k[-2:]} 지금 게시")
                         st.rerun()
                     elif st.session_state.get(f"p_{k}") and not server_ready():
@@ -405,7 +408,7 @@ def progress_box(blog_id: str) -> None:
         idle = (P.now_kst() - dt.datetime.fromisoformat(run.get("u") or run["t"])).total_seconds()
         if idle > 720:  # 12분 넘게 단계가 그대로면 끊긴 작업
             st.warning(f"{int(idle // 60)}분째 단계가 바뀌지 않습니다. 화면 서버가 다시 시작되면서 작업이 끊긴 것입니다.")
-            if st.button("멈춘 작업 정리", key=f"clr_{blog_id}"):
+            if st.button("멈춘 작업 정리", key=f"clr_{blog_id}", icon=":material/cleaning_services:"):
                 from office import blog
                 blog.clear_running(blog_id)
                 st.session_state.pop(f"was_{blog_id}", None)
@@ -428,7 +431,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
 
     c1, c2 = st.columns([1.3, 1], gap="large")
     with c1:
-        st.markdown("**실시간** · 지금 바로 만들기")
+        st.markdown(":material/bolt: **실시간** · 지금 바로 만들기")
         hint = st.text_input("주제 지정 (비우면 리서치 담당이 고릅니다)", key=f"hint_{blog_id}",
                              placeholder="예: 넷플릭스 한국 오리지널 제작비" if blog_id == "cinepark" else "예: 겨울 전기요")
         kind = "feature"
@@ -440,22 +443,23 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                    and j["status"] in ("pending", "running")]
         if run or waiting:
             progress_box(blog_id)
-        elif st.button(f"지금 {bc['name']} 패키지 만들기", type="primary", key=f"go_{blog_id}"):
+        elif st.button(f"지금 {bc['name']} 패키지 만들기", type="primary", key=f"go_{blog_id}", icon=":material/edit_note:"):
             s0 = fresh_state()
             act(s0, "shiho", f"Mr. MOON 지시: {bc['name']} 패키지 지금 만들기", "done")
             save(s0)
             if server_ready():
                 give_order("blog_make", {"blog": blog_id, "hint": hint.strip(), "kind": kind}, "research", f"{bc['name']} 패키지")
             else:
-                blog.start_background(R.CFG, blog_id, hint.strip(), None, kind)
+                if not blog.start_background(R.CFG, blog_id, hint.strip(), None, kind):
+                    st.toast(f"{bc['name']} 패키지를 이미 만드는 중입니다.")
             blog_state_cached.clear()
             st.rerun()
     with c2:
-        st.markdown("**예약** · 전날 21:00에 미리 만들어 둡니다")
+        st.markdown(":material/event: **예약** · 전날 21:00에 미리 만들어 둡니다")
         sc = blog.schedule_of(b, R.CFG, blog_id)
         on = st.toggle("예약 켜기", value=sc.get("on", True), key=f"on_{blog_id}")
         days = st.multiselect("요일", DAYS, default=[DAYS[d] for d in sc.get("days", [])], key=f"d_{blog_id}")
-        if st.button("예약 저장", key=f"sv_{blog_id}"):
+        if st.button("예약 저장", key=f"sv_{blog_id}", icon=":material/event_available:"):
             fresh = blog.load()
             fresh["schedule"][blog_id] = {"on": on, "days": sorted(DAYS.index(d) for d in days)}
             blog.save(fresh)
@@ -480,7 +484,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                          unsafe_allow_html=True)
             if used:
                 tc2.caption("만드는 중·완료")
-            elif tc2.button("이걸로 만들기", key=f"ts_{blog_id}_{k}", type="primary" if k == 0 else "secondary"):
+            elif tc2.button("이걸로 만들기", key=f"ts_{blog_id}_{k}", type="primary" if k == 0 else "secondary", icon=":material/play_arrow:"):
                 fresh = blog.load()
                 fresh.setdefault("topic_sets", {}).setdefault(blog_id, ts).setdefault("used", []).append(k)
                 blog.save(fresh)
@@ -495,13 +499,22 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
     allp = sorted((p for p in b.get("packages", {}).values() if p["blog"] == blog_id and not p.get("deleted")),
                   key=lambda p: p["made"], reverse=True)
     pkgs = [p for p in allp if not p.get("posted")]
+    if pkgs:
+        st.caption(":material/check_circle: 올릴 준비 끝 · :material/hourglass_top: 원고 완성, 그림 대기 · :material/error: 확인 필요")
     done = sorted((p for p in allp if p.get("posted")), key=lambda p: p["posted"], reverse=True)
     if not pkgs:
         st.caption("올릴 패키지가 없습니다. 올린 글은 아래 '올린 글 기록'에 있습니다." if done else "아직 만든 패키지가 없습니다.")
     for i, p in enumerate(pkgs[:15]):
         a = p["article"]
         kind_tag = " · 정보글" if p.get("kind") == "info" else ""
-        with st.expander(f"{p['date'][5:].replace('-', '/')} · {p['mode']}{kind_tag} · {a.get('title', '(제목 없음)')}", expanded=(i == 0)):
+        if a.get("editor_fix") or p.get("problems"):
+            p_icon = ":material/error:"          # 편집장 반려·점검 문제
+        elif any(im.get("pending") for im in a.get("images", [])):
+            p_icon = ":material/hourglass_top:"  # 원고 완성, 그림 대기
+        else:
+            p_icon = ":material/check_circle:"   # 올릴 준비 끝
+        with st.expander(f"{p['date'][5:].replace('-', '/')} · {p['mode']}{kind_tag} · {a.get('title', '(제목 없음)')}",
+                         expanded=(i == 0), icon=p_icon):
             st.markdown(f"<h3 style='text-align:center;color:{NAVY}'>{html.escape(a.get('title', ''))}</h3>", unsafe_allow_html=True)
             if p.get("problems"):
                 st.warning("검수 주의: " + ", ".join(p["problems"]))
@@ -511,7 +524,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 st.caption("사실 확인 담당: " + " / ".join(a["factcheck"][:6]))
             if any(im.get("pending") for im in a.get("images", [])):
                 st.info("밤새 쓴 원고입니다. 읽어 보시고 괜찮으면 '그림 그리기'를 누르세요. 그림은 그때 그립니다.")
-                if st.button("그림 그리기", key=f"draw_{p['id']}", type="primary"):
+                if st.button("그림 그리기", key=f"draw_{p['id']}", type="primary", icon=":material/palette:"):
                     if server_ready():
                         give_order("blog_draw", {"pid": p["id"]}, "image", f"{bc['name']} 그림 그리기")
                     else:
@@ -539,14 +552,14 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             st.markdown("**본문** (오른쪽 위 복사 버튼 → 네이버 에디터에 붙여 넣기, 【그림 n】 자리에 그림을 넣으시면 됩니다)")
             st.code(blog.plain_text(p), language=None, wrap_lines=True)
             try:
-                st.download_button("그림 + 본문 묶음 받기 (ZIP)", data=blog_zip(p["id"], blog_id),
+                st.download_button("그림 + 본문 묶음 받기 (ZIP)", icon=":material/download:", data=blog_zip(p["id"], blog_id),
                                    file_name=f"{bc['name']}_{p['id']}.zip", mime="application/zip", key=f"z_{p['id']}")
             except Exception as e:
                 st.caption(f"묶음을 만들지 못했습니다: {e}")
             pc1, pc2 = st.columns([3, 1])
             purl = pc1.text_input("네이버 글 주소 (선택)", key=f"pu_{p['id']}", placeholder="https://blog.naver.com/...")
             pc2.write("")
-            if pc2.button("네이버에 올림", key=f"po_{p['id']}", type="primary"):
+            if pc2.button("네이버에 올림", key=f"po_{p['id']}", type="primary", icon=":material/task_alt:"):
                 b2 = blog.load()
                 if p["id"] in b2["packages"]:
                     b2["packages"][p["id"]]["posted"] = P.now_kst().isoformat(timespec="seconds")
@@ -558,7 +571,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 st.rerun()
             dc1, dc2 = st.columns([3, 1])
             sure = dc1.checkbox("이 패키지를 지웁니다 (예약 글이면 그날 다시 만들지 않습니다)", key=f"dc_{p['id']}")
-            if dc2.button("삭제", key=f"del_{p['id']}", disabled=not sure):
+            if dc2.button("삭제", key=f"del_{p['id']}", disabled=not sure, icon=":material/delete:"):
                 b2 = blog.load()
                 if p["id"] in b2["packages"]:
                     b2["packages"][p["id"]]["deleted"] = P.now_kst().isoformat(timespec="seconds")
@@ -572,7 +585,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 for k, t in enumerate(p["others"]):
                     oc1, oc2 = st.columns([4, 1])
                     oc1.markdown(f"[{t.get('axis', '')}] **{t.get('question') or t.get('title_idea', '')}** — {t.get('why_now') or t.get('hook_question', '')}")
-                    if oc2.button("이걸로 만들기", key=f"o_{p['id']}_{k}"):
+                    if oc2.button("이걸로 만들기", key=f"o_{p['id']}_{k}", icon=":material/play_arrow:"):
                         if server_ready():
                             give_order("blog_make", {"blog": blog_id, "hint": "", "topic": t}, "research",
                                        f"{bc['name']} 패키지 (다른 글감)")
@@ -581,14 +594,14 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                         blog_state_cached.clear()
                         st.rerun()
     if done:
-        with st.expander(f"올린 글 기록 ({len(done)}건)"):
+        with st.expander(f"올린 글 기록 ({len(done)}건)", icon=":material/fact_check:"):
             for p in done[:60]:
                 t = p["article"].get("title", "")
                 when = p["posted"][5:16].replace("-", "/").replace("T", " ")
                 link = f" · [글 보기]({p['posted_url']})" if p.get("posted_url") else ""
                 hc1, hc2 = st.columns([5, 1])
                 hc1.markdown(f"{when} · {html.escape(t)}{link}")
-                if hc2.button("되돌리기", key=f"un_{p['id']}"):
+                if hc2.button("되돌리기", key=f"un_{p['id']}", icon=":material/undo:"):
                     b2 = blog.load()
                     if p["id"] in b2["packages"]:
                         b2["packages"][p["id"]].pop("posted", None)
@@ -608,7 +621,7 @@ elif page == "리뷰&리뷰 데스크":
 # ───────────────────────── 설정 · 연결 ─────────────────────────
 if page == "설정 · 연결":
     st.markdown("<div class='hero'><div class='eyebrow'>SETTINGS</div><h1>설정 · 연결</h1></div>", unsafe_allow_html=True)
-    if st.button("연결 점검 실행", type="primary"):
+    if st.button("연결 점검 실행", type="primary", icon=":material/network_check:"):
         import contextlib
         import io
         buf = io.StringIO()
