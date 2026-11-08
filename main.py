@@ -547,6 +547,20 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                             st.toast("클립을 만들기 시작했습니다. 1~3분 뒤 새로고침하면 보입니다.")
                         blog_state_cached.clear()
                         st.rerun()
+            memos = [bl.get("text", "") for bl in a.get("blocks", []) if bl.get("type") == "memo"]
+            if memos:
+                mm1, mm2 = st.columns([4, 1])
+                memo = mm1.text_area(f":material/edit: 대표님 한 줄 — {memos[0]}", value=p.get("memo", ""), height=80,
+                                     key=f"memo_{p['id']}", placeholder="직접 겪은 일 한두 문장 (네이버가 가장 높게 치는 '직접 경험')")
+                mm2.write("")
+                if mm2.button("본문에 넣기", key=f"memosv_{p['id']}", icon=":material/save:"):
+                    b2 = blog.load()
+                    if p["id"] in b2["packages"]:
+                        b2["packages"][p["id"]]["memo"] = memo.strip()
+                        blog.save(b2)
+                    blog_state_cached.clear()
+                    st.toast("본문의 '대표님 한 줄' 자리에 넣었습니다.")
+                    st.rerun()
             if a.get("factcheck"):
                 st.caption("사실 확인 담당: " + " / ".join(a["factcheck"][:6]))
             if any(im.get("pending") for im in a.get("images", [])):
@@ -641,8 +655,8 @@ if page == "CINEPARK 데스크":
     blog_desk("cinepark", "CINEPARK · 영화잡지", "CINEPARK 데스크",
               "리서치 담당이 최근 세계 영화계 뉴스로 글감을 고르고, 작가가 작법 7원칙대로 원고를, 이미지 담당이 썸네일 1장과 본문 그림 5장을 만듭니다. 업로드는 대표님이 직접 하십니다.")
 elif page == "리뷰&리뷰 데스크":
-    blog_desk("review", "리뷰&리뷰 · 쿠팡파트너스", "리뷰&리뷰 데스크",
-              "지금 많이 찾는 생활 상품군을 골라 비교 정보형 원고와 그림 3장을 만듭니다. 첫 줄에 쿠팡파트너스 대가성 문구가 들어가고, 쿠팡 링크와 대표님 실사용 메모 자리는 비워 둡니다.")
+    blog_desk("review", "리뷰&리뷰 · 생활 정보", "리뷰&리뷰 데스크",
+              "지금 많이 찾는 생활 상품군을 골라 고르는 법·관리법 원고와 그림, 10초 클립을 만듭니다. 대표님 한 줄(실사용 경험) 자리는 비워 둡니다.")
 
 
 # ───────────────────────── 설정 · 연결 ─────────────────────────
