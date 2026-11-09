@@ -194,22 +194,35 @@ JSON 만 출력:
 
 REVIEW_RESEARCH = """당신은 네이버 블로그 '리뷰&리뷰'의 리서치 담당입니다.
 이 블로그는 생활 속 물건의 '고르는 법 · 관리법 · 안전 수칙'을 제조사·보호단체·공공기관 안내로 정리합니다.
-(지난 글 예: 고양이 겨울 잠자리, 담요보다 먼저 살펴볼 위치와 높이 / 경량패딩 세탁 전 확인할 것 / 난방텐트 고르는 법 / 전기매트 vs 온수매트)
+(지난 글 분야 예: 고양이 겨울 잠자리 / 경량패딩 세탁 / 난방텐트 / 전기매트와 온수매트 / 실내등. 제목 꼴은 아래 목록을 따른다)
 
 오늘의 분야는 이미 정해져 있다: {categories}
 - 위 분야마다 하나씩, 모두 3개의 주제를 낸다. 분야를 바꾸지 않는다.
 - 각 분야 안에서 웹 검색으로 지금 사람들이 실제로 많이 검색하고 사는 상품·고민을 찾는다(쇼핑 검색 인기, 계절, 신제품, 리콜·안전 소식).
   계절 주제만 되풀이하지 않는다. '최근에 이미 쓴 글'의 상품군(예: 가습기, 김장)은 다시 고르지 않는다.
 - 근거가 되는 공식 안내(제조사 설명서, 보호단체, 공공기관, 소비자원)를 실제로 찾은 주제만 고릅니다.
+- 제목이 획일적이다('○○ 사기 전, ~', '○○ 고르기 전 확인할 것'이 계속 되풀이됨). 이 틀은 쓰지 않는다.
+  세 주제의 title_idea 는 아래 제목 꼴 가운데 서로 다른 꼴을 하나씩 쓰고, 최근 글 제목과 같은 꼴도 피한다. 고른 꼴 번호를 title_form 에 적는다.
+{title_forms}
 {hint}{avoid}
 JSON 만 출력:
 {{"topics": [{{"axis": "위 분야 이름 그대로", "title_idea": "...", "hook_question": "...", "why_now": "...",
- "criteria": ["확인할 점"], "facts": [{{"text": "...", "source": "기관·제조사명", "url": "..."}}], "buy_related": true}}]}}"""
+ "title_form": 1, "criteria": ["확인할 점"], "facts": [{{"text": "...", "source": "기관·제조사명", "url": "..."}}], "buy_related": true}}]}}"""
+
+REVIEW_TITLE_FORMS = """  1. 숫자 답형: 핵심 숫자를 앞에 (예: 실내등 색온도, 침실은 3000K가 기준인 이유)
+  2. 오해 바로잡기형: 흔한 믿음을 뒤집는다 (예: 니트는 접어서? 옷걸이에 걸면 늘어나는 진짜 이유)
+  3. 실제 질문형: 사람들이 검색창에 치는 질문 그대로 (예: 전기요 켜고 자도 괜찮을까요)
+  4. 비교 결론형: A vs B, 결론을 제목에 (예: 밀폐용기 유리 vs 플라스틱, 김치는 유리가 낫습니다)
+  5. 상황·장면형: 문제가 생기는 순간 (예: 욕실 실리콘에 검은 점이 생겼다면)
+  6. 한 가지 기준형: 딱 하나만 보라 (예: 베개는 높이 하나만 보면 됩니다)
+  7. 관리 주기형: 언제·얼마나 자주 (예: 고양이 스크래처, 교체 시기는 이렇게 압니다)
+  8. 실수형: 다들 하는 실수 (예: 패딩 세탁에서 가장 흔한 실수는 섬유유연제)"""
+REVIEW_STALE = re.compile(r"(사기|고르기|들이기|바꾸기|쓰기|사러 가기)\s*전|먼저\s*(확인|살펴)|확인할\s*(것|점|세)")
 
 REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니다.
 
-이 블로그의 실제 글 (구성과 말투를 그대로 따른다)
-제목: 고양이 겨울 잠자리, 담요보다 먼저 살펴볼 위치와 높이
+이 블로그의 실제 글 (본문 구성과 말투를 따른다. 제목은 이 꼴을 따르지 않고 글감의 title_form 을 따른다)
+제목: 고양이 겨울 잠자리, 담요보다 위치와 높이가 먼저입니다
 [그림: 고양이 겨울 잠자리]
 고양이의 겨울 잠자리를 준비할 때, 새 방석을 고르기 전에 지금 쉬는 자리를 살펴보세요. 바람이 들어오는지, 편하게 올라갈 수 있는지부터 확인하면 준비할 것이 조금 더 분명해집니다.
 [그림: 외풍 없는 위치]
@@ -234,18 +247,23 @@ REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니�
 - 그림 {n}장. 0번은 썸네일, 1~{last}번은 본문. 그림마다 label(그림 위에 얹을 글자, 띄어쓰기 포함 12자 이내, 예: '외풍 없는 위치')을 정한다.
   filename: 검색 핵심어 3~5개를 하이픈으로 이은 한국어 파일 이름(예: 고양이-겨울-잠자리-외풍-위치). caption: 그림을 설명하는 검색어 중심 한 줄(예: 외풍이 들지 않는 벽 쪽 방석에서 자는 고양이).
   0번 label 은 글 주제(예: '고양이 겨울 잠자리'). 본문 그림 label 은 바로 뒤 소제목의 핵심어.
-- clip_prompt: 0번 썸네일 그림을 10초 세로 영상으로 움직일 영어 지시문 한 단락. 동작은 하나만, 단정적으로(예: '[0-10s] The cat stretches its front paws forward once, then settles back into the cushion. A light curtain moves in the window breeze.'). 카메라 고정, 글자 없음, 방 안의 잔잔한 소리.
+- clip_scene: 10초 실사 세로 영상의 첫 장면이 될 사진 한 장을 영어 한 단락으로 단정적으로 묘사한다. 사람·손·얼굴은 나오지 않는다.
+  한국 아파트 안의 실제 생활 장면, 휴대폰으로 찍은 듯한 자연광 실사, 세로 9:16. 글의 핵심 물건이 화면 가운데에 크게 놓이고, 고양이 주제면 실제 고양이 한 마리가 그 물건과 함께 있다.
+  위아래 1/5 은 글자를 얹을 수 있게 벽·바닥처럼 단순하게 비운다. 글자·로고·상표·숫자 금지.
+- clip_prompt: clip_scene 사진을 10초 영상으로 움직일 영어 지시문 한 단락. 동작은 하나만, 단정적으로(예: '[0-10s] The cat stretches its front paws forward once, then settles back into the cushion. A light curtain moves in the window breeze.'). 카메라 고정, 글자 없음, 방 안의 잔잔한 소리.
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 고양이 주제면 고양이가 그 장면 속에서 한 동작을 하고,
   생활용품 주제면 그 물건이 놓인 집 안 장면. 화면 위쪽 1/4 은 글자를 얹을 수 있게 벽·하늘처럼 단순하게 비운다. 그림 속 글자·로고·숫자 금지.
 - AI 브리핑이 인용하기 좋게 쓴다(이 블로그의 인용수가 빠르게 늘고 있다): 소제목 가운데 두세 개는 사람들이 실제로 묻는 질문형으로 쓰고, 그 아래 첫 문장에서 답을 한 문장으로 먼저 말한 뒤 이유·방법을 잇는다. 숫자·기준(높이 cm, 개수, 기간)을 구체적으로.
 - 그림끼리 겹치지 않게 한다: 그림마다 장소(거실 창가·주방·현관·침실 등), 거리(클로즈업·전신·방 전체), 고양이 동작을 서로 다르게 정한다. 같은 구도·같은 동작·같은 소품 배치를 되풀이하지 않는다.
   본문 그림 가운데 1장은 고양이 없이 물건만 크게 보여 준다(예: 정수기 클로즈업, 물그릇 두 개를 나란히 놓은 바닥).
+- 제목은 글감의 title_idea 꼴(title_form)을 그대로 살린다. '○○ 사기 전', '○○ 고르기 전', '먼저 확인할', '확인할 것' 같은 틀은 쓰지 않는다.
 - 태그 6개 안팎, 해시태그 없이 단어만.
 
 JSON 만 출력:
 {{"title": "...", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "h", "text": "소제목"}},
  {{"type": "p", "text": "..."}}, {{"type": "source", "text": "출처: 기관 안내 이름 (주소)"}}, {{"type": "h", "text": "오늘 밤 확인할 세 가지"}},
  {{"type": "check", "items": ["...", "...", "..."]}}, {{"type": "p", "text": "마무리"}}],
+ "clip_scene": "...", "clip_prompt": "...",
  "images": [{{"no": 0, "role": "썸네일", "label": "...", "filename": "...", "prompt": "...", "caption": "..."}}],
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
@@ -316,11 +334,67 @@ INFO_EDITOR = """당신은 CINEPARK 의 편집장입니다. 정보글(순위·�
 JSON 만 출력: {"ok": true|false, "fix": ["고칠 점", "..."]}"""
 
 
+
+COMPARE_RESEARCH = """당신은 네이버 블로그 '리뷰&리뷰'의 가격 비교 리서치 담당입니다.
+한 가지 물건(예: 숏패딩, 매트리스 토퍼, 고양이 자동급식기, 무선청소기)을 브랜드별로 나란히 놓고 '왜 가격이 이만큼 차이 나는가'를 보여 주는 글을 준비합니다.
+{hint}
+- 지정 주제가 없으면 오늘의 분야({categories}) 안에서, 지금 사람들이 '가격', 'vs', '가성비'로 많이 검색하는 물건 하나를 고른다.
+{avoid}
+조사 규칙 (가장 중요)
+1. 가격은 한국 공식 판매가(정상가, 원)만 쓴다. 각 브랜드 공식 홈페이지·공식 온라인스토어의 상품 페이지를 웹 검색으로 직접 찾아 확인한다.
+   공식 페이지를 못 찾으면 백화점 공식몰·브랜드 공식 입점몰까지 허용하고 price_source 에 어디인지 적는다. 커뮤니티·블로그·리셀 가격은 쓰지 않는다.
+2. 같은 물건끼리 비교한다: 브랜드마다 대표 모델 하나(같은 종류·같은 성별·성인용)를 고르고 모델명을 정확히 적는다.
+3. 가격 차이를 설명할 사양을 공식 상품 정보에서 찾는다(패딩이면 충전재 종류·솜털:깃털 비율·필파워·무게·겉감, 매트리스면 소재·두께·밀도 등).
+   공식 페이지에 없으면 그 칸은 "공개 안 함"으로 둔다. 추정해서 채우지 않는다.
+4. 확인한 항목만 8~12개. 가격대가 고르게 섞이게 한다(저가·중가·고가). 각 항목에 확인한 페이지 url 을 반드시 단다.
+5. 가격 차이의 이유를 설명하는 공식·전문 자료(제조사 설명, 소비자원 시험 결과, 표준·인증 기준)도 2~4개 찾는다.
+JSON 만 출력:
+{{"topics": [{{"axis": "분야 이름", "product": "물건 이름", "title_idea": "...", "question": "독자가 궁금한 한 줄", "title_form": 1,
+ "search_questions": ["사람들이 실제로 묻는 질문", "... (4개)"],
+ "spec_cols": ["충전재", "필파워", "무게"],
+ "items": [{{"brand": "브랜드", "model": "모델명", "price": 459000, "price_source": "공식 온라인스토어", "url": "...",
+   "specs": {{"충전재": "구스다운 90:10", "필파워": "700", "무게": "공개 안 함"}}}}],
+ "why_price": [{{"text": "가격 차이의 이유 한 줄", "source": "기관·제조사명", "url": "..."}}]}}]}}"""
+
+COMPARE_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니다. 오늘은 가격 비교 글을 씁니다.
+글감의 items 는 리서치 담당이 공식 페이지에서 확인한 값이다. 이 값만 쓰고, 새 브랜드·새 숫자를 지어내지 않는다.
+구성
+- 썸네일 그림 → 도입 문단(가장 싼 것과 가장 비싼 것의 차이를 숫자로) → 비교표 카드 그림 → 가격대별 소제목 3개(저가·중가·고가, 각 구간의 대표 항목과 그 값을 받는 이유)
+  → '가격 차이는 어디서 생기나' 소제목(why_price 근거를 기관·제조사 이름과 함께) → '내게 맞는 가격대 고르는 법' 소제목 → 출처 → 체크리스트 3개 → 마무리 한 문단.
+- 소제목 가운데 두세 개는 사람들이 실제로 묻는 질문형(search_questions)으로 쓰고, 바로 아래 첫 문장에서 답부터 말한다.
+- 본문에 표 형식 줄을 넣는다: {{"type": "table", "cols": ["브랜드", "모델", "정상가", ...spec_cols], "rows": [["...", "...", "459,000원", ...]]}}. 가격 높은 순.
+- 1,500~2,300자. 존댓말. 직접 입어 본 것처럼 꾸미지 않는다. 특정 브랜드를 사라고 권하지 않는다. 가격은 '공식 판매가 기준, 할인·시즌에 따라 달라질 수 있음'을 한 번 밝힌다.
+- 첫 번째 가격대 소제목 문단 뒤에 {{"type": "memo", "text": "대표님께 드리는 질문 한 줄(예: 직접 입어 보신 패딩의 가격대와 만족한 점)"}} 블록을 넣는다.
+- 쿠팡 링크·대가성 문구는 넣지 않는다.
+- 제목: 물건 이름 + 숫자가 들어간 꼴(예: 숏패딩 20종 가격, 6만 원대부터 375만 원까지). '사기 전', '확인할 것' 틀 금지.
+그림 {n}장
+- 0번 썸네일, 1번은 비교표 카드: {{"no": 1, "kind": "compare", "label": "", "filename": "...-가격-비교표", "caption": "...", "prompt": ""}} (코드가 그린다, prompt 비움).
+- 나머지는 그림. 브랜드 로고·상표·글자가 보이지 않는 물건 장면(예: 로고 없는 검은 숏패딩이 걸린 옷걸이, 충전재 솜털 클로즈업, 무게를 재는 저울 위의 패딩).
+  그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사. 화면 위쪽 1/4 은 비운다. 그림마다 label(12자 이내)·filename·caption.
+- clip_scene / clip_prompt: 리뷰 글과 같은 규칙(사람·손 없음, 로고 없음, 세로 실사 장면 한 장과 그 장면의 한 동작).
+- 태그 6개 안팎.
+JSON 만 출력:
+{{"title": "...", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "table", "cols": [...], "rows": [[...]]}},
+ {{"type": "h", "text": "소제목"}}, {{"type": "p", "text": "..."}}, {{"type": "source", "text": "출처: ..."}}, {{"type": "h", "text": "오늘 확인할 세 가지"}},
+ {{"type": "check", "items": ["...", "...", "..."]}}, {{"type": "p", "text": "마무리"}}],
+ "compare": {{"headline": "숏패딩 정상가 비교", "cols": ["브랜드", "정상가", ...spec_cols], "rows": [["브랜드", "459,000원", "..."]], "note": "YYYY.MM.DD 공식 판매가 기준"}},
+ "clip_scene": "...", "clip_prompt": "...",
+ "images": [{{"no": 0, "role": "썸네일", "label": "...", "filename": "...", "prompt": "...", "caption": "..."}}],
+ "sources": [{{"title": "...", "url": "..."}}], "tags": ["..."]}}"""
+
+PRICECHECK = """당신은 '리뷰&리뷰'의 가격 확인 담당입니다. 비교표의 각 줄을 웹 검색으로 다시 확인합니다.
+각 줄의 url(공식 페이지)에서 모델명과 정상가가 맞는지 본다. 다르면 고친 값을 넣고, 공식 판매처에서 확인되지 않으면 drop 에 넣는다.
+사양 칸도 공식 정보와 다르면 고친다. 공식 정보에 없으면 "공개 안 함".
+JSON 만 출력: {"rows": [{"brand": "...", "model": "...", "price": 459000, "url": "...", "specs": {"...": "..."}, "changed": "고친 내용 한 줄 또는 빈 문자열"}], "drop": ["브랜드 모델 — 이유"]}"""
+
 PROMPTS = {"cinepark": (CINEPARK_RESEARCH, CINEPARK_WRITE), "review": (REVIEW_RESEARCH, REVIEW_WRITE)}
+COMPARE_PROMPTS = (COMPARE_RESEARCH, COMPARE_WRITE)
 INFO_PROMPTS = (INFO_RESEARCH, INFO_WRITE)
 
 
 def _prompts(blog: str, kind: str) -> tuple:
+    if blog == "review" and kind == "compare":
+        return COMPARE_PROMPTS
     return INFO_PROMPTS if (blog == "cinepark" and kind == "info") else PROMPTS[blog]
 
 
@@ -440,8 +514,12 @@ def research(cfg: dict, blog: str, hint: str = "", avoid: list[str] | None = Non
     if ex:  # 대표님이 직접 정리하는 주제: 글감으로 내지 않는다
         av += "\n글감으로 고르지 않는 주제(대표님이 직접 정리함): " + " / ".join(ex) + "\n"
     pr = _prompts(blog, kind)
+    if kind == "compare":
+        fmt["hint"] = f"★ Mr. MOON 지정 물건: \"{hint}\" — 이 물건으로만 비교한다.\n" if hint else ""
     if "{categories}" in pr[0]:
         fmt["categories"] = " / ".join(pick_categories(cfg, blog))
+    if "{title_forms}" in pr[0]:
+        fmt["title_forms"] = REVIEW_TITLE_FORMS
     if "{avoid}" in pr[0]:
         fmt["avoid"] = av
     else:
@@ -488,7 +566,7 @@ def pick_bts() -> str:
 def write(cfg: dict, blog: str, topic: dict, kind: str = "feature") -> dict:
     bc = cfg["blog"]["blogs"][blog]
     pr = _prompts(blog, kind)
-    n = 1 if pr is INFO_PROMPTS else bc["images"]
+    n = 1 if pr is INFO_PROMPTS else bc["images"] + (1 if pr is COMPARE_PROMPTS else 0)
     extra = {"bts": pick_bts()} if "{bts}" in pr[1] else {}
     if "{crew_character}" in pr[1]:
         extra["crew_character"] = (bc.get("crew_character") or bc.get("character", "")).strip()
@@ -498,6 +576,16 @@ def write(cfg: dict, blog: str, topic: dict, kind: str = "feature") -> dict:
             + json.dumps(topic, ensure_ascii=False))
     art = _ask(cfg, sys_w, user, search=True)
     art["images"] = sorted(art.get("images", []), key=lambda x: x.get("no", 0))[:n]
+    if pr is COMPARE_PROMPTS:  # 1번은 늘 코드가 그리는 비교표 카드
+        im1 = next((im for im in art["images"] if im.get("no") == 1), None)
+        if im1 is None:
+            im1 = {"no": 1}
+            art["images"] = sorted(art["images"] + [im1], key=lambda x: x.get("no", 0))
+        im1.update(kind="compare", prompt="", label="")
+        im1.setdefault("filename", f"{topic.get('product', '')}-가격-비교표".strip("-"))
+        im1.setdefault("caption", f"{topic.get('product', '')} 브랜드별 공식 판매가 비교표".strip())
+        if not any(bl.get("type") == "image" and bl.get("no") == 1 for bl in art.get("blocks", [])):
+            art.setdefault("blocks", []).insert(min(2, len(art.get("blocks", []))), {"type": "image", "no": 1})
     return art
 
 
@@ -650,6 +738,11 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
         _set_step(blog, f"그림 그리는 중 {im['no'] + 1}/{len(art['images'])}")
         try:
             kind = im.get("kind", "shiho" if refs else "scene")
+            if kind == "compare" and art.get("compare"):  # 가격 비교표: 코드가 그린다(그림 비용 없음)
+                key = f"blog/{blog}/{pid}/{im['no']:02d}.png"
+                storage.put_bytes(key, compare_card(art["compare"]), "image/png")
+                im["r2_key"] = key
+                continue
             if kind == "card" or not im.get("prompt", "").strip():  # 정보 카드는 대표님이 에디터로 직접 만든다
                 continue
             png = _render_safe(cfg, bc, blog, im, kind, refs, style)
@@ -729,10 +822,12 @@ TITLE_BAN = re.compile(r"돈|머니|팔릴까|팔릴|얼마")
 PLAIN_END = re.compile(r"(이다|였다|했다|한다|된다|있다|없다|었다|았다)[.!]?$")
 
 
-def rule_check(art: dict) -> list[str]:
-    """코드로 바로 잡아낼 수 있는 것: 제목의 주제어, 반말체로 끝나는 본문 문장."""
+def rule_check(art: dict, kind: str = "feature") -> list[str]:
+    """코드로 바로 잡아낼 수 있는 것: 제목의 주제어, 반말체로 끝나는 본문 문장, 리뷰 제목의 낡은 틀."""
     fix = []
     t = art.get("title", "")
+    if kind == "review" and REVIEW_STALE.search(t):
+        return [f"제목 '{t}'이 '○○ 사기 전/확인할 것' 틀임 → 숫자 답형·오해 바로잡기형·실제 질문형처럼 다른 꼴로 바꿀 것"]
     if TITLE_BAN.search(t):
         fix.append(f"제목 '{t}'에 '돈·팔릴까' 같은 주제어가 있음 → 작품·사람·회사 이름이 들어간 질문으로 바꿀 것")
     th = art.get("thumb_title", "") + " " + art.get("thumb_highlight", "")
@@ -743,6 +838,93 @@ def rule_check(art: dict) -> list[str]:
     if bad:
         fix.append(f"반말체 문장 {len(bad)}곳(예: '{bad[0][:30]}') → ~습니다 체로 고칠 것")
     return fix
+
+
+def _won(v) -> str:
+    try:
+        return f"{int(str(v).replace(',', '').replace('원', '')):,}원"
+    except Exception:
+        return str(v)
+
+
+def verify_prices(cfg: dict, topic: dict) -> list[str]:
+    """가격 비교: 원고를 쓰기 전에 표의 가격·사양을 공식 페이지로 한 번 더 확인한다. 확인 안 된 줄은 뺀다."""
+    items = topic.get("items", [])
+    if not items:
+        return []
+    r = _ask(cfg, PRICECHECK, json.dumps({"items": items}, ensure_ascii=False), search=True)
+    rows = [x for x in r.get("rows", []) if x.get("price")]
+    if rows:
+        topic["items"] = rows
+    notes = [f"{x['brand']} {x.get('model', '')}: {x['changed']}" for x in rows if x.get("changed")]
+    notes += [f"뺌 — {d}" for d in r.get("drop", [])]
+    return notes
+
+
+def sync_compare(art: dict, topic: dict) -> None:
+    """비교표 카드·본문 표의 숫자를 확인된 items 로 맞춘다(작가가 숫자를 바꿔 쓰는 것을 막는다)."""
+    items = sorted(topic.get("items", []), key=lambda x: -int(str(x.get("price", 0)).replace(",", "") or 0))
+    if not items:
+        return
+    cols = list(topic.get("spec_cols", []))[:3]
+    c = art.setdefault("compare", {})
+    c["cols"] = ["브랜드", "정상가"] + cols
+    c["rows"] = [[x["brand"], _won(x["price"])] + [str((x.get("specs") or {}).get(k, "공개 안 함")) for k in cols] for x in items]
+    c.setdefault("headline", f"{topic.get('product', '')} 정상가 비교".strip())
+    c["note"] = f"{_now():%Y.%m.%d} 각 브랜드 공식 판매가 기준 · 할인·시즌에 따라 달라질 수 있음"
+    for bl in art.get("blocks", []):
+        if bl.get("type") == "table":
+            bl["cols"] = ["브랜드", "모델", "정상가"] + cols
+            bl["rows"] = [[x["brand"], x.get("model", ""), _won(x["price"])] + [str((x.get("specs") or {}).get(k, "공개 안 함")) for k in cols] for x in items]
+    have = {s_.get("url") for s_ in art.get("sources", [])}
+    for x in items:
+        if x.get("url") and x["url"] not in have:
+            art.setdefault("sources", []).append({"title": f"{x['brand']} {x.get('model', '')} 공식 상품 페이지".strip(), "url": clean_url(x["url"])})
+
+
+def compare_card(c: dict) -> bytes:
+    """리뷰&리뷰 가격 비교표: 크림색 바탕, 짙은 갈색 글자. 글자는 코드가 쓰므로 깨지지 않는다."""
+    from PIL import Image, ImageDraw, ImageFont
+    import io
+    f = lambda w, s_: ImageFont.truetype(str(STATIC / f"Paperlogy-{w}.woff2"), s_)
+    rows, cols = c.get("rows", [])[:14], c.get("cols", [])
+    W, rh, top = 1600, 76, 250
+    H = top + rh * (len(rows) + 1) + 130
+    img = Image.new("RGB", (W, H), "#F4EEE3")
+    d = ImageDraw.Draw(img)
+    ink, sub, acc = "#3B2F27", "#8A7B6E", "#B5562F"
+    d.rectangle((0, 0, W, 12), fill=acc)
+    d.text((90, 60), "리뷰&리뷰", font=f("7Bold", 30), fill=sub)
+    d.text((90, 110), c.get("headline", ""), font=f("8ExtraBold", 72), fill=ink)
+    n = max(len(cols), 1)
+    wts = ([1.3, 1.2, 1.6] + [1.0] * (n - 3)) if n > 2 else [1.5, 1.3][:n]
+    xs, x = [], 90
+    for w in wts[:n]:
+        xs.append(x)
+        x += (W - 180) * w / sum(wts[:n])
+
+    def fit(t, font_w, size, maxw):
+        while size > 22 and d.textlength(t, font=f(font_w, size)) > maxw:
+            size -= 2
+        return f(font_w, size)
+
+    y = top
+    for i, t in enumerate(cols):
+        d.text((xs[i], y + 18), str(t), font=f("7Bold", 32), fill=sub)
+    d.line((90, y + rh - 6, W - 90, y + rh - 6), fill=ink, width=3)
+    prices = [r[1] for r in rows if len(r) > 1]
+    for j, r in enumerate(rows):
+        y = top + rh * (j + 1)
+        if j % 2 == 1:
+            d.rectangle((90, y, W - 90, y + rh), fill="#EBE3D5")
+        for i, t in enumerate(r[:n]):
+            maxw = (xs[i + 1] if i + 1 < n else W - 90) - xs[i] - 20
+            hi = i == 1 and prices and (t == prices[0] or t == prices[-1])
+            d.text((xs[i], y + 18), str(t), font=fit(str(t), "7Bold" if i < 2 else "6SemiBold", 36, maxw), fill=acc if hi else ink)
+    d.text((90, H - 90), c.get("note", ""), font=f("6SemiBold", 28), fill=sub)
+    out = io.BytesIO()
+    img.save(out, "PNG")
+    return out.getvalue()
 
 
 def edit_check(cfg: dict, art: dict, kind: str = "feature") -> dict:
@@ -809,9 +991,19 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
                 topic, others = pick_by_demand(cfg, name, topics, bool(hint))
         else:
             others = []
+        if kind == "compare":
+            _set_step(blog, "가격 확인 중")
+            _log("review", f"{name} 공식 판매가 다시 확인 중 ({len(topic.get('items', []))}개)", "working")
+            try:
+                pn = verify_prices(cfg, topic)
+                _log("review", f"{name} 가격 확인 끝 — " + (f"{'; '.join(pn)[:100]}" if pn else "이상 없음"), "done")
+            except Exception as e:
+                _log("review", f"{name} 가격 재확인 실패: {str(e)[:80]}", "error")
         _set_step(blog, "원고 쓰는 중")
         _log("writer", f"{name} 원고 쓰는 중: {topic.get('title_idea', '')[:30]}", "working")
         art = tidy(write(cfg, blog, topic, kind))
+        if kind == "compare":
+            sync_compare(art, topic)
         art["search_questions"] = [q.get("q", q) if isinstance(q, dict) else q for q in topic.get("search_questions", [])]
         if topic.get("low_demand"):
             art["low_demand"] = True
@@ -839,6 +1031,16 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
                 _log("review", f"{name} 편집장 2차 반려 — 그림은 그리지 않습니다: {'; '.join(art['editor_fix'])[:120]}", "error")
             else:
                 _log("review", f"{name} 편집장 통과", "done")
+        elif blog == "review":  # 제목이 '○○ 사기 전' 틀이면 한 번 다시 쓴다
+            fix = rule_check(art, "review")
+            if fix:
+                _log("review", f"{name} 제목 틀 반려 → 다시 쓰기: {fix[0][:80]}", "working")
+                art2 = tidy(write(cfg, blog, dict(topic, editor_fix=fix), kind))
+                if not rule_check(art2, "review"):
+                    art = art2
+                    if kind == "compare":
+                        sync_compare(art, topic)
+                _log("review", f"{name} 제목: {art.get('title', '')[:30]}", "done")
         if deep and not art.get("editor_fix"):
             _set_step(blog, "원고 쓰는 중 · 사실 확인")
             _log("review", f"{name} 사실 확인 중 (숫자·이름·날짜)", "working")
@@ -957,13 +1159,21 @@ def make_clip(cfg: dict, pid: str) -> str:
     pkg = load()["packages"][pid]
     blog, art = pkg["blog"], pkg["article"]
     name = cfg["blog"]["blogs"][blog]["name"]
+    photo = cfg["blog"]["blogs"][blog].get("clip_style", "") == "photo" and art.get("clip_scene")
     im0 = next((im for im in art.get("images", []) if im.get("no") == 0), None)
     src = (im0 or {}).get("raw_key") or (im0 or {}).get("r2_key")
-    if not src:
+    if not src and not photo:
         return "클립 건너뜀(썸네일 없음)"
-    _log("video", f"{name} 10초 클립 만드는 중", "working")
+    _log("video", f"{name} 10초 클립 만드는 중" + (" (실사)" if photo else ""), "working")
     try:
-        mp4 = clip.make(storage.get_bytes(src), art.get("clip_prompt", ""))
+        if photo:  # 블로그 그림(일러스트)과 별도로, 실사 첫 장면을 세로로 한 장 찍는다
+            from . import ai
+            still = ai.render(cfg, art["clip_scene"].strip() + " Photorealistic, shot on a smartphone, natural window light, "
+                              "vertical 9:16 frame. No people, no hands, no text, no logos.", [], "1024x1536")
+            storage.put_bytes(f"blog/{blog}/{pid}/clip_still.jpg", still, "image/jpeg" if still[:3] == b"\xff\xd8\xff" else "image/png")
+        else:
+            still = storage.get_bytes(src)
+        mp4 = clip.make(still, art.get("clip_prompt", ""), photo=bool(photo))
         key = f"blog/{blog}/{pid}/clip.mp4"
         storage.put_bytes(key, mp4, "video/mp4")
         with _lock:
@@ -976,7 +1186,7 @@ def make_clip(cfg: dict, pid: str) -> str:
     except Exception as e:
         with _lock:
             b = load()
-            b["packages"][pid]["article"]["clip_error"] = str(e)[:200]
+            b["packages"][pid]["article"]["clip_error"] = str(e)[:400]
             save(b)
         _log("video", f"{name} 클립 실패: {str(e)[:100]}", "error")
         return f"클립 실패: {str(e)[:80]}"
@@ -1261,6 +1471,10 @@ def plain_text(pkg: dict) -> str:
             lines += [f"□ {x}" for x in bl.get("items", [])] + [""]
         elif t == "poster":
             lines += [f"【포스터: {bl.get('text', '')}】", ""]
+        elif t == "table":  # 가격 비교표: 네이버 에디터에서 표로 바꾸기 쉽게 한 줄씩
+            lines += [" | ".join(map(str, bl.get("cols", [])))] + [" | ".join(map(str, r)) for r in bl.get("rows", [])] + [""]
+    if pkg.get("blog") == "review" and pkg.get("kind") == "compare":
+        lines += [f"※ 가격은 {pkg.get('date', '')[:10].replace('-', '.')} 각 브랜드 공식 판매가 기준이며, 할인·시즌에 따라 달라질 수 있습니다.", ""]
     if pkg.get("blog") == "cinepark" and pkg.get("kind") == "info":
         lines += ["※ 썸네일 이미지는 AI로 만든 그림입니다. 포스터의 저작권은 각 제작·배급사에 있습니다.", ""]
     elif pkg.get("blog") == "cinepark":

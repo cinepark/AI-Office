@@ -15,6 +15,10 @@ from .staff import KST, act
 
 # who: design(설계) | dev(개발) | security(보안)
 CHANGES = [
+    {"id": "2026-11-09-omni12", "who": "video", "text": "클립 모델 Gemini Omni 1.2 Flash 우선, 안 되면 1.1. 404면 결제 연결 안내"},
+    {"id": "2026-11-09-compare", "who": "dev", "text": "리뷰&리뷰 '가격 비교' 글 종류: 공식 판매가 검색 → 재확인 → 코드가 그리는 비교표 카드"},
+    {"id": "2026-11-09-clip-photo", "who": "video", "text": "리뷰&리뷰 10초 클립을 실사로: 사람 없는 세로 실사 장면을 따로 찍어 움직임"},
+    {"id": "2026-11-09-review-titles", "who": "dev", "text": "리뷰&리뷰 제목 꼴 8가지 돌려 쓰기, '○○ 사기 전/확인할 것' 틀은 반려 후 다시 쓰기"},
     {"id": "2026-11-06-jobs", "who": "dev", "text": "업무 지시서 도입: 버튼·SHIHO 지시를 서버가 받아 처리, 브라우저를 닫아도 계속"},
     {"id": "2026-11-06-cine-plan", "who": "design", "text": "CINEPARK 그림 6장 구성 개편: 시호 2장 + BTS 촬영장 + 사물 2장 + 자연 풍광"},
     {"id": "2026-11-06-bts", "who": "design", "text": "BTS 촬영장 시네마틱 3D, 촬영장 12종 무작위, 시호 카메오(민소매)"},

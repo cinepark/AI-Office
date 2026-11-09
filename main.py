@@ -438,6 +438,9 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         if blog_id == "cinepark":
             kind = "info" if st.radio("글 종류", ["기획기사", "정보글 (순위·목록·업데이트)"], horizontal=True,
                                       key="kind_cinepark").startswith("정보") else "feature"
+        else:
+            kind = "compare" if st.radio("글 종류", ["생활 리뷰", "가격 비교 (브랜드별 공식 판매가)"], horizontal=True,
+                                         key="kind_review").startswith("가격") else "feature"
         run = b.get("running", {}).get(blog_id)
         waiting = [j for j in jobs_cached() if j["type"] == "blog_make" and j["args"].get("blog") == blog_id
                    and j["status"] in ("pending", "running")]
@@ -506,7 +509,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.caption("올릴 패키지가 없습니다. 올린 글은 아래 '올린 글 기록'에 있습니다." if done else "아직 만든 패키지가 없습니다.")
     for i, p in enumerate(pkgs[:15]):
         a = p["article"]
-        kind_tag = " · 정보글" if p.get("kind") == "info" else ""
+        kind_tag = {"info": " · 정보글", "compare": " · 가격 비교"}.get(p.get("kind"), "")
         if a.get("editor_fix") or p.get("problems"):
             p_icon = ":material/error:"          # 편집장 반려·점검 문제
         elif any(im.get("pending") for im in a.get("images", [])):

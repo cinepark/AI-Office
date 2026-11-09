@@ -167,7 +167,8 @@ blog:
       name: 리뷰&리뷰
       schedule_mode: draft       # 예약 방식: draft = 밤새 깊이 쓴 원고까지, 그림은 대표님이 원고를 채택하고 '그림 그리기' / full = 그림까지 / topics = 글감 3개만
       coupang: false             # 쿠팡 파트너스 제휴 수익이 생기면 true (링크 자리·대가성 문구를 다시 넣음)
-      clip: true                 # 패키지마다 썸네일로 10초 세로 클립(GEMINI_API_KEY 있을 때만)
+      clip: true                 # 패키지마다 10초 세로 클립(GEMINI_API_KEY 있을 때만)
+      clip_style: photo          # photo = 사람 없는 실사 장면을 따로 찍어 움직임 / illust = 블로그 썸네일 그림을 움직임
       categories:                # 글감 분야: 블로그의 기존 카테고리(고양이·생활용품·패션) 안에서만. 네이버 가이드 '일관된 주제' 원칙
         - 고양이 용품·돌봄
         - 패션·의류 관리
