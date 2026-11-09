@@ -365,6 +365,10 @@ def _do_job(job: dict) -> str:
         return f"{a['slot']} 게시함"
     if t == "photo_check":
         return photo_check()
+    if t == "blog_schedule":
+        from . import blog
+        target = P.now_kst().date() + dt.timedelta(days=1)
+        return " / ".join(blog.scheduled(CFG, target, only=a.get("blog", ""), force=True)) or "만들 것 없음"
     if t == "blog_clip":
         from . import blog
         return blog.make_clip(CFG, a["pid"])

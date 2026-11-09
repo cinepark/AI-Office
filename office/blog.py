@@ -1238,18 +1238,22 @@ def prepare_topics(cfg: dict, blog: str, for_date: str) -> str:
     return f"{blog} 글감 {len(topics)}개"
 
 
-def scheduled(cfg: dict, target: dt.date) -> list[str]:
-    """예약: target 날짜가 예약 요일이고 아직 그날 예약 패키지가 없으면 만든다."""
+def scheduled(cfg: dict, target: dt.date, only: str = "", force: bool = False) -> list[str]:
+    """예약: target 날짜가 예약 요일이고 아직 그날 예약 패키지가 없으면 만든다.
+    force=True(데스크의 '내일 예약 원고 다시 만들기'): 지운 예약 패키지는 없는 것으로 보고 새로 만든다."""
     b = load()
     out = []
     for blog in cfg["blog"]["blogs"]:
+        if only and blog != only:
+            continue
         sc = schedule_of(b, cfg, blog)
-        if not sc.get("on") or target.weekday() not in sc.get("days", []):
+        if not force and (not sc.get("on") or target.weekday() not in sc.get("days", [])):
             continue
         if any(p["blog"] == blog and p.get("mode") == "예약" and p.get("date") == target.isoformat()
-               for p in b["packages"].values()):
+               and not (force and p.get("deleted")) for p in b["packages"].values()):
+            out.append(f"{blog}: {target:%m/%d} 예약 원고가 이미 있습니다")
             continue
-        if (b.get("topic_sets", {}).get(blog) or {}).get("date") == target.isoformat():
+        if not force and (b.get("topic_sets", {}).get(blog) or {}).get("date") == target.isoformat():
             continue
         try:
             kind = "info" if (blog == "cinepark" and target.weekday() in cfg["blog"]["blogs"][blog].get("info_days", [])) else "feature"

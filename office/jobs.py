@@ -19,7 +19,7 @@ from .staff import KST
 
 JOBS_KEY = "office/jobs.json"
 THREADS_TYPES = {"produce", "remake", "post_now", "rebuild", "photo_check"}
-BLOG_TYPES = {"blog_make", "blog_draw", "blog_clip"}
+BLOG_TYPES = {"blog_make", "blog_draw", "blog_clip", "blog_schedule"}
 LABEL = {"produce": "Threads 재고 채우기", "remake": "Threads 게시물 다시 만들기", "post_now": "Threads 지금 게시", "rebuild": "Threads 예약 전부 새로 만들기",
          "blog_make": "블로그 패키지 만들기", "blog_draw": "블로그 그림 그리기", "blog_clip": "리뷰 10초 클립 만들기"}
 

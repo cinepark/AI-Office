@@ -15,6 +15,7 @@ from .staff import KST, act
 
 # who: design(설계) | dev(개발) | security(보안)
 CHANGES = [
+    {"id": "2026-11-09-reschedule", "who": "dev", "text": "지운 예약 원고를 다시 만드는 '내일 예약 원고 지금 만들기' 버튼"},
     {"id": "2026-11-09-sideways", "who": "security", "text": "누운 여행 원본 사진은 그림으로 쓰지 않음 + 전체 방향 점검 버튼, 삭제 목록을 Threads 데스크에"},
     {"id": "2026-11-09-threads-pick", "who": "design", "text": "Threads 여행 사진: 후보 4장 중 명소보다 여행 속 일상 공간(역 출구·골목·동네 식당)을 고름"},
     {"id": "2026-11-09-omni12", "who": "video", "text": "클립 404 수정: google-genai 2.x 고정 + v1beta 주소. 모델은 Omni 1.2 Flash 우선"},

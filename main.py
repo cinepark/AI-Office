@@ -478,6 +478,14 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             blog.save(fresh)
             blog_state_cached.clear()
             st.success("예약을 저장했습니다.")
+        if st.button("내일 예약 원고 지금 만들기", key=f"rs_{blog_id}", icon=":material/history_edu:",
+                     help="내일 날짜의 예약 원고를 지웠거나 아직 없을 때. 원고까지만 만들고 그림은 '그림 그리기'로."):
+            if server_ready():
+                give_order("blog_schedule", {"blog": blog_id}, "research", f"{bc['name']} 내일 예약 원고")
+                st.toast("지시서를 보냈습니다. 깊이 쓰는 원고라 20~40분 걸립니다.")
+            else:
+                st.warning("서버 모드(GH_TOKEN)에서만 쓸 수 있습니다.")
+            blog_state_cached.clear()
 
     errs = [e for e in b.get("errors", []) if e.get("blog") == blog_id][-1:]
     if errs and not b.get("running", {}).get(blog_id):
@@ -624,7 +632,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 st.toast(f"'{a.get('title', '')}' 게시 완료로 옮겼습니다.")
                 st.rerun()
             dc1, dc2 = st.columns([3, 1])
-            sure = dc1.checkbox("이 패키지를 지웁니다 (예약 글이면 그날 다시 만들지 않습니다)", key=f"dc_{p['id']}")
+            sure = dc1.checkbox("이 패키지를 지웁니다 (예약 글이면 자동으로 다시 만들지 않습니다 · 위의 '내일 예약 원고 지금 만들기'로 새로 만들 수 있습니다)", key=f"dc_{p['id']}")
             if dc2.button("삭제", key=f"del_{p['id']}", disabled=not sure, icon=":material/delete:"):
                 b2 = blog.load()
                 if p["id"] in b2["packages"]:
