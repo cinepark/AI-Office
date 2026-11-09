@@ -15,7 +15,7 @@ from .staff import KST, act
 
 # who: design(설계) | dev(개발) | security(보안)
 CHANGES = [
-    {"id": "2026-11-09-omni12", "who": "video", "text": "클립 모델 Gemini Omni 1.2 Flash 우선, 안 되면 1.1. 404면 결제 연결 안내"},
+    {"id": "2026-11-09-omni12", "who": "video", "text": "클립 404 수정: google-genai 2.x 고정 + v1beta 주소. 모델은 Omni 1.2 Flash 우선"},
     {"id": "2026-11-09-compare", "who": "dev", "text": "리뷰&리뷰 '가격 비교' 글 종류: 공식 판매가 검색 → 재확인 → 코드가 그리는 비교표 카드"},
     {"id": "2026-11-09-clip-photo", "who": "video", "text": "리뷰&리뷰 10초 클립을 실사로: 사람 없는 세로 실사 장면을 따로 찍어 움직임"},
     {"id": "2026-11-09-review-titles", "who": "dev", "text": "리뷰&리뷰 제목 꼴 8가지 돌려 쓰기, '○○ 사기 전/확인할 것' 틀은 반려 후 다시 쓰기"},

@@ -24,7 +24,8 @@ def ready() -> bool:
 def make(image: bytes, motion: str = "", photo: bool = False) -> bytes:
     """그림 한 장 → 세로 10초 안팎 mp4 바이트."""
     from google import genai
-    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
+    client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip(),
+                          http_options={"api_version": "v1beta"})  # Omni 영상은 v1beta 주소에만 있다(v1 은 404)
     mime = "image/jpeg" if image[:3] == b"\xff\xd8\xff" else "image/png"
     prompt = (motion.strip() or DEFAULT_MOTION)
     if "[0-" not in prompt:
@@ -47,7 +48,6 @@ def make(image: bytes, motion: str = "", photo: bool = False) -> bytes:
             if "404" not in str(e) and "not found" not in str(e).lower():
                 raise
     else:
-        raise RuntimeError("Gemini 영상 모델을 이 API 키로 쓸 수 없습니다(404). Google AI Studio에서 이 키의 프로젝트에 "
-                           "결제(유료 등급)가 연결되어 있는지 확인해 주세요. Omni 영상 모델은 무료 등급에서 열리지 않습니다. "
-                           f"원래 메시지: {str(last)[:120]}")
+        raise RuntimeError("Gemini 영상 모델을 찾지 못했습니다(404). 서버의 google-genai 버전이 3.x 이면 생기는 문제입니다. "
+                           f"requirements.txt 를 올린 뒤 앱을 Reboot 해 주세요. 원래 메시지: {str(last)[:120]}")
     return base64.b64decode(it.output_video.data)
