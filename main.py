@@ -294,6 +294,16 @@ elif page == "Threads 데스크":
                     R.rebuild()
             load_state_cached.clear()
             st.rerun()
+        with st.expander(f"누운 원본 사진 ({len(state.get('sideways_photos', []))}장) · 여행 사진 방향 점검", icon=":material/screen_rotation:"):
+            st.caption("눕거나 거꾸로 된 원본은 그림으로 쓰지 않습니다. 아래 목록을 Google Drive에서 지우시면 됩니다(오피스는 Drive를 읽기만 합니다).")
+            if st.button("여행 원본 사진 전체 방향 점검", icon=":material/fact_check:", key="photo_check") and server_ready():
+                give_order("photo_check", {}, "review", "여행 원본 사진 방향 점검")
+                st.rerun()
+            side = state.get("sideways_photos", [])
+            if side:
+                st.code("\n".join(f"{x['city']} | {x['name']} | {x['id']}" for x in side), language=None)
+                for x in side:
+                    st.markdown(f"- {x['city']} · [{x['name']}](https://drive.google.com/file/d/{x['id']}/view)")
         cols = st.columns(3)
         for i, k in enumerate(keys):
             v = queue[k]

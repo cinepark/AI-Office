@@ -111,11 +111,31 @@ PICK_RULES = """당신은 Threads 사진 편집자입니다. 같은 도시의 �
 그래서 그 도시 사람들이 매일 지나는 곳을 먼저 고른다: 역 개찰구·출구, 지하철, 편의점, 동네 식당·시장, 골목, 버스 정류장, 빨래방, 주택가 계단.
 '나도 거기서 헤맸는데', '저기 가 봤어' 하고 말을 걸고 싶어지는 장면이면 더 좋다. 엽서·관광 안내에 나오는 정면 명소 사진은 뒤로 미룬다.
 일상 공간 사진이 없으면, 명소라도 사람이 오가는 생활의 순간이 담긴 사진을 고른다. 글자(신문·포스터)가 화면 대부분을 채운 사진은 고르지 않는다.
-JSON 만 출력: {"pick": 0, "why": "고른 이유 한 줄"}"""
+먼저 후보마다 바로 선 사진인지 본다(하늘·천장이 위, 사람·건물이 똑바로 서 있음). 옆으로 눕거나 거꾸로 된 사진은 sideways 에 번호를 넣고 고르지 않는다.
+JSON 만 출력: {"pick": 0, "why": "고른 이유 한 줄", "sideways": []}"""
+
+UPRIGHT_RULES = """사진 방향 점검 담당입니다. 사진마다 화면에 보이는 그대로 바로 선 사진인지 봅니다.
+바로 선 사진: 하늘·천장이 위, 땅·바닥이 아래, 사람·건물·글자가 똑바로 서 있다.
+옆으로 누운 사진(90도 돌아감)이나 거꾸로 된 사진(180도)은 sideways 에 번호(0부터)를 넣는다. 애매하면 넣지 않는다.
+JSON 만 출력: {"sideways": [번호, ...]}"""
 
 
-def pick_photo(cfg: dict, city: str, images: list[bytes]) -> tuple[int, str]:
-    """여행 사진 후보 가운데 Threads 미리보기에서 눈에 띌 한 장을 고른다. 실패하면 0번."""
+def check_upright(cfg: dict, images: list[bytes]) -> list[int]:
+    """사진 묶음(최대 8장) 가운데 눕거나 거꾸로 된 사진 번호."""
+    content = [{"type": "input_text", "text": f"사진 {len(images)}장, 0번부터 순서대로입니다."}]
+    for b in images:
+        b64 = base64.b64encode(_shrink(b, 384)).decode()
+        content.append({"type": "input_image", "image_url": f"data:image/png;base64,{b64}"})
+    r = _client().responses.create(model=cfg["openai"]["text_model"],
+                                   input=[{"role": "system", "content": UPRIGHT_RULES},
+                                          {"role": "user", "content": content}])
+    m = re.search(r"\{.*\}", r.output_text or "", re.S)
+    d = json.loads(m.group(0)) if m else {}
+    return sorted({int(x) for x in d.get("sideways", []) if 0 <= int(x) < len(images)})
+
+
+def pick_photo(cfg: dict, city: str, images: list[bytes]) -> tuple[int, str, list[int]]:
+    """여행 사진 후보 가운데 한 장을 고른다. 눕거나 거꾸로 된 후보 번호도 함께. 실패하면 0번."""
     content = [{"type": "input_text", "text": f"도시: {city}. 후보 {len(images)}장, 0번부터 순서대로입니다."}]
     for b in images:
         b64 = base64.b64encode(_shrink(b, 512)).decode()
@@ -126,7 +146,12 @@ def pick_photo(cfg: dict, city: str, images: list[bytes]) -> tuple[int, str]:
                                               {"role": "user", "content": content}])
         m = re.search(r"\{.*\}", r.output_text or "", re.S)
         d = json.loads(m.group(0)) if m else {}
+        side = sorted({int(x) for x in d.get("sideways", []) if 0 <= int(x) < len(images)})
         i = int(d.get("pick", 0))
-        return (i if 0 <= i < len(images) else 0), str(d.get("why", ""))
+        i = i if 0 <= i < len(images) else 0
+        if i in side:
+            ok = [j for j in range(len(images)) if j not in side]
+            i = ok[0] if ok else -1
+        return i, str(d.get("why", "")), side
     except Exception:
-        return 0, ""
+        return 0, "", []

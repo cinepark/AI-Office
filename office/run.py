@@ -139,11 +139,22 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
         else:
             photos = drive.travel_photos(CFG["google_drive"]["travel_root_folder"])
             used = set(st["used_photos"]) | {v.get("photo_id") for k, v in st["queue"].items() if k != key}
-            cands = P.pick_travel(photos, plan_history, used, k=4)
-            if not cands:
-                raise RuntimeError("안 쓴 여행 원본 사진이 없습니다. 01.원본 사진 폴더에 사진을 추가해 주세요.")
-            srcs = [drive.download(c["id"]) for c in cands]
-            i, why = (ai.pick_photo(CFG, cands[0]["city"], srcs) if len(cands) > 1 else (0, ""))
+            side_ids = {x["id"] for x in st.setdefault("sideways_photos", [])}
+            used |= side_ids  # 눕거나 거꾸로 된 원본은 쓰지 않는다(데스크에 삭제 목록으로 뜸)
+            for _try in range(3):
+                cands = P.pick_travel(photos, plan_history, used, k=4)
+                if not cands:
+                    raise RuntimeError("안 쓴 여행 원본 사진이 없습니다. 01.원본 사진 폴더에 사진을 추가해 주세요.")
+                srcs = [drive.download(c["id"]) for c in cands]
+                i, why, side = ai.pick_photo(CFG, cands[0]["city"], srcs)
+                for j in side:
+                    st["sideways_photos"].append({k_: cands[j][k_] for k_ in ("id", "name", "city")})
+                    used.add(cands[j]["id"])
+                    act(st, "review", f"누운 원본 사진 제외: {cands[j]['city']} {cands[j]['name']}", "error")
+                if i >= 0:
+                    break
+            if i < 0:
+                raise RuntimeError("바로 선 여행 사진을 찾지 못했습니다. 데스크의 '누운 원본 사진' 목록을 정리해 주세요.")
             photo, src = cands[i], srcs[i]
             label = f"{photo['year']} {photo['city']}".strip()
             act(st, "shiho", f"{key} 여행 배정: {label} ({photo['name']})"
@@ -299,6 +310,36 @@ def work(lane_name: str = "work") -> None:
     log(f"지시서 처리 {done}건 ({lane_name}).")
 
 
+def photo_check() -> str:
+    """여행 원본 사진 전체를 8장씩 보고, 눕거나 거꾸로 된 사진을 '누운 원본 사진' 목록에 올린다(Drive 는 읽기만)."""
+    from . import ai, drive, storage
+    photos = drive.travel_photos(CFG["google_drive"]["travel_root_folder"])
+    st = _state()
+    done = set(st.get("photo_checked", [])) | {x["id"] for x in st.get("sideways_photos", [])}
+    todo = [p for p in photos if p["id"] not in done]
+    act(st, "review", f"여행 원본 사진 방향 점검 시작: {len(todo)}장", "working")
+    storage.save_state(st)
+    found = []
+    for n in range(0, len(todo), 8):
+        batch = todo[n:n + 8]
+        try:
+            imgs = [drive.download(p["id"]) for p in batch]
+            side = ai.check_upright(CFG, imgs)
+        except Exception as e:
+            act(st, "dev", f"방향 점검 일부 실패: {str(e)[:80]}", "error")
+            continue
+        st = _state()
+        for j in side:
+            st.setdefault("sideways_photos", []).append({k_: batch[j][k_] for k_ in ("id", "name", "city")})
+            found.append(batch[j]["name"])
+        st.setdefault("photo_checked", []).extend(p["id"] for j, p in enumerate(batch) if j not in side)
+        storage.save_state(st)
+    st = _state()
+    act(st, "review", f"방향 점검 끝: 누운 사진 {len(found)}장 → Threads 데스크 '누운 원본 사진' 목록", "done")
+    storage.save_state(st)
+    return f"누운 사진 {len(found)}장"
+
+
 def _do_job(job: dict) -> str:
     from . import storage
     t, a = job["type"], job.get("args") or {}
@@ -322,6 +363,8 @@ def _do_job(job: dict) -> str:
         st = _state()
         publish_item(st, a["slot"])
         return f"{a['slot']} 게시함"
+    if t == "photo_check":
+        return photo_check()
     if t == "blog_clip":
         from . import blog
         return blog.make_clip(CFG, a["pid"])
