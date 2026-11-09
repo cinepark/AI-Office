@@ -104,3 +104,29 @@ def captions(cfg: dict, subject: str, image_png: bytes | None = None, recent: li
         return [str(x) for x in json.loads(m.group(0))["options"]][:3] if m else []
     except (json.JSONDecodeError, KeyError, TypeError):
         return [line.strip("-• ").strip() for line in text.splitlines() if line.strip()][:3]
+
+
+PICK_RULES = """당신은 Threads 사진 편집자입니다. 같은 도시의 여행 원본 사진 후보 가운데, 펜 수채화로 바꿔 Threads 에 올릴 한 장을 고릅니다.
+가설(Mr. MOON): 사람들은 누구나 찍는 명소보다 여행 속 일상적인 공간에 더 관심을 갖는다.
+그래서 그 도시 사람들이 매일 지나는 곳을 먼저 고른다: 역 개찰구·출구, 지하철, 편의점, 동네 식당·시장, 골목, 버스 정류장, 빨래방, 주택가 계단.
+'나도 거기서 헤맸는데', '저기 가 봤어' 하고 말을 걸고 싶어지는 장면이면 더 좋다. 엽서·관광 안내에 나오는 정면 명소 사진은 뒤로 미룬다.
+일상 공간 사진이 없으면, 명소라도 사람이 오가는 생활의 순간이 담긴 사진을 고른다. 글자(신문·포스터)가 화면 대부분을 채운 사진은 고르지 않는다.
+JSON 만 출력: {"pick": 0, "why": "고른 이유 한 줄"}"""
+
+
+def pick_photo(cfg: dict, city: str, images: list[bytes]) -> tuple[int, str]:
+    """여행 사진 후보 가운데 Threads 미리보기에서 눈에 띌 한 장을 고른다. 실패하면 0번."""
+    content = [{"type": "input_text", "text": f"도시: {city}. 후보 {len(images)}장, 0번부터 순서대로입니다."}]
+    for b in images:
+        b64 = base64.b64encode(_shrink(b, 512)).decode()
+        content.append({"type": "input_image", "image_url": f"data:image/png;base64,{b64}"})
+    try:
+        r = _client().responses.create(model=cfg["openai"]["text_model"],
+                                       input=[{"role": "system", "content": PICK_RULES},
+                                              {"role": "user", "content": content}])
+        m = re.search(r"\{.*\}", r.output_text or "", re.S)
+        d = json.loads(m.group(0)) if m else {}
+        i = int(d.get("pick", 0))
+        return (i if 0 <= i < len(images) else 0), str(d.get("why", ""))
+    except Exception:
+        return 0, ""

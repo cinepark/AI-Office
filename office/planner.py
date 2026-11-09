@@ -95,8 +95,8 @@ def cat_prompt(cfg: dict, breed: dict, scene: dict, rng: random.Random | None = 
 
 
 def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],
-                rng: random.Random | None = None) -> dict | None:
-    """photos: [{id, name, city, year}] — 원본 사진 목록."""
+                rng: random.Random | None = None, k: int = 1) -> dict | list[dict] | None:
+    """photos: [{id, name, city, year}] — 원본 사진 목록. k>1 이면 같은 도시의 후보 k장을 돌려준다."""
     rng = rng or random.Random()
     fresh = [p for p in photos if p["id"] not in used_ids]
     if not fresh:
@@ -108,7 +108,10 @@ def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],
     # 도시를 먼저 고르고 그 안에서 사진을 고른다 → 사진이 많은 도시만 계속 나오는 것을 막음
     cities = sorted({p["city"] for p in pool})
     city = rng.choice(cities)
-    return rng.choice([p for p in pool if p["city"] == city])
+    same = [p for p in pool if p["city"] == city]
+    if k <= 1:
+        return rng.choice(same)
+    return rng.sample(same, min(k, len(same)))
 
 
 def parse_city_folder(name: str) -> tuple[str, str]:

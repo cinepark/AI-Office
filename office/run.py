@@ -139,13 +139,16 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
         else:
             photos = drive.travel_photos(CFG["google_drive"]["travel_root_folder"])
             used = set(st["used_photos"]) | {v.get("photo_id") for k, v in st["queue"].items() if k != key}
-            photo = P.pick_travel(photos, plan_history, used)
-            if not photo:
+            cands = P.pick_travel(photos, plan_history, used, k=4)
+            if not cands:
                 raise RuntimeError("안 쓴 여행 원본 사진이 없습니다. 01.원본 사진 폴더에 사진을 추가해 주세요.")
+            srcs = [drive.download(c["id"]) for c in cands]
+            i, why = (ai.pick_photo(CFG, cands[0]["city"], srcs) if len(cands) > 1 else (0, ""))
+            photo, src = cands[i], srcs[i]
             label = f"{photo['year']} {photo['city']}".strip()
-            act(st, "shiho", f"{key} 여행 배정: {label} ({photo['name']})", "done")
+            act(st, "shiho", f"{key} 여행 배정: {label} ({photo['name']})"
+                + (f" — 후보 {len(cands)}장 중 선택: {why[:60]}" if len(cands) > 1 else ""), "done")
             act(st, "image", f"{label} 사진을 펜 수채화로 바꾸는 중", "working")
-            src = drive.download(photo["id"])
             refs = [drive.download(fid) for fid in CFG["google_drive"]["travel_reference_files"]]
             png = ai.draw(CFG, CFG["travel_style"], [src] + refs)
             subject = _travel_subject(photo["city"])
