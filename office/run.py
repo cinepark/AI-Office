@@ -59,7 +59,8 @@ def eff_cfg(st: dict) -> dict:
 
 
 def _travel_subject(city: str) -> str:
-    return f"여행 그림. {city} 사진을 펜 수채화로 다시 그린 것. 그림 속 장소를 보고 멘트를 쓰세요. 연도나 햇수는 쓰지 마세요."
+    many = " 이 가운데 한 도시에서 찍은 사진입니다. 그림 속 건물·거리로 어느 도시인지 알아보고, 모르면 도시 이름 없이 동네 분위기로 쓰세요." if "·" in city else ""
+    return f"여행 그림. {city} 사진을 펜 수채화로 다시 그린 것.{many} 그림 속 장소를 보고 멘트를 쓰세요. 연도나 햇수는 쓰지 마세요."
 
 
 def recent_captions(st: dict, kind: str, exclude: str = "", n: int = 30) -> list[str]:

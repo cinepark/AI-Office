@@ -11,7 +11,7 @@ import os
 
 from .planner import parse_city_folder
 
-IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp")
+IMAGE_TYPES = ("image/jpeg", "image/png", "image/webp", "image/heic", "image/heif")  # 아이폰 HEIC 도 받음
 
 
 def _service():
@@ -42,9 +42,16 @@ def travel_photos(root_folder: str) -> list[dict]:
     photos = []
     for f in folders:
         city, year = parse_city_folder(f["name"])
-        for p in _list(svc, f"'{f['id']}' in parents and trashed=false"):
-            if p.get("mimeType") in IMAGE_TYPES:
-                photos.append({"id": p["id"], "name": p["name"], "city": city, "year": year})
+        todo, depth = [f["id"]], 0
+        while todo and depth < 4:  # 도시 폴더 안의 날짜별 하위 폴더(예: LONDON/2006_0701)까지 본다
+            nxt = []
+            for fid in todo:
+                for p in _list(svc, f"'{fid}' in parents and trashed=false"):
+                    if p.get("mimeType") == "application/vnd.google-apps.folder":
+                        nxt.append(p["id"])
+                    elif p.get("mimeType") in IMAGE_TYPES:
+                        photos.append({"id": p["id"], "name": p["name"], "city": city, "year": year})
+            todo, depth = nxt, depth + 1
     return photos
 
 
@@ -57,4 +64,17 @@ def download(file_id: str) -> bytes:
     done = False
     while not done:
         _, done = dl.next_chunk()
-    return buf.getvalue()
+    return to_jpeg_if_heic(buf.getvalue())
+
+
+def to_jpeg_if_heic(data: bytes) -> bytes:
+    """아이폰 HEIC 사진은 JPEG 로 바꿔 돌려준다(그림·방향 판정이 모두 JPEG 로 동작). 그 밖의 형식은 그대로."""
+    if data[4:12] not in (b"ftypheic", b"ftypheix", b"ftypmif1", b"ftypmsf1", b"ftyphevc", b"ftypheim", b"ftypheis"):
+        return data
+    import pillow_heif
+    from PIL import Image, ImageOps
+    pillow_heif.register_heif_opener()
+    im = ImageOps.exif_transpose(Image.open(io.BytesIO(data))).convert("RGB")
+    out = io.BytesIO()
+    im.save(out, "JPEG", quality=92)
+    return out.getvalue()

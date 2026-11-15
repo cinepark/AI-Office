@@ -118,11 +118,17 @@ def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],
 
 
 def parse_city_folder(name: str) -> tuple[str, str]:
-    """'2006 Barcelona' → ('Barcelona', '2006'), 'LONDON' → ('LONDON', '')"""
+    """'2006 Barcelona' → ('Barcelona', '2006'), 'LONDON' → ('LONDON', ''),
+    여러 도시를 묶은 폴더: 'Osaka_Kyoto' → ('Osaka · Kyoto', ''), '2016 PragueDresdenVienBudapest' → ('Prague · Dresden · Vien · Budapest', '2016')"""
+    name = re.sub(r"\s*[(\[][^)\]]*[)\]]\s*", " ", name).strip()  # 'Italy (미분류)' → 'Italy': 괄호 안 메모는 무시
     m = re.match(r"^\s*(\d{4})\s+(.+)$", name)
-    if m:
-        return m.group(2).strip(), m.group(1)
-    return name.strip(), ""
+    city, year = (m.group(2).strip(), m.group(1)) if m else (name.strip(), "")
+    parts = [p for p in re.split(r"[_,/&+]+|\s{2,}", city) if p.strip()]
+    out = []
+    for p in parts:  # 붙여 쓴 대문자 이름(PragueDresden)을 나눈다. 전부 대문자(LONDON)는 그대로
+        out += re.findall(r"[A-Z][a-z]+|[a-z]+|[A-Z]+(?![a-z])|[^A-Za-z]+", p.strip()) if not p.isupper() else [p.strip()]
+    out = [o.strip() for o in out if o.strip()]
+    return (" · ".join(out) if len(out) > 1 else city), year
 
 
 _YEAR = re.compile(r"(?:19|20)\d{2}|\d+\s*년|몇\s*년")  # 연도·햇수 표기 금지

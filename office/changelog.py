@@ -15,6 +15,8 @@ from .staff import KST, act
 
 # who: design(설계) | dev(개발) | security(보안)
 CHANGES = [
+    {"id": "2026-11-15-unsorted", "who": "dev", "text": "원본 폴더 이름의 괄호 메모 무시: 'Italy (미분류)'는 Italy 로 읽음"},
+    {"id": "2026-11-15-photo-rules", "who": "dev", "text": "여행 원본: 하위 폴더 사진·아이폰 HEIC 사용, 여러 도시 폴더(Osaka_Kyoto 등) 이름 풀어 읽기"},
     {"id": "2026-11-15-breeds", "who": "design", "text": "고양이 품종: 페르시안 빼고 브리티시 숏헤어·재패니즈 밥테일 추가"},
     {"id": "2026-11-15-five-slots", "who": "dev", "text": "Threads 하루 5편(21:30 여행 추가), 재고 채우기 22:30, 여행 도시는 한 바퀴씩 차례로"},
     {"id": "2026-11-15-thumb-photo", "who": "design", "text": "리뷰&리뷰 썸네일: 본문과 같은 그림 + 반투명 막 + 가운데 제목. 10초 클립 기능은 삭제"},
