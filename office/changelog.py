@@ -15,6 +15,8 @@ from .staff import KST, act
 
 # who: design(설계) | dev(개발) | security(보안)
 CHANGES = [
+    {"id": "2026-11-15-breeds", "who": "design", "text": "고양이 품종: 페르시안 빼고 브리티시 숏헤어·재패니즈 밥테일 추가"},
+    {"id": "2026-11-15-five-slots", "who": "dev", "text": "Threads 하루 5편(21:30 여행 추가), 재고 채우기 22:30, 여행 도시는 한 바퀴씩 차례로"},
     {"id": "2026-11-15-thumb-photo", "who": "design", "text": "리뷰&리뷰 썸네일: 본문과 같은 그림 + 반투명 막 + 가운데 제목. 10초 클립 기능은 삭제"},
     {"id": "2026-11-13-review-thumb", "who": "design", "text": "리뷰&리뷰 썸네일을 예전 모양으로: 살짝 어둡게 + 가운데 큰 제목 두 줄 + 작은 한 줄"},
     {"id": "2026-11-09-reschedule", "who": "dev", "text": "지운 예약 원고를 다시 만드는 '내일 예약 원고 지금 만들기' 버튼"},

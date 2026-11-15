@@ -14,7 +14,7 @@ KST = P.KST
 class TestPlanner(unittest.TestCase):
     def test_slots(self):
         keys = P.upcoming_slot_keys(CFG, dt.date(2026, 11, 5), 3)
-        self.assertEqual(len(keys), 12)
+        self.assertEqual(len(keys), 15)
         self.assertEqual(keys[0][0], "2026-11-05_0930")
         self.assertEqual([s["kind"] for _, s in keys[:4]], ["travel", "cat", "travel", "cat"])
 
@@ -27,7 +27,7 @@ class TestPlanner(unittest.TestCase):
         key, slot, wait = P.current_slot(CFG, late)
         self.assertEqual(key, "2026-11-05_1230")
         self.assertLess(wait, 0)
-        self.assertIsNone(P.current_slot(CFG, dt.datetime(2026, 11, 5, 23, 0, tzinfo=KST)))
+        self.assertIsNone(P.current_slot(CFG, dt.datetime(2026, 11, 5, 23, 45, tzinfo=KST)))
 
     def test_cat_no_repeat_breed_and_pair(self):
         rng = random.Random(1)

@@ -1,7 +1,7 @@
 """SHIHO(총괄): GitHub Actions 가 부르는 입구.
 
-python -m office.run produce   # 21시: 앞으로 3일치 재고 채우기
-python -m office.run post      # 09:30/12:30/16:30/19:30: 지금 슬롯 게시
+python -m office.run produce   # 22:30: 앞으로 3일치 재고 채우기
+python -m office.run post      # 09:30/12:30/16:30/19:30/21:30: 지금 슬롯 게시
 python -m office.run refresh   # 매주: Threads 토큰 갱신
 python -m office.run selftest  # 연결 점검 (키·드라이브·R2·Threads·모델 목록)
 python -m office.run skip 2026-11-05_1230   # 특정 게시물 빼고 다시 만들기

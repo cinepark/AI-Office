@@ -102,12 +102,15 @@ def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],
     if not fresh:
         return None
     travels = [h for h in history if h.get("kind") == "travel"]
-    last_city = (travels[-1].get("city") or "").lower() if travels else ""
-    other = [p for p in fresh if p["city"].lower() != last_city]
-    pool = other or fresh
-    # 도시를 먼저 고르고 그 안에서 사진을 고른다 → 사진이 많은 도시만 계속 나오는 것을 막음
-    cities = sorted({p["city"] for p in pool})
-    city = rng.choice(cities)
+    # 도시 한 바퀴 돌기: 가장 오래전에 나온 도시(한 번도 안 나온 도시가 맨 먼저)부터 차례로
+    last_seen = {}
+    for i, h in enumerate(travels):
+        last_seen[(h.get("city") or "").lower()] = i
+    cities = sorted({p["city"] for p in fresh})
+    oldest = min(last_seen.get(c.lower(), -1) for c in cities)
+    turn = [c for c in cities if last_seen.get(c.lower(), -1) == oldest]
+    city = rng.choice(turn)
+    pool = fresh
     same = [p for p in pool if p["city"] == city]
     if k <= 1:
         return rng.choice(same)

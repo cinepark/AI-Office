@@ -96,7 +96,7 @@ def office_sync(blog_id: str, title: str, what: str) -> None:
         left = sum(1 for p in b.get("packages", {}).values()
                    if p["blog"] == blog_id and not p.get("deleted") and not p.get("posted"))
         room = "cinepark" if blog_id == "cinepark" else "channel"
-        act(s, room, f"{name} 올릴 패키지 {left}건" if left else f"{name} 올릴 패키지 없음 · 다음 예약 21:00",
+        act(s, room, f"{name} 올릴 패키지 {left}건" if left else f"{name} 올릴 패키지 없음 · 다음 예약 22:30",
             "done" if left else "idle")
         save(s)
     except Exception as e:
@@ -275,7 +275,7 @@ elif page == "Threads 데스크":
     with t1:
         keys = sorted(k for k, v in queue.items() if v.get("status") == "ready")
         if not keys:
-            st.info("게시 예정 재고가 없습니다. 아래 버튼이나 매일 21시 자동 생성으로 채워집니다.")
+            st.info("게시 예정 재고가 없습니다. 아래 버튼이나 매일 22:30 자동 생성으로 채워집니다.")
         if st.button("지금 3일치 재고 채우기 (SHIHO에게 지시)", type="primary", icon=":material/inventory_2:"):
             if server_ready():
                 give_order("produce", {}, "image", "Threads 재고 채우기")
@@ -468,7 +468,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             blog_state_cached.clear()
             st.rerun()
     with c2:
-        st.markdown(":material/event: **예약** · 전날 21:00에 미리 만들어 둡니다")
+        st.markdown(":material/event: **예약** · 전날 22:30에 미리 만들어 둡니다")
         sc = blog.schedule_of(b, R.CFG, blog_id)
         on = st.toggle("예약 켜기", value=sc.get("on", True), key=f"on_{blog_id}")
         days = st.multiselect("요일", DAYS, default=[DAYS[d] for d in sc.get("days", [])], key=f"d_{blog_id}")
