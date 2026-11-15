@@ -369,9 +369,6 @@ def _do_job(job: dict) -> str:
         from . import blog
         target = P.now_kst().date() + dt.timedelta(days=1)
         return " / ".join(blog.scheduled(CFG, target, only=a.get("blog", ""), force=True)) or "만들 것 없음"
-    if t == "blog_clip":
-        from . import blog
-        return blog.make_clip(CFG, a["pid"])
     if t == "blog_draw":
         from . import blog
         return blog.draw_later(CFG, a["pid"])

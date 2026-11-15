@@ -246,11 +246,10 @@ REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니�
 - 쿠팡 링크 자리와 쿠팡 파트너스 대가성 문구는 넣지 않는다(지금은 제휴 수익이 없다).
 - 그림 {n}장. 0번은 썸네일, 1~{last}번은 본문. 그림마다 label(그림 위에 얹을 글자, 띄어쓰기 포함 12자 이내, 예: '외풍 없는 위치')을 정한다.
   filename: 검색 핵심어 3~5개를 하이픈으로 이은 한국어 파일 이름(예: 고양이-겨울-잠자리-외풍-위치). caption: 그림을 설명하는 검색어 중심 한 줄(예: 외풍이 들지 않는 벽 쪽 방석에서 자는 고양이).
-  0번 label 은 글 주제(예: '고양이 겨울 잠자리'). 본문 그림 label 은 바로 뒤 소제목의 핵심어.
-- clip_scene: 10초 실사 세로 영상의 첫 장면이 될 사진 한 장을 영어 한 단락으로 단정적으로 묘사한다. 사람·손·얼굴은 나오지 않는다.
-  한국 아파트 안의 실제 생활 장면, 휴대폰으로 찍은 듯한 자연광 실사, 세로 9:16. 글의 핵심 물건이 화면 가운데에 크게 놓이고, 고양이 주제면 실제 고양이 한 마리가 그 물건과 함께 있다.
-  위아래 1/5 은 글자를 얹을 수 있게 벽·바닥처럼 단순하게 비운다. 글자·로고·상표·숫자 금지.
-- clip_prompt: clip_scene 사진을 10초 영상으로 움직일 영어 지시문 한 단락. 동작은 하나만, 단정적으로(예: '[0-10s] The cat stretches its front paws forward once, then settles back into the cushion. A light curtain moves in the window breeze.'). 카메라 고정, 글자 없음, 방 안의 잔잔한 소리.
+  0번(썸네일)은 label 대신 thumb_title·thumb_sub 를 쓴다: 그림 전체를 살짝 어둡게 하고 가운데에 큰 제목 두 줄 + 작은 한 줄을 얹는다.
+  thumb_title: 두 줄(줄바꿈 \n, 줄마다 12자 안팎). 첫 줄은 물건·주제, 둘째 줄은 이 글의 답이나 질문(예: '붙이는 핫팩\n옷 위에서도 방심 금물', '난방텐트 고르는 법\n무엇부터 확인할까?').
+  thumb_sub: 본문 핵심 세 가지를 ' · '로 이은 한 줄(예: '사용설명 · 저온화상 · 잠자리 주의'). '사기 전', '먼저 확인할 것' 틀은 썸네일에도 쓰지 않는다.
+  0번 그림은 물건이 화면 가운데에 크게 놓인 장면(가운데 글자가 얹혀도 물건 윤곽이 보이게). 본문 그림 label 은 바로 뒤 소제목의 핵심어.
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 고양이 주제면 고양이가 그 장면 속에서 한 동작을 하고,
   생활용품 주제면 그 물건이 놓인 집 안 장면. 화면 위쪽 1/4 은 글자를 얹을 수 있게 벽·하늘처럼 단순하게 비운다. 그림 속 글자·로고·숫자 금지.
 - AI 브리핑이 인용하기 좋게 쓴다(이 블로그의 인용수가 빠르게 늘고 있다): 소제목 가운데 두세 개는 사람들이 실제로 묻는 질문형으로 쓰고, 그 아래 첫 문장에서 답을 한 문장으로 먼저 말한 뒤 이유·방법을 잇는다. 숫자·기준(높이 cm, 개수, 기간)을 구체적으로.
@@ -260,10 +259,9 @@ REVIEW_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니�
 - 태그 6개 안팎, 해시태그 없이 단어만.
 
 JSON 만 출력:
-{{"title": "...", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "h", "text": "소제목"}},
+{{"title": "...", "thumb_title": "첫 줄\n둘째 줄", "thumb_sub": "핵심 · 핵심 · 핵심", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "h", "text": "소제목"}},
  {{"type": "p", "text": "..."}}, {{"type": "source", "text": "출처: 기관 안내 이름 (주소)"}}, {{"type": "h", "text": "오늘 밤 확인할 세 가지"}},
  {{"type": "check", "items": ["...", "...", "..."]}}, {{"type": "p", "text": "마무리"}}],
- "clip_scene": "...", "clip_prompt": "...",
  "images": [{{"no": 0, "role": "썸네일", "label": "...", "filename": "...", "prompt": "...", "caption": "..."}}],
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["...", "..."]}}"""
 
@@ -368,17 +366,15 @@ COMPARE_WRITE = """당신은 네이버 블로그 '리뷰&리뷰'의 작가입니
 - 쿠팡 링크·대가성 문구는 넣지 않는다.
 - 제목: 물건 이름 + 숫자가 들어간 꼴(예: 숏패딩 20종 가격, 6만 원대부터 375만 원까지). '사기 전', '확인할 것' 틀 금지.
 그림 {n}장
-- 0번 썸네일, 1번은 비교표 카드: {{"no": 1, "kind": "compare", "label": "", "filename": "...-가격-비교표", "caption": "...", "prompt": ""}} (코드가 그린다, prompt 비움).
+- 0번 썸네일은 thumb_title(두 줄, 예: '숏패딩 20종 가격\\n6만 원부터 375만 원까지')·thumb_sub(예: '충전재 · 필파워 · 무게')를 쓴다. 1번은 비교표 카드: {{"no": 1, "kind": "compare", "label": "", "filename": "...-가격-비교표", "caption": "...", "prompt": ""}} (코드가 그린다, prompt 비움).
 - 나머지는 그림. 브랜드 로고·상표·글자가 보이지 않는 물건 장면(예: 로고 없는 검은 숏패딩이 걸린 옷걸이, 충전재 솜털 클로즈업, 무게를 재는 저울 위의 패딩).
   그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사. 화면 위쪽 1/4 은 비운다. 그림마다 label(12자 이내)·filename·caption.
-- clip_scene / clip_prompt: 리뷰 글과 같은 규칙(사람·손 없음, 로고 없음, 세로 실사 장면 한 장과 그 장면의 한 동작).
 - 태그 6개 안팎.
 JSON 만 출력:
-{{"title": "...", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "table", "cols": [...], "rows": [[...]]}},
+{{"title": "...", "thumb_title": "첫 줄\\n둘째 줄", "thumb_sub": "핵심 · 핵심 · 핵심", "blocks": [{{"type": "image", "no": 0}}, {{"type": "p", "text": "도입"}}, {{"type": "image", "no": 1}}, {{"type": "table", "cols": [...], "rows": [[...]]}},
  {{"type": "h", "text": "소제목"}}, {{"type": "p", "text": "..."}}, {{"type": "source", "text": "출처: ..."}}, {{"type": "h", "text": "오늘 확인할 세 가지"}},
  {{"type": "check", "items": ["...", "...", "..."]}}, {{"type": "p", "text": "마무리"}}],
  "compare": {{"headline": "숏패딩 정상가 비교", "cols": ["브랜드", "정상가", ...spec_cols], "rows": [["브랜드", "459,000원", "..."]], "note": "YYYY.MM.DD 공식 판매가 기준"}},
- "clip_scene": "...", "clip_prompt": "...",
  "images": [{{"no": 0, "role": "썸네일", "label": "...", "filename": "...", "prompt": "...", "caption": "..."}}],
  "sources": [{{"title": "...", "url": "..."}}], "tags": ["..."]}}"""
 
@@ -708,6 +704,8 @@ def _render_safe(cfg: dict, bc: dict, blog: str, im: dict, kind: str, refs: list
     from . import ai
     if kind == "crew":
         st_, use_refs = bc.get("crew_style", "").strip(), refs
+    elif im.get("no") == 0 and bc.get("thumb_style"):  # 리뷰&리뷰 썸네일: 화풍 그림이 아니라 실사 사진
+        st_, use_refs = bc["thumb_style"].strip(), []
     elif kind == "shiho" or bc.get("labels"):
         st_, use_refs = style, refs
     else:  # 사람 없는 장소·사물: 캐릭터 기준 그림을 넣지 않아야 인물이 끼어들지 않는다
@@ -746,10 +744,10 @@ def draw_images(cfg: dict, blog: str, pid: str, art: dict, b: dict) -> None:
             if kind == "card" or not im.get("prompt", "").strip():  # 정보 카드는 대표님이 에디터로 직접 만든다
                 continue
             png = _render_safe(cfg, bc, blog, im, kind, refs, style)
-            if bc.get("clip") and im["no"] == 0:  # 클립용: 글자를 얹기 전 원본을 따로 보관
-                storage.put_bytes(f"blog/{blog}/{pid}/00_raw.jpg", png, "image/jpeg")
-                im["raw_key"] = f"blog/{blog}/{pid}/00_raw.jpg"
-            if bc.get("labels") and im.get("label"):
+            if blog != "cinepark" and im["no"] == 0 and (art.get("thumb_title") or im.get("label")):
+                # 리뷰&리뷰 썸네일: 사진 위에 반투명 막 + 가운데 큰 제목(썸네일 문구가 없는 예전 원고는 label 을 가운데로)
+                png = review_thumb(png, art.get("thumb_title") or im.get("label", ""), art.get("thumb_sub", ""))
+            elif bc.get("labels") and im.get("label"):
                 png = label(png, im["label"])
             elif blog == "cinepark":
                 png = (cine_thumb(png, art["thumb_title"], art.get("thumb_highlight", ""))
@@ -826,6 +824,8 @@ def rule_check(art: dict, kind: str = "feature") -> list[str]:
     """코드로 바로 잡아낼 수 있는 것: 제목의 주제어, 반말체로 끝나는 본문 문장, 리뷰 제목의 낡은 틀."""
     fix = []
     t = art.get("title", "")
+    if kind == "review" and REVIEW_STALE.search(art.get("thumb_title", "")):
+        return [f"썸네일 문구 '{art['thumb_title']}'이 '사기 전/확인할 것' 틀임 → 다른 꼴로 바꿀 것"]
     if kind == "review" and REVIEW_STALE.search(t):
         return [f"제목 '{t}'이 '○○ 사기 전/확인할 것' 틀임 → 숫자 답형·오해 바로잡기형·실제 질문형처럼 다른 꼴로 바꿀 것"]
     if TITLE_BAN.search(t):
@@ -1082,11 +1082,6 @@ def make_package(cfg: dict, blog: str, hint: str = "", topic: dict | None = None
             b2["packages"][pid] = pkg
             b2["running"].pop(blog, None)
             save(b2)
-        if draw and cfg["blog"]["blogs"][blog].get("clip"):
-            try:
-                make_clip(cfg, pid)
-            except Exception:
-                pass
         _log("shiho", f"{name} {'원고' if not draw else '패키지'} 준비 완료 → {name} 데스크", "done")
         DEEP["on"] = False
         return pid
@@ -1151,47 +1146,6 @@ def _safe(*args) -> None:
             pass
 
 
-def make_clip(cfg: dict, pid: str) -> str:
-    """패키지 썸네일로 10초 클립을 만든다. 키가 없으면 건너뛴다."""
-    from . import clip, storage
-    if not clip.ready():
-        return "클립 건너뜀(GEMINI_API_KEY 없음)"
-    pkg = load()["packages"][pid]
-    blog, art = pkg["blog"], pkg["article"]
-    name = cfg["blog"]["blogs"][blog]["name"]
-    photo = cfg["blog"]["blogs"][blog].get("clip_style", "") == "photo" and art.get("clip_scene")
-    im0 = next((im for im in art.get("images", []) if im.get("no") == 0), None)
-    src = (im0 or {}).get("raw_key") or (im0 or {}).get("r2_key")
-    if not src and not photo:
-        return "클립 건너뜀(썸네일 없음)"
-    _log("video", f"{name} 10초 클립 만드는 중" + (" (실사)" if photo else ""), "working")
-    try:
-        if photo:  # 블로그 그림(일러스트)과 별도로, 실사 첫 장면을 세로로 한 장 찍는다
-            from . import ai
-            still = ai.render(cfg, art["clip_scene"].strip() + " Photorealistic, shot on a smartphone, natural window light, "
-                              "vertical 9:16 frame. No people, no hands, no text, no logos.", [], "1024x1536")
-            storage.put_bytes(f"blog/{blog}/{pid}/clip_still.jpg", still, "image/jpeg" if still[:3] == b"\xff\xd8\xff" else "image/png")
-        else:
-            still = storage.get_bytes(src)
-        mp4 = clip.make(still, art.get("clip_prompt", ""), photo=bool(photo))
-        key = f"blog/{blog}/{pid}/clip.mp4"
-        storage.put_bytes(key, mp4, "video/mp4")
-        with _lock:
-            b = load()
-            b["packages"][pid]["article"]["clip_key"] = key
-            b["packages"][pid]["article"].pop("clip_error", None)
-            save(b)
-        _log("video", f"{name} 10초 클립 완성", "done")
-        return "클립 완성"
-    except Exception as e:
-        with _lock:
-            b = load()
-            b["packages"][pid]["article"]["clip_error"] = str(e)[:400]
-            save(b)
-        _log("video", f"{name} 클립 실패: {str(e)[:100]}", "error")
-        return f"클립 실패: {str(e)[:80]}"
-
-
 def draw_later(cfg: dict, pid: str) -> str:
     """대표님이 원고를 읽고 '그림 그리기'를 누르면, 그 패키지의 그림만 그린다."""
     b = load()
@@ -1208,11 +1162,6 @@ def draw_later(cfg: dict, pid: str) -> str:
         b2["packages"][pid]["article"] = art
         b2["packages"][pid]["problems"] = check(blog, art)
         save(b2)
-    if cfg["blog"]["blogs"][blog].get("clip"):  # 리뷰&리뷰: 그림이 생기면 10초 클립도
-        try:
-            make_clip(cfg, pid)
-        except Exception:
-            pass
     return f"그림 {ok}장"
 
 
@@ -1301,6 +1250,46 @@ def label(img: bytes, text: str) -> bytes:
     d = ImageDraw.Draw(im)
     for xy, ln in pos:
         d.text(xy, ln, font=font, fill="white")
+    out = io.BytesIO()
+    im.convert("RGB").save(out, "JPEG", quality=90)
+    return out.getvalue()
+
+
+def review_thumb(img: bytes, title: str, sub: str = "") -> bytes:
+    """리뷰&리뷰 썸네일(예전 게시물 모양): 그림 전체를 살짝 어둡게, 가운데에 흰 큰 제목 두 줄 + 작은 한 줄."""
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    im = Image.open(io.BytesIO(img)).convert("RGBA")
+    w, h = im.size
+    im = Image.alpha_composite(im, Image.new("RGBA", im.size, (38, 38, 44, 125)))  # 반투명 막
+    lines = [x.strip() for x in title.replace("\\n", "\n").split("\n") if x.strip()][:2]
+    d0 = ImageDraw.Draw(im)
+    size = int(h * 0.105)
+    while size > 20:
+        font = ImageFont.truetype(str(STATIC / "Paperlogy-8ExtraBold.woff2"), size)
+        if max(d0.textlength(ln, font=font) for ln in lines) <= w * 0.78:
+            break
+        size -= 2
+    ssize = int(size * 0.48)
+    sfont = ImageFont.truetype(str(STATIC / "Paperlogy-7Bold.woff2"), ssize)
+    total = size * 1.22 * len(lines) + (ssize * 1.9 if sub else 0)
+    y = (h - total) / 2
+    shadow = Image.new("RGBA", im.size, (0, 0, 0, 0))
+    ds = ImageDraw.Draw(shadow)
+    runs = []
+    for ln in lines:
+        x = (w - d0.textlength(ln, font=font)) / 2
+        ds.text((x + 2, y + 4), ln, font=font, fill=(0, 0, 0, 190))
+        runs.append(((x, y), ln, font))
+        y += size * 1.22
+    if sub:
+        y += ssize * 0.6
+        x = (w - d0.textlength(sub, font=sfont)) / 2
+        ds.text((x + 1, y + 2), sub, font=sfont, fill=(0, 0, 0, 190))
+        runs.append(((x, y), sub, sfont))
+    im = Image.alpha_composite(im, shadow.filter(ImageFilter.GaussianBlur(size * 0.12)))
+    d = ImageDraw.Draw(im)
+    for xy, t, f in runs:
+        d.text(xy, t, font=f, fill="white")
     out = io.BytesIO()
     im.convert("RGB").save(out, "JPEG", quality=90)
     return out.getvalue()
@@ -1518,10 +1507,5 @@ def images_zip(pkg: dict) -> bytes:
             if im.get("r2_key"):
                 ext = im["r2_key"].rsplit(".", 1)[-1]
                 z.writestr(f"{im['no'] + 1:02d}_{safe_name(im)}.{ext}", storage.get_bytes(im["r2_key"]))
-        if pkg["article"].get("clip_key"):
-            try:
-                z.writestr("클립_10초.mp4", storage.get_bytes(pkg["article"]["clip_key"]))
-            except Exception:
-                pass
         z.writestr("본문.txt", plain_text(pkg))
     return buf.getvalue()
