@@ -78,7 +78,7 @@ def _board(state: dict, slots: list[dict]) -> str:
     today = now.date().isoformat()
     posted = sum(1 for k, v in q.items() if k.startswith(today) and v.get("status") == "posted")
     ready = sorted(k for k, v in q.items() if v.get("status") == "ready" and k >= f"{today}_{now:%H%M}")
-    nxt = f"{ready[0][-4:-2]}:{ready[0][-2:]} {'고양이' if q[ready[0]]['kind'] == 'cat' else '여행'}" if ready else "재고 없음"
+    nxt = f"{ready[0][-4:-2]}:{ready[0][-2:]} { {'cat': '고양이', 'travel': '여행'}.get(q[ready[0]]['kind'], '지금 한 편') }" if ready else "재고 없음"
     l, t, r, b = BOARD
     return (f"<div class='board' style='left:{l}%;top:{t}%;width:{r - l}%;height:{b - t}%'>"
             f"<div><small>다음</small><b>{nxt}</b></div>"

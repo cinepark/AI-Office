@@ -294,6 +294,66 @@ elif page == "Threads 데스크":
                     R.rebuild()
             load_state_cached.clear()
             st.rerun()
+        with st.expander("지금 한 편 · 예약과 별개로 튀는 한 편", icon=":material/bolt:"):
+            ex = state.get("extra") or {}
+            st.caption("소재 → 멘트(먼저) → 그림 → 올리기. 누를 때만 만들고, 그림은 멘트를 확정한 뒤에 한 장만 그립니다.")
+            if not server_ready():
+                st.warning("서버 모드(GH_TOKEN)에서만 쓸 수 있습니다.")
+            m1, m2, m3 = st.columns(3)
+            if m1.button("오늘의 트렌드", icon=":material/trending_up:", key="ex_trend", disabled=not server_ready()):
+                give_order("extra_ideas", {"mode": "trend"}, "research", "지금 한 편: 오늘의 트렌드 소재")
+                st.rerun()
+            if m2.button("랜덤 한 장면", icon=":material/casino:", key="ex_rand", disabled=not server_ready()):
+                give_order("extra_ideas", {"mode": "random"}, "research", "지금 한 편: 랜덤 한 장면")
+                st.rerun()
+            up = m3.file_uploader("내 사진", type=["jpg", "jpeg", "png", "heic", "heif", "webp"], key="ex_up",
+                                  label_visibility="collapsed")
+            if up is not None and m3.button("이 사진으로", icon=":material/photo_camera:", key="ex_photo", disabled=not server_ready()):
+                from office import drive as _dr, storage as _sg
+                data = _dr.to_jpeg_if_heic(up.getvalue())
+                pk = f"turnerbro-threads/extra/upload_{P.now_kst():%Y%m%d_%H%M%S}.jpg"
+                _sg.put_bytes(pk, data, "image/jpeg" if data[:3] == b"\xff\xd8\xff" else "image/png")
+                give_order("extra_ideas", {"mode": "photo", "photo_key": pk}, "research", "지금 한 편: 대표님 사진")
+                st.rerun()
+            if ex.get("error"):
+                st.error("지난 단계 실패: " + ex["error"])
+            stage = ex.get("stage")
+            if stage in ("ideas", "captions", "drawn") and ex.get("ideas"):
+                st.markdown("**1. 소재 고르기**")
+                titles = [f"{i.get('title', '')} — {i.get('why', '')}" + (f" ({i['source']})" if i.get("source") else "") for i in ex["ideas"]]
+                idx = st.radio("소재", range(len(titles)), format_func=lambda i: titles[i], key=f"ex_idea_{ex.get('at', '')}",
+                               index=ex.get("pick", 0) if ex.get("pick", 0) < len(titles) else 0, label_visibility="collapsed")
+                if st.button("이 소재로 멘트 쓰기", icon=":material/edit_note:", key="ex_cap"):
+                    give_order("extra_caption", {"idx": idx}, "writer", "지금 한 편 멘트 3안")
+                    st.rerun()
+            if stage in ("captions", "drawn") and ex.get("options"):
+                st.markdown("**2. 멘트 확정**")
+                opt = st.radio("멘트", ex["options"], key=f"ex_opt_{ex.get('at', '')}_{ex.get('pick', 0)}", label_visibility="collapsed")
+                cap = st.text_area("고치기", value=opt, key=f"ex_txt_{ex.get('at', '')}_{ex['options'].index(opt)}", height=70,
+                                   label_visibility="collapsed")
+                style = "watercolor"
+                if ex.get("mode") != "photo":
+                    style = "photo" if st.radio("그림", ["수채화(계정 그림체)", "실사풍 (멘트 끝에 'AI로 만든 이미지' 표시)"],
+                                                horizontal=True, key="ex_style").startswith("실사") else "watercolor"
+                if st.button("이 멘트로 그림 그리기", icon=":material/brush:", key="ex_draw", type="primary"):
+                    give_order("extra_draw", {"caption": cap.strip(), "style": style}, "image", "지금 한 편 그림")
+                    st.rerun()
+            if stage == "drawn" and ex.get("r2_key"):
+                st.markdown("**3. 올리기**")
+                try:
+                    st.image(img_url(ex["r2_key"]), width=320)
+                except Exception:
+                    st.caption("그림을 불러오지 못했습니다.")
+                st.write(ex.get("caption", ""))
+                c1, c2 = st.columns(2)
+                if c1.button("지금 올리기", icon=":material/send:", key="ex_now", type="primary"):
+                    give_order("extra_place", {"action": "now"}, "channel", "지금 한 편 게시")
+                    st.rerun()
+                if c2.button("다음 예약 게시물과 바꾸기", icon=":material/swap_horiz:", key="ex_swap"):
+                    give_order("extra_place", {"action": "swap"}, "shiho", "지금 한 편을 다음 예약 자리에")
+                    st.rerun()
+            if stage == "placed":
+                st.success(f"올렸거나 예약 자리에 넣었습니다 ({ex.get('queue_key', '')}). 새 한 편은 위 버튼으로 시작합니다.")
         with st.expander(f"누운 원본 사진 ({len(state.get('sideways_photos', []))}장) · 여행 사진 방향 점검", icon=":material/screen_rotation:"):
             st.caption("눕거나 거꾸로 된 원본은 그림으로 쓰지 않습니다. 아래 목록을 Google Drive에서 지우시면 됩니다(오피스는 Drive를 읽기만 합니다).")
             if st.button("여행 원본 사진 전체 방향 점검", icon=":material/fact_check:", key="photo_check") and server_ready():
@@ -316,7 +376,7 @@ elif page == "Threads 데스크":
                         st.caption("이미지를 불러오지 못했습니다.")
                     label = v.get("breed_name") or v.get("breed") or v.get("city") or ""
                     extra = f" · {v.get('scene_name')}" if v.get("scene_name") else ""
-                    st.markdown(f"**{k[5:10].replace('-', '/')} {k[-4:-2]}:{k[-2:]}** · {'고양이' if v['kind'] == 'cat' else '여행'} · {label}{extra}")
+                    st.markdown(f"**{k[5:10].replace('-', '/')} {k[-4:-2]}:{k[-2:]}** · { {'cat': '고양이', 'travel': '여행'}.get(v['kind'], '지금 한 편') } · {label or v.get('extra_title', '')}{extra}")
                     if v.get("problems"):
                         st.warning("검수 주의: " + ", ".join(v["problems"]))
                     opts = [v["caption"]] + [o for o in v.get("options", []) if o != v["caption"]]

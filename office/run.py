@@ -341,6 +341,45 @@ def photo_check() -> str:
     return f"누운 사진 {len(found)}장"
 
 
+def extra_job(t: str, a: dict) -> str:
+    """Threads '지금 한 편' 단계별 처리 (office/extra.py)."""
+    from . import extra, storage
+    st = _state()
+    cfg = eff_cfg(st)
+    try:
+        if t == "extra_ideas":
+            names = {"trend": "오늘의 트렌드", "random": "랜덤 한 장면", "photo": "대표님 사진"}
+            act(st, "research", f"지금 한 편: {names.get(a.get('mode'), '')} 소재 찾는 중", "working")
+            storage.save_state(st)
+            ex = extra.ideas(cfg, st, a.get("mode", "trend"), a.get("photo_key", ""))
+            act(st, "research", "지금 한 편 소재 후보: " + " / ".join(i.get("title", "") for i in ex["ideas"]), "done")
+        elif t == "extra_caption":
+            act(st, "writer", "지금 한 편 멘트 3안 쓰는 중", "working")
+            extra.captions(cfg, st, int(a.get("idx", 0)))
+            act(st, "writer", "지금 한 편 멘트 3안 완성", "done")
+        elif t == "extra_draw":
+            if not _budget_ok(st, P.now_kst().date().isoformat()):
+                raise RuntimeError(f"오늘 그림 상한({CFG['daily_image_limit']}장)에 도달했습니다")
+            act(st, "image", "지금 한 편 그림 그리는 중" + (" (실사풍)" if a.get("style") == "photo" else ""), "working")
+            storage.save_state(st)
+            extra.draw(cfg, CFG, st, a.get("caption", ""), a.get("style", "watercolor"))
+            act(st, "image", "지금 한 편 그림 완성", "done")
+        elif t == "extra_place":
+            key = extra.place(st, cfg, a.get("action", "now"))
+            storage.save_state(st)
+            if a.get("action", "now") == "now":
+                publish_item(st, key)
+                return f"지금 한 편 게시함 ({key})"
+            act(st, "shiho", f"지금 한 편을 {key[5:10]} {key[-4:-2]}:{key[-2:]} 예약 자리에 넣음", "done")
+        storage.save_state(st)
+        return t
+    except Exception as e:
+        act(st, "dev", f"지금 한 편 실패({t}): {str(e)[:150]}", "error")
+        st.setdefault("extra", {})["error"] = str(e)[:300]
+        storage.save_state(st)
+        raise
+
+
 def _do_job(job: dict) -> str:
     from . import storage
     t, a = job["type"], job.get("args") or {}
@@ -366,6 +405,8 @@ def _do_job(job: dict) -> str:
         return f"{a['slot']} 게시함"
     if t == "photo_check":
         return photo_check()
+    if t.startswith("extra_"):
+        return extra_job(t, a)
     if t == "blog_schedule":
         from . import blog
         target = P.now_kst().date() + dt.timedelta(days=1)
