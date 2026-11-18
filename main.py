@@ -544,8 +544,12 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                        f"{bc['name']} 규칙대로 그려 아래 패키지로 올립니다. 소제목은 '#'·'■'로 시작하거나 마침표 없는 짧은 줄로 알아봅니다.")
             mt = st.text_input("제목", key=f"mt_{blog_id}")
             mx = st.text_area("원고", key=f"mx_{blog_id}", height=260)
+            st.caption("원고를 붙여 넣은 뒤 칸 바깥을 한 번 누르거나 Ctrl+Enter를 누르면 입력이 확정됩니다.")
             if st.button("이 원고로 그림 그리기", icon=":material/brush:", key=f"mgo_{blog_id}",
-                         disabled=not (mx.strip() and server_ready())):
+                         disabled=not server_ready()):
+                if not mx.strip():
+                    st.warning("원고 칸이 비어 있습니다. 붙여 넣은 뒤 칸 바깥을 한 번 누르고 다시 눌러 주세요.")
+                    st.stop()
                 give_order("blog_manual", {"blog": blog_id, "title": mt.strip(), "text": mx.strip()}, "image",
                            f"{bc['name']} 대표님 원고 그림")
                 blog_state_cached.clear()
