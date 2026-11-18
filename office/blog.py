@@ -1146,6 +1146,98 @@ def _safe(*args) -> None:
             pass
 
 
+def _manual_blocks(text: str) -> list[dict]:
+    """대표님 원고를 그대로 블록으로: 빈 줄·줄바꿈으로 문단, '#'·'■'로 시작하거나 짧고 마침표 없는 줄은 소제목."""
+    out = []
+    for line in [x.strip() for x in text.replace("\r", "").split("\n")]:
+        if not line:
+            continue
+        head = line.lstrip("#■▶● ").strip()
+        if line[0] in "#■▶●" or (len(line) <= 40 and not re.search(r"[.!?。…다요죠\)\]】]$", line)):
+            out.append({"type": "h", "text": head})
+        else:
+            out.append({"type": "p", "text": line})
+    return out
+
+
+def manual_package(cfg: dict, blog: str, title: str, text: str, draw: bool = True) -> str:
+    """'내 원고로 그림만': 대표님 원고는 한 글자도 바꾸지 않고, 그 원고에 맞는 썸네일·본문 그림만 이 블로그 규칙대로 만든다."""
+    bc = cfg["blog"]["blogs"][blog]
+    name = bc["name"]
+    pid = f"{blog}_{_now():%Y%m%d_%H%M%S}"
+    with _lock:
+        b = load()
+        t0 = _now().isoformat(timespec="seconds")
+        b["running"][blog] = {"t": t0, "u": t0, "step": "원고 읽고 그림 계획 중", "mode": "직접"}
+        save(b)
+    try:
+        blocks = _manual_blocks(text)
+        if not title.strip():
+            title = next((bl["text"] for bl in blocks if bl["type"] == "p"), "")[:40]
+        pr = _prompts(blog, "feature")
+        n = bc["images"]
+        extra = {"bts": pick_bts()} if "{bts}" in pr[1] else {}
+        if "{crew_character}" in pr[1]:
+            extra["crew_character"] = (bc.get("crew_character") or bc.get("character", "")).strip()
+        sys_w = pr[1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
+        user = ("아래는 Mr. MOON 이 직접 쓴 완성 원고입니다. 원고는 다시 쓰지 않습니다. "
+                f"이 원고에 들어갈 그림 {n}장(0번 썸네일 + 본문 {n - 1}장)의 images 만 이 블로그 규칙대로 정하세요. "
+                "본문 그림은 원고의 흐름 순서대로, 각 그림이 들어갈 소제목 또는 문단의 내용을 label·prompt 에 반영합니다. "
+                "JSON 은 위 형식 그대로 내되, blocks 는 비워도 됩니다.\n\n"
+                f"제목: {title}\n\n" + text[:12000])
+        _log("image", f"{name} 대표님 원고로 그림 계획 중: {title[:30]}", "working")
+        plan = _ask(cfg, sys_w, user, search=False)
+        images = sorted(plan.get("images", []), key=lambda x: x.get("no", 0))[:n]
+        for i, im in enumerate(images):
+            im["no"] = i
+        # 그림 자리: 0번은 맨 위, 나머지는 소제목 앞(소제목이 모자라면 문단 사이에 고르게)
+        heads = [i for i, bl in enumerate(blocks) if bl["type"] == "h"]
+        slots = heads[:n - 1]
+        if len(slots) < n - 1:
+            paras = [i for i, bl in enumerate(blocks) if bl["type"] == "p"]
+            step = max(1, len(paras) // n)
+            for k in range(1, n):
+                j = paras[min(len(paras) - 1, k * step)] if paras else 0
+                if j not in slots and len(slots) < n - 1:
+                    slots.append(j)
+        slots = sorted(slots)[:n - 1]
+        out = [{"type": "image", "no": 0}]
+        for i, bl in enumerate(blocks):
+            for k, sl in enumerate(slots):
+                if sl == i and k + 1 < len(images):
+                    out.append({"type": "image", "no": k + 1})
+            out.append(bl)
+        art = {"title": title.strip(), "blocks": out, "images": images, "tags": plan.get("tags", []),
+               "thumb_title": plan.get("thumb_title", ""), "thumb_sub": plan.get("thumb_sub", ""), "manual": True}
+        b = load()
+        if draw:
+            _set_step(blog, "그림 그리는 중")
+            draw_images(cfg, blog, pid, art, b)
+        else:
+            for im in art["images"]:
+                im["pending"] = True
+        ok = sum(1 for im in art["images"] if im.get("r2_key"))
+        _log("image", f"{name} 대표님 원고 그림 {ok}/{len(art['images'])}장", "done" if ok == len(art["images"]) or not draw else "error")
+        pkg = {"id": pid, "blog": blog, "mode": "직접", "kind": "manual", "date": _now().date().isoformat(),
+               "made": _now().isoformat(timespec="seconds"), "hint": "", "topic": None, "others": [],
+               "article": art, "problems": [], "status": "ready"}
+        with _lock:
+            b2 = load()
+            b2["images_made"] = {**b2.get("images_made", {}), **b["images_made"]}
+            b2["packages"][pid] = pkg
+            b2["running"].pop(blog, None)
+            save(b2)
+        return pid
+    except Exception as e:
+        with _lock:
+            b3 = load()
+            b3["running"].pop(blog, None)
+            b3.setdefault("errors", []).append({"t": _now().isoformat(timespec="seconds"), "blog": blog, "error": str(e)[:300]})
+            del b3["errors"][:-20]
+            save(b3)
+        raise
+
+
 def draw_later(cfg: dict, pid: str) -> str:
     """대표님이 원고를 읽고 '그림 그리기'를 누르면, 그 패키지의 그림만 그린다."""
     b = load()

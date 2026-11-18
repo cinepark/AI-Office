@@ -45,17 +45,52 @@ def _token(st: dict) -> str:
     return st.get("threads_token") or os.environ["THREADS_ACCESS_TOKEN"].strip()
 
 
-def eff_cfg(st: dict) -> dict:
-    """config.yaml + SHIHO 가 받은 지시(설정 덮어쓰기) + Mr. MOON 이 고친 멘트(말투 예시)."""
+def edit_kind(st: dict, e: dict) -> str:
+    """멘트 수정 기록이 고양이/여행/지금 한 편 가운데 무엇이었는지."""
+    if e.get("kind"):
+        return e["kind"]
+    slot = e.get("slot", "")
+    v = st.get("queue", {}).get(slot) or next((h for h in st.get("history", []) if h.get("slot") == slot), None)
+    if v and v.get("kind"):
+        return v["kind"]
+    s = next((x for x in CFG["slots"] if x["time"].replace(":", "") == slot[-4:]), None)
+    return s["kind"] if s else ""
+
+
+def caption_edit_pairs(st: dict, kind: str = "", n: int = 30) -> list[dict]:
+    """Mr. MOON 이 고친 멘트 '고치기 전 → 고친 뒤' (같은 종류만, 최근 n개)."""
+    rows = [e for e in st.get("caption_edits", []) if e.get("after") and e.get("before") != e.get("after")]
+    if kind:
+        rows = [e for e in rows if edit_kind(st, e) == kind]
+    return rows[-n:]
+
+
+def eff_cfg(st: dict, kind: str = "") -> dict:
+    """config.yaml + SHIHO 가 받은 지시(설정 덮어쓰기) + Mr. MOON 이 고친 멘트(말투 예시·고친 방향·말투 노트)."""
     import copy
     c = copy.deepcopy(CFG)
     s = st.get("settings", {})
     ex = set(s.get("exclude_breeds", []))
     c["breeds"] = [b for b in c["breeds"] if b["id"] not in ex] or c["breeds"]
     c["caption"]["banned"] = c["caption"]["banned"] + s.get("banned_extra", [])
-    edits = [e["after"] for e in st.get("caption_edits", [])[-20:]]
+    edits = [e["after"] for e in caption_edit_pairs(st, kind, 20)]
     c["caption"]["examples"] = c["caption"]["examples"] + s.get("examples_extra", []) + edits
+    c["caption"]["edits"] = [(e.get("before", ""), e["after"]) for e in caption_edit_pairs(st, kind, 20) if e.get("before")]
+    c["caption"]["style_notes"] = (st.get("caption_style", {}).get("notes", {}) or {}).get(kind, []) if kind else []
     return c
+
+
+def study_captions(st: dict) -> str:
+    """Mr. MOON 이 고친 멘트를 모아 종류별 '말투 노트'를 만든다(작가 담당이 다음 멘트부터 따른다)."""
+    from . import ai
+    pairs = {k: [(e.get("before", ""), e["after"]) for e in caption_edit_pairs(st, k, 60)] for k in ("cat", "travel")}
+    if not any(pairs.values()):
+        return "고친 멘트가 아직 없습니다"
+    act(st, "writer", f"대표님 수정 멘트 공부 중 (고양이 {len(pairs['cat'])}개 · 여행 {len(pairs['travel'])}개)", "working")
+    notes = ai.study_captions(CFG, pairs)
+    st["caption_style"] = {"notes": notes, "n": len(st.get("caption_edits", [])), "at": P.now_kst().isoformat()}
+    act(st, "writer", "말투 노트 갱신: " + " / ".join(f"{k} {len(v)}줄" for k, v in notes.items()), "done")
+    return "말투 노트 갱신"
 
 
 def _travel_subject(city: str) -> str:
@@ -80,7 +115,7 @@ def fix_caption(st: dict, key: str) -> bool:
     """게시 전 멘트를 현재 규칙으로 다시 검사. 어긋나면 다른 안으로, 없으면 멘트만 새로 쓴다.
     Mr. MOON 이 직접 고친 멘트는 건드리지 않는다. 바꿨으면 True."""
     item = st["queue"][key]
-    cfg = eff_cfg(st)
+    cfg = eff_cfg(st, item["kind"])
     recent = recent_captions(st, item["kind"], exclude=key)
     if not P.caption_problems(item.get("caption", ""), cfg, recent):
         return False
@@ -168,6 +203,7 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
         act(st, "image", f"{label} 그림 완성", "done")
         act(st, "writer", f"{label} 멘트 3안 쓰는 중", "working")
         recent = recent_captions(st, item["kind"], exclude=key)
+        cfg = eff_cfg(st, item["kind"])
         options = ai.captions(cfg, subject, png, recent)
         act(st, "writer", f"{label} 멘트 3안 완성", "done")
         if item["kind"] == "travel" and options:
@@ -198,6 +234,12 @@ def produce() -> None:
     today = P.now_kst().date()
     made = 0
     act(st, "shiho", f"{CFG['stock_days']}일치 재고 점검 시작", "working")
+    if len(st.get("caption_edits", [])) >= (st.get("caption_style", {}).get("n", 0) + 3):  # 새로 고친 멘트가 3개 이상 쌓이면
+        try:
+            study_captions(st)
+            storage.save_state(st)
+        except Exception as e:
+            act(st, "dev", f"말투 노트 갱신 실패: {str(e)[:150]}", "error")
     for k in sorted(k for k, v in st["queue"].items() if v.get("status") == "ready"):
         try:
             if fix_caption(st, k):
@@ -405,12 +447,20 @@ def _do_job(job: dict) -> str:
         return f"{a['slot']} 게시함"
     if t == "photo_check":
         return photo_check()
+    if t == "caption_study":
+        st = _state()
+        r = study_captions(st)
+        storage.save_state(st)
+        return r
     if t.startswith("extra_"):
         return extra_job(t, a)
     if t == "blog_schedule":
         from . import blog
         target = P.now_kst().date() + dt.timedelta(days=1)
         return " / ".join(blog.scheduled(CFG, target, only=a.get("blog", ""), force=True)) or "만들 것 없음"
+    if t == "blog_manual":
+        from . import blog
+        return "패키지 " + blog.manual_package(CFG, a.get("blog", "cinepark"), a.get("title", ""), a.get("text", ""))
     if t == "blog_draw":
         from . import blog
         return blog.draw_later(CFG, a["pid"])

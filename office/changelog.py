@@ -15,6 +15,8 @@ from .staff import KST, act
 
 # who: design(설계) | dev(개발) | security(보안)
 CHANGES = [
+    {"id": "2026-11-18-manual", "who": "dev", "text": "블로그 '내 원고로 그림만': 대표님 원고는 그대로, 썸네일·본문 그림만 블로그 규칙대로"},
+    {"id": "2026-11-17-caption-study", "who": "dev", "text": "멘트 업그레이드: 대표님 수정 멘트(전→후)를 종류별로 배우고 '말투 노트'로 정리해 다음 멘트부터 적용"},
     {"id": "2026-11-16-extra", "who": "dev", "text": "Threads '지금 한 편': 트렌드·랜덤·내 사진 → 멘트 먼저 → 그림(수채화/실사풍+AI 표시) → 지금 올리기·예약 자리 바꾸기"},
     {"id": "2026-11-15-unsorted", "who": "dev", "text": "원본 폴더 이름의 괄호 메모 무시: 'Italy (미분류)'는 Italy 로 읽음"},
     {"id": "2026-11-15-photo-rules", "who": "dev", "text": "여행 원본: 하위 폴더 사진·아이폰 HEIC 사용, 여러 도시 폴더(Osaka_Kyoto 등) 이름 풀어 읽기"},

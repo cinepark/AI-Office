@@ -294,6 +294,18 @@ elif page == "Threads 데스크":
                     R.rebuild()
             load_state_cached.clear()
             st.rerun()
+        cs = state.get("caption_style") or {}
+        with st.expander(f"말투 노트 · 대표님 수정 멘트 {len(state.get('caption_edits', []))}개에서 배움", icon=":material/school:"):
+            st.caption("고치신 멘트(고치기 전 → 고친 뒤)를 종류별로 모아 규칙으로 정리합니다. 새로 고친 멘트가 3개 쌓이면 매일 재고 채우기 때 자동으로 갱신되고, 작가 담당은 다음 멘트부터 이 노트를 가장 먼저 따릅니다.")
+            for k_, name_ in (("cat", "고양이"), ("travel", "여행")):
+                rules = (cs.get("notes") or {}).get(k_, [])
+                if rules:
+                    st.markdown(f"**{name_}**\n" + "\n".join(f"- {r}" for r in rules))
+            if cs.get("at"):
+                st.caption(f"마지막 갱신 {cs['at'][:16].replace('T', ' ')}")
+            if st.button("지금 말투 노트 다시 만들기", icon=":material/refresh:", key="cap_study", disabled=not server_ready()):
+                give_order("caption_study", {}, "writer", "대표님 수정 멘트로 말투 노트 만들기")
+                st.rerun()
         with st.expander("지금 한 편 · 예약과 별개로 튀는 한 편", icon=":material/bolt:"):
             ex = state.get("extra") or {}
             st.caption("소재 → 멘트(먼저) → 그림 → 올리기. 누를 때만 만들고, 그림은 멘트를 확정한 뒤에 한 장만 그립니다.")
@@ -387,7 +399,7 @@ elif page == "Threads 데스크":
                         s = fresh_state()
                         it = s["queue"][k]
                         if new.strip() != it["caption"]:
-                            s.setdefault("caption_edits", []).append({"t": P.now_kst().isoformat(), "slot": k,
+                            s.setdefault("caption_edits", []).append({"t": P.now_kst().isoformat(), "slot": k, "kind": it.get("kind", ""),
                                                                       "before": it["caption"], "after": new.strip()})
                             it["caption"] = new.strip()
                             act(s, "writer", f"{k} 멘트를 Mr. MOON 수정본으로 교체", "done")
@@ -527,6 +539,19 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                     st.toast(f"{bc['name']} 패키지를 이미 만드는 중입니다.")
             blog_state_cached.clear()
             st.rerun()
+        with st.expander("내 원고로 그림만 · 직접 쓴 원고는 그대로, 그림만 오피스가", icon=":material/draw:"):
+            st.caption(f"원고를 붙여 넣으면 한 글자도 바꾸지 않고, 썸네일 1장 + 본문 그림 {bc['images'] - 1}장을 "
+                       f"{bc['name']} 규칙대로 그려 아래 패키지로 올립니다. 소제목은 '#'·'■'로 시작하거나 마침표 없는 짧은 줄로 알아봅니다.")
+            mt = st.text_input("제목", key=f"mt_{blog_id}")
+            mx = st.text_area("원고", key=f"mx_{blog_id}", height=260)
+            if st.button("이 원고로 그림 그리기", icon=":material/brush:", key=f"mgo_{blog_id}",
+                         disabled=not (mx.strip() and server_ready())):
+                give_order("blog_manual", {"blog": blog_id, "title": mt.strip(), "text": mx.strip()}, "image",
+                           f"{bc['name']} 대표님 원고 그림")
+                blog_state_cached.clear()
+                st.rerun()
+            if not server_ready():
+                st.caption("서버 모드(GH_TOKEN)에서만 쓸 수 있습니다.")
     with c2:
         st.markdown(":material/event: **예약** · 전날 22:30에 미리 만들어 둡니다")
         sc = blog.schedule_of(b, R.CFG, blog_id)
@@ -548,7 +573,10 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             blog_state_cached.clear()
 
     errs = [e for e in b.get("errors", []) if e.get("blog") == blog_id][-1:]
-    if errs and not b.get("running", {}).get(blog_id):
+    last_ok = max((p.get("made", "") for p in b.get("packages", {}).values() if p.get("blog") == blog_id), default="")
+    # 실패 뒤에 패키지가 하나라도 성공했거나 하루가 지났으면 지난 실패는 감춘다(이미 해결된 오류가 계속 남지 않게)
+    stale = errs and (errs[0]["t"] < last_ok or errs[0]["t"] < (P.now_kst() - dt.timedelta(days=1)).isoformat(timespec="seconds"))
+    if errs and not stale and not b.get("running", {}).get(blog_id):
         st.warning(f"최근 실패 ({errs[0]['t'][5:16]}): {errs[0]['error'][:200]}")
 
     st.divider()
@@ -587,7 +615,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
         st.caption("올릴 패키지가 없습니다. 올린 글은 아래 '올린 글 기록'에 있습니다." if done else "아직 만든 패키지가 없습니다.")
     for i, p in enumerate(pkgs[:15]):
         a = p["article"]
-        kind_tag = {"info": " · 정보글", "compare": " · 가격 비교"}.get(p.get("kind"), "")
+        kind_tag = {"info": " · 정보글", "compare": " · 가격 비교", "manual": " · 대표님 원고"}.get(p.get("kind"), "")
         if a.get("editor_fix") or p.get("problems"):
             p_icon = ":material/error:"          # 편집장 반려·점검 문제
         elif any(im.get("pending") for im in a.get("images", [])):

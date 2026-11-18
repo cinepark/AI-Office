@@ -88,6 +88,11 @@ def captions(cfg: dict, subject: str, image_png: bytes | None = None, recent: li
     c = cfg["caption"]
     system = _RULES.format(max_chars=c["max_chars"], banned=", ".join(c["banned"]),
                            examples="\n".join(f"  - {e}" for e in c["examples"]))
+    if c.get("style_notes"):
+        system += "\n\nMr. MOON 말투 노트(대표님이 직접 고친 멘트에서 뽑은 규칙. 위 규칙보다 우선):\n" + "\n".join(f"  - {x}" for x in c["style_notes"])
+    if c.get("edits"):
+        system += ("\n\nMr. MOON 이 고친 실제 사례(고치기 전 → 고친 뒤). 고친 방향을 따라 처음부터 '고친 뒤'처럼 쓰세요:\n"
+                   + "\n".join(f"  - {b} → {a}" for b, a in c["edits"][-15:]))
     if recent:
         system += ("\n\n최근에 이미 올린 멘트입니다. 같은 생각(예: 낮잠·밤잠, 방해, 자리 뺏기), 같은 문장 구조, "
                    "같은 끝맺음을 되풀이하지 말고 다른 순간을 고르세요:\n" + "\n".join(f"  - {r}" for r in recent))
@@ -104,6 +109,28 @@ def captions(cfg: dict, subject: str, image_png: bytes | None = None, recent: li
         return [str(x) for x in json.loads(m.group(0))["options"]][:3] if m else []
     except (json.JSONDecodeError, KeyError, TypeError):
         return [line.strip("-• ").strip() for line in text.splitlines() if line.strip()][:3]
+
+
+STUDY_RULES = """당신은 Threads 계정 'Turner Bro'의 멘트 편집장입니다. 대표님(Mr. MOON)이 AI 멘트를 직접 고친 기록(고치기 전 → 고친 뒤)을 봅니다.
+종류(고양이 cat / 여행 travel)마다, 대표님이 무엇을 바꾸는지 구체적인 규칙 5~8줄로 정리하세요.
+- 길이, 끝맺음(어미), 시점(누가 말하는가), 고양이 말투 여부, 질문형 비율, 빼 버린 표현, 자주 쓰는 단어처럼 실제로 확인되는 것만.
+- 규칙마다 기록 속 실제 예를 짧게 붙이세요(예: '…다' 대신 '…냥?'처럼 고양이가 말하게 함 — 예: 뭘보냥?).
+- 기록이 없는 종류는 빈 목록.
+JSON 만 출력: {"cat": ["규칙", ...], "travel": ["규칙", ...]}"""
+
+
+def study_captions(cfg: dict, pairs: dict) -> dict:
+    """pairs: {"cat": [(before, after)], "travel": [...]} → 종류별 말투 규칙."""
+    lines = []
+    for k, rows in pairs.items():
+        lines.append(f"[{k}]")
+        lines += [f"- {b or '(없음)'} → {a}" for b, a in rows]
+    r = _client().responses.create(model=cfg["openai"]["text_model"],
+                                   input=[{"role": "system", "content": STUDY_RULES},
+                                          {"role": "user", "content": "\n".join(lines)}])
+    m = re.search(r"\{.*\}", r.output_text or "", re.S)
+    d = json.loads(m.group(0)) if m else {}
+    return {k: [str(x) for x in d.get(k, [])][:8] for k in ("cat", "travel")}
 
 
 PICK_RULES = """당신은 Threads 사진 편집자입니다. 같은 도시의 여행 원본 사진 후보 가운데, 펜 수채화로 바꿔 Threads 에 올릴 한 장을 고릅니다.
