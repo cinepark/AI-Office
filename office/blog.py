@@ -165,6 +165,10 @@ CJ CGV는 올해 3분기 연결 기준 매출 6881억원, 영업이익 736억원
 - 그림 prompt 는 영어 한 단락, 사진 한 장을 단정적으로 묘사(한 상태, 한 동작). 'or', 'maybe', 'slightly' 같은 말 금지.
   그림 6장은 아래 구성을 그대로 따른다(kind 를 반드시 적는다). SHIHO 는 0번과 4번의 주인공이고, 1번 BTS 일러스트에는 구경 온 사람으로 작게만 나온다.
   0번 kind "shiho": 썸네일. {character}. 화면 위쪽 40%를 하늘·배경으로 비우고(제목 글자 자리) 그녀의 머리는 화면 가운데보다 아래에서 시작.
+     썸네일 장소는 이 글의 나라·도시·업계가 한눈에 느껴지는 곳으로 정한다. 흰 돌벽과 유리문의 현대식 건물 앞처럼 어느 글에나 쓸 수 있는 장소는 금지.
+     (예: 중국 이야기면 회색 벽돌담과 붉은 대문이 이어지는 베이징 골목, 두바이면 모래빛 사막 도시의 야자수 산책로, 일본이면 낮은 목조 주택이 늘어선 도쿄 골목,
+      극장 산업이면 매표소가 보이는 극장 로비, 게임이면 모니터가 줄지어 놓인 게임 개발사 사무실, 드라마 제작이면 실내 세트장 입구, 영화제면 해변 산책로.)
+     그 장소에 맞는 동작 하나를 정한다(걷는다만 반복하지 않는다: 골목 담벼락에 기대 서류를 읽는다, 매표소 앞에서 고개를 들어 상영 시간표를 본다, 세트장 문 앞에서 출입증을 목에 건다 등).
      prompt 에 'The top 40 percent of the frame is empty sky. Her head starts below the middle of the frame. She is the only person in the frame.' 를 넣는다.
   1번 kind "crew": BTS(비하인드 더 신) 촬영장, 고급 시네마틱 3D 애니메이션 영화 같은 그림으로, 영화의 장르적 장면과 그것을 만드는 평범한 작업이 한 화면에 같이 보여서 웃음이나 놀라움을 주는 순간.
      이번 글의 촬영장 후보 셋 가운데 이 글의 작품·장르와 가장 어울리는 하나를 골라, 인물·의상·세트를 이야기에 맞게 구체적으로 채운다(글과 상관없는 동물·장르를 억지로 넣지 않는다):
@@ -559,6 +563,27 @@ def pick_bts() -> str:
     return " / ".join(f"({n + 1}) {BTS_SCENES[i]}" for n, i in enumerate(picks))
 
 
+def recent_thumbs(blog: str, k: int = 5) -> str:
+    """최근 패키지 썸네일(0번) 그림 묘사. 작가에게 '이것과 다른 장소·동작'을 요구할 때 쓴다."""
+    try:
+        pk = sorted(load().get("packages", {}).values(), key=lambda p: p.get("made", ""), reverse=True)
+    except Exception:
+        return ""
+    out = []
+    for p in pk:
+        if p.get("blog") != blog:
+            continue
+        im0 = next((im for im in p.get("article", {}).get("images", []) if im.get("no") == 0), None)
+        if im0 and im0.get("prompt"):
+            out.append("- " + im0["prompt"][:220])
+        if len(out) >= k:
+            break
+    if not out:
+        return ""
+    return ("\n\n최근 썸네일(0번) 그림입니다. 이번 0번은 이것들과 장소·배경·동작이 모두 달라야 합니다. "
+            "이번 글의 나라·업계가 바로 보이는 장소로 정하세요:\n" + "\n".join(out))
+
+
 def write(cfg: dict, blog: str, topic: dict, kind: str = "feature") -> dict:
     bc = cfg["blog"]["blogs"][blog]
     pr = _prompts(blog, kind)
@@ -569,7 +594,8 @@ def write(cfg: dict, blog: str, topic: dict, kind: str = "feature") -> dict:
     sys_w = pr[1].format(n=n, last=n - 1, character=bc.get("character", "").strip(), **extra)
     user = (f"오늘은 {_now():%Y년 %m월 %d일}입니다. 아래 글감으로 원고를 쓰세요. 필요하면 웹 검색으로 사실을 다시 확인하세요.\n"
             + ("편집장이 돌려보낸 원고입니다. editor_fix 의 지적을 모두 고쳐 새로 쓰세요.\n" if topic.get("editor_fix") else "")
-            + json.dumps(topic, ensure_ascii=False))
+            + json.dumps(topic, ensure_ascii=False)
+            + (recent_thumbs(blog) if blog == "cinepark" and pr is not INFO_PROMPTS else ""))
     art = _ask(cfg, sys_w, user, search=True)
     art["images"] = sorted(art.get("images", []), key=lambda x: x.get("no", 0))[:n]
     if pr is COMPARE_PROMPTS:  # 1번은 늘 코드가 그리는 비교표 카드
@@ -1183,8 +1209,10 @@ def manual_package(cfg: dict, blog: str, title: str, text: str, draw: bool = Tru
         user = ("아래는 Mr. MOON 이 직접 쓴 완성 원고입니다. 원고는 다시 쓰지 않습니다. "
                 f"이 원고에 들어갈 그림 {n}장(0번 썸네일 + 본문 {n - 1}장)의 images 만 이 블로그 규칙대로 정하세요. "
                 "본문 그림은 원고의 흐름 순서대로, 각 그림이 들어갈 소제목 또는 문단의 내용을 label·prompt 에 반영합니다. "
-                "JSON 은 위 형식 그대로 내되, blocks 는 비워도 됩니다.\n\n"
-                f"제목: {title}\n\n" + text[:12000])
+                "JSON 은 위 형식 그대로 내되, blocks 는 비워도 됩니다. thumb_title(두 줄)과 "
+                + ("thumb_highlight(노란색 강조 한 단어)" if blog == "cinepark" else "thumb_sub") + " 도 꼭 정하세요."
+                + (recent_thumbs(blog) if blog == "cinepark" else "")
+                + f"\n\n제목: {title}\n\n" + text[:12000])
         _log("image", f"{name} 대표님 원고로 그림 계획 중: {title[:30]}", "working")
         plan = _ask(cfg, sys_w, user, search=False)
         images = sorted(plan.get("images", []), key=lambda x: x.get("no", 0))[:n]
@@ -1208,7 +1236,8 @@ def manual_package(cfg: dict, blog: str, title: str, text: str, draw: bool = Tru
                     out.append({"type": "image", "no": k + 1})
             out.append(bl)
         art = {"title": title.strip(), "blocks": out, "images": images, "tags": plan.get("tags", []),
-               "thumb_title": plan.get("thumb_title", ""), "thumb_sub": plan.get("thumb_sub", ""), "manual": True}
+               "thumb_title": plan.get("thumb_title", ""), "thumb_sub": plan.get("thumb_sub", ""),
+               "thumb_highlight": plan.get("thumb_highlight", ""), "manual": True}
         b = load()
         if draw:
             _set_step(blog, "그림 그리는 중")

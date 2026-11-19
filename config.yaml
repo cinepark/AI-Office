@@ -96,7 +96,7 @@ scenes:
   - { id: window_bird,name: 새 구경,      text: "crouches low on a windowsill with its tail twitching, watching a small bird on a branch outside" }
   - { id: toilet_roll,name: 휴지 풀기,    text: "sits next to a toilet paper roll that has been unrolled across the bathroom floor" }
 caption:
-  max_chars: 40
+  max_chars: 20
   max_emoji: 1
   banned: [여유롭게, 포근한, 사랑스러운, 우뚝, 가득한, 힐링, 아름다운, 풍경을 자랑, 매력적인, 감성]
   # 직접 쓰거나 고치신 실제 게시 문구 = 말투 기준. 사이트/설정에서 계속 늘립니다.
@@ -134,8 +134,8 @@ blog:
       image_style: >-
         Match the face, hair and outfit of the woman in the attached reference images exactly.
         Semi-realistic 3D render with soft photographic quality, soft diffused daylight from a window, airy and bright, 16:9 landscape.
-        Calm minimal interior: white walls, beige and light oak tones.
-        Show only the objects named in the description and nothing else. Sparse minimal setting with large areas of empty space,
+        The place, materials and colors of the setting follow the description exactly; when the description names no materials, use white walls, beige and light oak tones.
+        Show only the objects named in the description and nothing else. Sparse setting with large areas of empty space,
         no decorative props, no flowers, no clutter.
         She is the only person in the frame. No text, letters or numbers.
       scene_style: >-

@@ -158,7 +158,16 @@ today = P.now_kst().date().isoformat()
 
 # ───────────────────────── 업무 지시서 ─────────────────────────
 def server_ready() -> bool:
-    return bool(os.environ.get("GH_TOKEN", "").strip())
+    if os.environ.get("GH_TOKEN", "").strip():
+        return True
+    try:  # 비밀값이 [섹션] 아래에 들어간 경우까지 찾아 둔다
+        for v in st.secrets.values():
+            if hasattr(v, "get") and str(v.get("GH_TOKEN", "")).strip():
+                os.environ["GH_TOKEN"] = str(v["GH_TOKEN"]).strip()
+                return True
+    except Exception:
+        pass
+    return False
 
 
 def give_order(job_type: str, args: dict, who: str, label: str) -> None:
@@ -545,8 +554,7 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
             mt = st.text_input("제목", key=f"mt_{blog_id}")
             mx = st.text_area("원고", key=f"mx_{blog_id}", height=260)
             st.caption("원고를 붙여 넣은 뒤 칸 바깥을 한 번 누르거나 Ctrl+Enter를 누르면 입력이 확정됩니다.")
-            if st.button("이 원고로 그림 그리기", icon=":material/brush:", key=f"mgo_{blog_id}",
-                         disabled=not server_ready()):
+            if st.button("이 원고로 그림 그리기", icon=":material/brush:", key=f"mgo_{blog_id}"):
                 if not mx.strip():
                     st.warning("원고 칸이 비어 있습니다. 붙여 넣은 뒤 칸 바깥을 한 번 누르고 다시 눌러 주세요.")
                     st.stop()
@@ -555,7 +563,9 @@ def blog_desk(blog_id: str, eyebrow: str, title: str, intro: str) -> None:
                 blog_state_cached.clear()
                 st.rerun()
             if not server_ready():
-                st.caption("서버 모드(GH_TOKEN)에서만 쓸 수 있습니다.")
+                st.caption("지금 Streamlit 비밀값에 GH_TOKEN이 보이지 않아 서버를 바로 깨우지 못합니다. "
+                           "버튼을 누르면 지시서는 남으니, GitHub → Actions → office → Run workflow에서 "
+                           "command에 blogwork를 넣고 실행하시면 처리됩니다.")
     with c2:
         st.markdown(":material/event: **예약** · 전날 22:30에 미리 만들어 둡니다")
         sc = blog.schedule_of(b, R.CFG, blog_id)
