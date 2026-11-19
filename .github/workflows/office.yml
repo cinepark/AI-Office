@@ -2,16 +2,17 @@ name: AI OFFICE
 
 on:
   schedule:
-    - cron: "0 12 * * *"    # 21:00 KST  생성 (3일치 재고 채우기)
+    - cron: "30 13 * * *"   # 22:30 KST  생성 (3일치 재고 채우기 · 21:30 게시 뒤)
     - cron: "25 0 * * *"    # 09:25 KST  → 09:30 게시 (여행)
     - cron: "25 3 * * *"    # 12:25 KST  → 12:30 게시 (고양이)
     - cron: "25 7 * * *"    # 16:25 KST  → 16:30 게시 (여행)
     - cron: "25 10 * * *"   # 19:25 KST  → 19:30 게시 (고양이)
+    - cron: "25 12 * * *"   # 21:25 KST  → 21:30 게시 (여행)
     - cron: "0 23 * * 0"    # 월 08:00 KST  토큰 갱신
   workflow_dispatch:
     inputs:
       command:
-        description: "selftest / produce / post / refresh / skip"
+        description: "selftest / produce / post / refresh / skip / work / blogwork"
         required: true
         default: selftest
       arg:
@@ -22,14 +23,15 @@ on:
 permissions:
   contents: write   # 공개 저장소: 60일 무활동 시 예약이 꺼지는 것을 막는 주간 기록용
 
+# Threads 일(게시·재고·지시서 work)은 한 줄로 서고, 블로그 지시서(blogwork)는 따로 줄을 선다
 concurrency:
-  group: turnerbro-office
+  group: ${{ github.event.inputs.command == 'blogwork' && 'office-blog' || 'turnerbro-office' }}
   cancel-in-progress: false
 
 jobs:
   run:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
@@ -39,6 +41,7 @@ jobs:
       R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
       R2_BUCKET: ${{ secrets.R2_BUCKET }}
       GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+      PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -50,7 +53,7 @@ jobs:
         id: pick
         run: |
           case "${{ github.event.schedule }}" in
-            "0 12 * * *")  echo "cmd=produce" >> "$GITHUB_OUTPUT" ;;
+            "30 13 * * *") echo "cmd=produce" >> "$GITHUB_OUTPUT" ;;
             "0 23 * * 0")  echo "cmd=refresh" >> "$GITHUB_OUTPUT" ;;
             "")            echo "cmd=${{ github.event.inputs.command }}" >> "$GITHUB_OUTPUT" ;;
             *)             echo "cmd=post" >> "$GITHUB_OUTPUT" ;;
