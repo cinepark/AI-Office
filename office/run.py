@@ -623,9 +623,20 @@ def selftest() -> None:
         sys.exit(1)
 
 
+def produce_and_post() -> None:
+    """생성 호출이 게시 시각(예: 21:30) 근처에 오면 그 슬롯부터 올리고 생성한다.
+    외부 호출이 21:00·21:40 에 produce 만 보내도 21:30 편이 빠지지 않게."""
+    try:
+        if P.current_slot(CFG, P.now_kst()):
+            post()
+    except Exception as e:  # 게시가 실패해도 생성은 계속
+        log(f"게시 시도 실패: {e}")
+    produce()
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "selftest"
-    {"produce": produce, "post": post, "refresh": refresh, "selftest": selftest,
+    {"produce": produce_and_post, "post": post, "refresh": refresh, "selftest": selftest,
      "skip": lambda: skip(sys.argv[2]),
      "rebuild": rebuild,
      "blog": lambda: blog_now(sys.argv[2] if len(sys.argv) > 2 else "cinepark"),
