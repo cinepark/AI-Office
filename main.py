@@ -421,6 +421,8 @@ elif page == "Threads 데스크":
                         with st.spinner("새로 만드는 중…"):
                             s = fresh_state()
                             s["queue"][k]["status"] = "skipped"
+                            if s["queue"][k].get("photo_id"):
+                                s.setdefault("skipped_photos", []).append(s["queue"][k]["photo_id"])
                             slot = next(sl for sl in R.CFG["slots"] if sl["time"].replace(":", "") == k[-4:])
                             s["queue"][k] = R.make_item(s, k, slot)
                             save(s)

@@ -66,6 +66,14 @@ def pick_cat(cfg: dict, history: list[dict], today: dt.date, rng: random.Random 
 
     breeds = [b for b in cfg["breeds"] if b["id"] != last_breed] or cfg["breeds"]
     scenes = [s for s in cfg["scenes"] if today.month in s.get("months", range(1, 13))] or cfg["scenes"]  # 계절 장면은 그 달에만
+    # 장면 묶음(group) 쉬게 하기: 직전 3편과 같은 묶음 금지, '숨기·들어가기(inside)'는 최근 6편에 한 번만
+    gmap = {sc["id"]: sc.get("group") for sc in cfg["scenes"]}
+    recent_groups = [gmap.get(h.get("scene")) for h in cats[-6:]]
+    blocked = set(g for g in recent_groups[-3:] if g)
+    if "inside" in recent_groups:
+        blocked.add("inside")
+    fresh = [sc for sc in scenes if sc.get("group") not in blocked]
+    scenes = fresh or scenes
     candidates = [(b, s) for b in breeds for s in scenes
                   if (b["id"], s["id"]) not in recent_pairs and s["id"] not in recent_scenes]
     if not candidates:
@@ -91,7 +99,9 @@ def cat_prompt(cfg: dict, breed: dict, scene: dict, rng: random.Random | None = 
     rng = rng or random.Random()
     return (f"Match the drawing style of the attached reference images. "
             f"{breed['look'][0].upper() + breed['look'][1:]} {scene['text']}. "
-            f"{rng.choice(CAT_VIEWS)} {rng.choice(CAT_TIMES)} {cfg['style']}")
+            f"{rng.choice(CAT_VIEWS)} {rng.choice(CAT_TIMES)} "
+            + ("No human face appears anywhere in the frame. " if "person" in scene["text"] else "")
+            + cfg["style"])
 
 
 def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],

@@ -177,6 +177,8 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
             used = set(st["used_photos"]) | {v.get("photo_id") for k, v in st["queue"].items() if k != key}
             side_ids = {x["id"] for x in st.setdefault("sideways_photos", [])}
             used |= side_ids  # 눕거나 거꾸로 된 원본은 쓰지 않는다(데스크에 삭제 목록으로 뜸)
+            used |= set(st.setdefault("skipped_photos", []))  # '빼고 새로'로 뺀 원본은 다시 쓰지 않는다
+            used |= {v.get("photo_id") for v in st["queue"].values() if v.get("status") == "skipped"}
             for _try in range(3):
                 cands = P.pick_travel(photos, plan_history, used, k=4)
                 if not cands:
@@ -434,6 +436,8 @@ def _do_job(job: dict) -> str:
         if key not in st["queue"]:
             raise KeyError(f"{key} 게시물이 없습니다")
         st["queue"][key]["status"] = "skipped"
+        if st["queue"][key].get("photo_id"):  # 뺀 여행 원본은 다시 배정하지 않는다
+            st.setdefault("skipped_photos", []).append(st["queue"][key]["photo_id"])
         slot = next(x for x in CFG["slots"] if x["time"].replace(":", "") == key[-4:])
         act(st, "shiho", f"지시서: {key} 다시 만들기 → 이미지·작가 담당", "done")
         st["queue"][key] = make_item(st, key, slot)
@@ -583,6 +587,8 @@ def skip(key: str) -> None:
         log(f"{key} 없음")
         return
     v["status"] = "skipped"
+    if v.get("photo_id"):  # 뺀 여행 원본은 다시 배정하지 않는다
+        st.setdefault("skipped_photos", []).append(v["photo_id"])
     storage.save_state(st)
     log(f"{key} 를 뺐습니다. 다음 생성 때 새로 만듭니다.")
     produce()

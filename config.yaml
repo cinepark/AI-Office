@@ -36,7 +36,10 @@ travel_style: >-
   Redraw this photo as a pen line drawing with loose watercolor washes on off-white
   cold-press paper, matching the drawing style of the reference painting.
   Keep the exact composition, buildings and perspective of the photo.
-  People appear as simple loose strokes without facial detail. Square composition.
+  People appear as simple loose strokes without facial detail.
+  When a person's face is large in the photo (a selfie or a close portrait), draw that person as a simple
+  cartoon character: a round simplified face with dot eyes and a small line mouth, no realistic facial features,
+  keeping the clothes, colors and pose from the photo. Square composition.
 
 # 품종: 직전 고양이 게시물과 같은 품종은 나오지 않습니다.
 breeds:
@@ -54,47 +57,81 @@ breeds:
 # 장면: SNS 집사들이 "우리 애도 그래" 할 순간. 한 상태·한 동작으로 단정해서 씁니다.
 # 같은 '품종+장면' 조합은 최근 7일 안에 다시 나오지 않습니다.
 scenes:
-  - { id: box,       name: 택배 상자,     text: "sits inside an open cardboard delivery box on a wooden floor, chin resting on the box edge, while a brand-new cat bed stands empty beside the box" }
-  - { id: keyboard,  name: 노트북 키보드, text: "lies stretched across an open laptop keyboard on a wooden desk, front paws covering the keys, looking straight at the viewer" }
-  - { id: laundry,   name: 빨래,         text: "sleeps curled inside a basket of freshly folded white laundry" }
-  - { id: rain,      name: 비 오는 창가,  text: "sits on a windowsill watching raindrops run down the window glass" }
-  - { id: vacuum,    name: 로봇청소기,    text: "hides under a sofa with only its eyes visible, watching a robot vacuum pass by" }
-  - { id: paperbag,  name: 종이봉투,      text: "has its head and front body inside a crinkled paper shopping bag, its back legs and tail sticking out" }
-  - { id: door,      name: 닫힌 문,       text: "sits in front of a closed bathroom door, staring at the gap under the door" }
-  - { id: tower,     name: 캣타워 상자,   text: "sleeps on top of the flattened cardboard box a new cat tower came in, while the new cat tower stands unused behind it" }
-  - { id: pen,       name: 펜 떨어뜨리기, text: "pushes a pen off the edge of a desk with one front paw, looking at the viewer" }
-  - { id: heater,    name: 난로 앞,       text: "sleeps belly-up in front of a small electric heater, four paws in the air", months: [11, 12, 1, 2, 3] }
-  - { id: mandarin,  name: 귤,           text: "sniffs a peeled mandarin orange on a low wooden table, nose wrinkled", months: [11, 12, 1, 2] }
-  - { id: heatedmat, name: 전기장판,      text: "lies flattened on a heated floor mat under the edge of a thick quilt, only its face showing", months: [11, 12, 1, 2, 3] }
-  - { id: hallway,   name: 새벽 우다다,   text: "runs down a dark hallway at night with its tail straight up and eyes wide open" }
-  - { id: sink,      name: 세면대 물방울, text: "sits on the edge of a white bathroom sink, staring at one water drop hanging from the faucet" }
+  - { id: box,       name: 택배 상자,     text: "sits inside an open cardboard delivery box on a wooden floor, chin resting on the box edge, while a brand-new cat bed stands empty beside the box", group: inside }
+  - { id: keyboard,  name: 노트북 키보드, text: "lies stretched across an open laptop keyboard on a wooden desk, front paws covering the keys, looking straight at the viewer", group: desk }
+  - { id: laundry,   name: 빨래,         text: "sleeps curled inside a basket of freshly folded white laundry", group: inside }
+  - { id: rain,      name: 비 오는 창가,  text: "sits on a windowsill watching raindrops run down the window glass", group: window }
+  - { id: vacuum,    name: 로봇청소기,    text: "hides under a sofa with only its eyes visible, watching a robot vacuum pass by", group: inside }
+  - { id: paperbag,  name: 종이봉투,      text: "has its head and front body inside a crinkled paper shopping bag, its back legs and tail sticking out", group: inside }
+  - { id: door,      name: 닫힌 문,       text: "sits in front of a closed bathroom door, staring at the gap under the door", group: house }
+  - { id: tower,     name: 캣타워 상자,   text: "sleeps on top of the flattened cardboard box a new cat tower came in, while the new cat tower stands unused behind it", group: inside }
+  - { id: pen,       name: 펜 떨어뜨리기, text: "pushes a pen off the edge of a desk with one front paw, looking at the viewer", group: desk }
+  - { id: heater,    name: 난로 앞,       text: "sleeps belly-up in front of a small electric heater, four paws in the air", months: [11, 12, 1, 2, 3], group: sleep }
+  - { id: mandarin,  name: 귤,           text: "sniffs a peeled mandarin orange on a low wooden table, nose wrinkled", months: [11, 12, 1, 2], group: food }
+  - { id: heatedmat, name: 전기장판,      text: "lies flattened on a heated floor mat under the edge of a thick quilt, only its face showing", months: [11, 12, 1, 2, 3], group: inside }
+  - { id: hallway,   name: 새벽 우다다,   text: "runs down a dark hallway at night with its tail straight up and eyes wide open", group: play }
+  - { id: sink,      name: 세면대 물방울, text: "sits on the edge of a white bathroom sink, staring at one water drop hanging from the faucet", group: house }
 
-  - { id: fridge,    name: 냉장고 위,     text: "lies on top of a white refrigerator with one front paw dangling over the edge, looking down at the kitchen" }
-  - { id: bathtub,   name: 빈 욕조,       text: "sits alone inside a dry empty bathtub, looking up at the viewer" }
-  - { id: newspaper, name: 펼친 신문,     text: "sits squarely in the middle of an open newspaper spread on a low table" }
-  - { id: yoga,      name: 요가 매트,     text: "lies stretched across the middle of a rolled-out purple yoga mat on a living room floor" }
-  - { id: plant,     name: 화분 잎,       text: "sniffs the long leaf of a potted monstera plant on a windowsill, one paw raised toward it" }
-  - { id: suitcase,  name: 여행 가방,     text: "curls up asleep inside an open suitcase half packed with folded clothes" }
-  - { id: shoes,     name: 현관 신발,     text: "sits among a row of shoes at the front entrance, staring at the closed front door" }
-  - { id: blanket,   name: 이불 속,       text: "pokes only its head out from under a thick white duvet on a bed" }
-  - { id: bookshelf, name: 책장 빈칸,     text: "squeezes its whole body into an empty gap on a wooden bookshelf between rows of books" }
-  - { id: bowl,      name: 빈 밥그릇,     text: "sits beside an empty ceramic food bowl on the kitchen floor, staring straight at the viewer" }
-  - { id: mirror,    name: 거울,          text: "sits in front of a full-length mirror, touching its own reflection with one front paw" }
-  - { id: sunbeam,   name: 햇빛 한 칸,    text: "lies flat on its side in a single square patch of sunlight on the wooden floor" }
-  - { id: chair,     name: 의자 빼앗기,   text: "sleeps curled on a desk chair seat while the chair is pushed back from an empty desk" }
-  - { id: string,    name: 털실 뭉치,     text: "lies on its back hugging a ball of red yarn, the loose thread tangled around its paws" }
-  - { id: bag,       name: 에코백,        text: "sits upright inside a canvas tote bag hanging open on the floor, only its head showing" }
-  - { id: christmas, name: 트리 아래,     text: "lies under a small decorated Christmas tree batting at a low glass ornament", months: [12] }
-  - { id: snowwin,   name: 첫눈 창가,     text: "presses its nose against a window glass while snow falls outside", months: [12, 1, 2] }
-  - { id: fan,       name: 선풍기 앞,     text: "sits in front of a standing electric fan with its fur blown back by the wind", months: [6, 7, 8] }
-  - { id: watermelon,name: 수박,          text: "sniffs a slice of red watermelon on a plate on the floor with a suspicious face", months: [7, 8] }
-  - { id: bed_middle,name: 침대 한가운데, text: "sleeps stretched out sideways across the exact middle of a neatly made double bed" }
-  - { id: stairs,    name: 계단,          text: "lies on one step of a wooden staircase, front legs hanging over the edge of the step" }
-  - { id: tv,        name: TV 앞,         text: "sits directly in front of a turned-on television, its back to the viewer, blocking the screen" }
-  - { id: bath_after,name: 목욕 후,       text: "sits wrapped in a small white towel after a bath, its wet fur sticking up and eyes half closed" }
-  - { id: brush,     name: 빗질,          text: "lies on a cushion beside a pet brush and a little pile of shed fur" }
-  - { id: window_bird,name: 새 구경,      text: "crouches low on a windowsill with its tail twitching, watching a small bird on a branch outside" }
-  - { id: toilet_roll,name: 휴지 풀기,    text: "sits next to a toilet paper roll that has been unrolled across the bathroom floor" }
+  - { id: fridge,    name: 냉장고 위,     text: "lies on top of a white refrigerator with one front paw dangling over the edge, looking down at the kitchen", group: sleep }
+  - { id: bathtub,   name: 빈 욕조,       text: "sits alone inside a dry empty bathtub, looking up at the viewer", group: inside }
+  - { id: newspaper, name: 펼친 신문,     text: "sits squarely in the middle of an open newspaper spread on a low table", group: desk }
+  - { id: yoga,      name: 요가 매트,     text: "lies stretched across the middle of a rolled-out purple yoga mat on a living room floor", group: sleep }
+  - { id: plant,     name: 화분 잎,       text: "sniffs the long leaf of a potted monstera plant on a windowsill, one paw raised toward it", group: window }
+  - { id: suitcase,  name: 여행 가방,     text: "curls up asleep inside an open suitcase half packed with folded clothes", group: inside }
+  - { id: shoes,     name: 현관 신발,     text: "sits among a row of shoes at the front entrance, staring at the closed front door", group: house }
+  - { id: blanket,   name: 이불 속,       text: "pokes only its head out from under a thick white duvet on a bed", group: inside }
+  - { id: bookshelf, name: 책장 빈칸,     text: "squeezes its whole body into an empty gap on a wooden bookshelf between rows of books", group: inside }
+  - { id: bowl,      name: 빈 밥그릇,     text: "sits beside an empty ceramic food bowl on the kitchen floor, staring straight at the viewer", group: food }
+  - { id: mirror,    name: 거울,          text: "sits in front of a full-length mirror, touching its own reflection with one front paw", group: play }
+  - { id: sunbeam,   name: 햇빛 한 칸,    text: "lies flat on its side in a single square patch of sunlight on the wooden floor", group: sleep }
+  - { id: chair,     name: 의자 빼앗기,   text: "sleeps curled on a desk chair seat while the chair is pushed back from an empty desk", group: sleep }
+  - { id: string,    name: 털실 뭉치,     text: "lies on its back hugging a ball of red yarn, the loose thread tangled around its paws", group: play }
+  - { id: bag,       name: 에코백,        text: "sits upright inside a canvas tote bag hanging open on the floor, only its head showing", group: inside }
+  - { id: christmas, name: 트리 아래,     text: "lies under a small decorated Christmas tree batting at a low glass ornament", months: [12], group: play }
+  - { id: snowwin,   name: 첫눈 창가,     text: "presses its nose against a window glass while snow falls outside", months: [12, 1, 2], group: window }
+  - { id: fan,       name: 선풍기 앞,     text: "sits in front of a standing electric fan with its fur blown back by the wind", months: [6, 7, 8], group: house }
+  - { id: watermelon,name: 수박,          text: "sniffs a slice of red watermelon on a plate on the floor with a suspicious face", months: [7, 8], group: food }
+  - { id: bed_middle,name: 침대 한가운데, text: "sleeps stretched out sideways across the exact middle of a neatly made double bed", group: sleep }
+  - { id: stairs,    name: 계단,          text: "lies on one step of a wooden staircase, front legs hanging over the edge of the step", group: sleep }
+  - { id: tv,        name: TV 앞,         text: "sits directly in front of a turned-on television, its back to the viewer, blocking the screen", group: house }
+  - { id: bath_after,name: 목욕 후,       text: "sits wrapped in a small white towel after a bath, its wet fur sticking up and eyes half closed", group: inside }
+  - { id: brush,     name: 빗질,          text: "lies on a cushion beside a pet brush and a little pile of shed fur", group: sleep }
+  - { id: window_bird,name: 새 구경,      text: "crouches low on a windowsill with its tail twitching, watching a small bird on a branch outside", group: window }
+  - { id: toilet_roll,name: 휴지 풀기,    text: "sits next to a toilet paper roll that has been unrolled across the bathroom floor", group: play }
+  # 2026-11-23 추가: 숨기·눕기 말고 움직이고 반응하는 순간
+  - { id: laser,     name: 레이저 점,     text: "crouches with its rear end raised and wiggling, eyes locked on a small red laser dot on the wooden floor", group: play }
+  - { id: wand,      name: 낚싯대 점프,   text: "leaps straight up in mid-air with all four paws off the floor, swatting at a feather wand toy dangling above it", group: play }
+  - { id: yawn,      name: 하품,          text: "yawns wide on a sofa cushion, mouth fully open showing its small pink tongue and teeth, eyes squeezed shut", group: face }
+  - { id: loaf,      name: 식빵 자세,     text: "sits in a perfect loaf pose on a dining table, all four paws tucked under its body, eyes half closed", group: face }
+  - { id: knead,     name: 꾹꾹이,        text: "kneads a fluffy beige blanket on a sofa with both front paws, eyes closed in bliss", group: face }
+  - { id: groom,     name: 그루밍,        text: "sits on a rug licking one raised back leg pointed straight up in the air", group: face }
+  - { id: stretch,   name: 기지개,        text: "stretches its whole body long on a wooden floor, front legs reaching far forward and back arched up", group: face }
+  - { id: cup,       name: 컵 밀기,       text: "taps a full glass of water near the edge of a table with one front paw, looking straight at the viewer", group: desk }
+  - { id: treat,     name: 간식 소리,     text: "stands on its hind legs beside a kitchen counter, front paws stretched up toward a cat treat pouch on the counter edge", group: food }
+  - { id: fish,      name: 생선 노리기,   text: "peeks over the edge of a dining table at a grilled fish on a plate, only its ears and eyes above the table edge", group: food }
+  - { id: curtain,   name: 커튼 매달리기, text: "hangs from a long linen curtain with all four paws gripping the fabric halfway up the window", group: play }
+  - { id: toy_mouse, name: 장난감 쥐,     text: "trots across a living room floor carrying a small grey toy mouse in its mouth, tail held high", group: play }
+  - { id: catnip,    name: 캣닢 취함,     text: "rolls on its back on the floor beside a small catnip pillow, paws curled in the air and eyes half closed", group: play }
+  - { id: nod,       name: 꾸벅꾸벅,      text: "sits upright on a windowsill dozing off, its head drooping forward with eyes closed", group: face }
+  - { id: welcome,   name: 현관 마중,     text: "trots toward the front door with its tail straight up as the door opens, a pair of human legs in jeans stepping inside", group: house }
+  - { id: nail,      name: 발톱 긁기,     text: "stretches up tall on its hind legs scratching a sisal scratching post with both front paws", group: play }
+  - { id: soil,      name: 화분 흙 파기,  text: "digs in the soil of a large potted plant with one front paw, a little soil scattered on the floor", group: play }
+  - { id: water,     name: 물 마시기,     text: "drinks from a running ceramic water fountain on the kitchen floor, pink tongue touching the stream", group: food }
+  # 2026-11-23 추가: 고양이 언어(몸짓·인사). 사람이 나오면 다리·손만 보이고 얼굴은 화면 밖.
+  - { id: bunting,   name: 볼 부비기(번팅), text: "rubs its cheek and the side of its face against a person's ankle in jeans, eyes half closed; only the person's lower legs are in the frame", group: talk }
+  - { id: headbutt,  name: 머리 박치기,   text: "bumps its forehead into a person's open hand resting on the sofa, eyes closed; only the person's hand and wrist are in the frame", group: talk }
+  - { id: slowblink, name: 눈 키스,       text: "sits on a rug looking straight at the viewer with both eyes slowly half closed in a slow blink", group: talk }
+  - { id: belly,     name: 배 보이기,     text: "rolls onto its back on the wooden floor showing its soft belly, front paws folded at its chest, looking at the viewer upside down", group: talk }
+  - { id: tailwrap,  name: 꼬리 감기,     text: "sits beside a person's leg in grey sweatpants with its tail wrapped around the person's ankle; only the person's lower leg is in the frame", group: talk }
+  - { id: lap,       name: 무릎냥이 골골, text: "sleeps curled on a person's lap in beige trousers, eyes closed and paws tucked in; only the person's lap and one hand resting on the cat's back are in the frame", group: talk }
+  - { id: pawtap,    name: 앞발 톡톡,     text: "reaches up from a desk and taps a person's forearm with one front paw while the person types on a laptop; only the person's forearms and hands are in the frame", group: talk }
+  - { id: buttup,    name: 엉덩이 팡팡,   text: "stands with its rear end raised high and tail straight up while a person's hand pats the base of its tail; only the hand is in the frame", group: talk }
+  - { id: noseboop,  name: 코 인사,       text: "stretches its neck forward and touches its nose to a person's extended fingertip; only the person's hand is in the frame", group: talk }
+  - { id: backturn,  name: 등 돌리고 앉기, text: "sits on a bed with its back to the viewer, turning its head to look back over its shoulder", group: talk }
+  - { id: chatter,   name: 채터링,        text: "sits on a windowsill with its mouth half open and whiskers pushed forward, staring at a small bird on a branch outside the glass", group: window }
+  - { id: flehmen,   name: 냄새 충격(플레멘), text: "sniffs a sock on the floor and freezes with its mouth half open and upper lip curled, eyes wide", group: face }
+  - { id: earsflat,  name: 비행기 귀,     text: "crouches low on the floor with both ears flattened sideways like airplane wings, staring at a hair dryer on the floor", group: face }
+  - { id: puffed,    name: 꼬리 부풀리기, text: "stands sideways with its back arched high and its tail puffed up thick like a bottle brush, facing a robot vacuum on the floor", group: face }
 caption:
   max_chars: 20
   max_emoji: 1
