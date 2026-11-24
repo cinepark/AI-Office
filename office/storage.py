@@ -66,3 +66,12 @@ def signed_url(key: str, seconds: int = 3600) -> str:
 
 def delete(key: str) -> None:
     _client().delete_object(Bucket=_bucket(), Key=key)
+
+
+def list_keys(prefix: str) -> list[dict]:
+    """prefix 아래 파일 목록(key, size, 수정 시각). 스케치 모아 받기용."""
+    out = []
+    for page in _client().get_paginator("list_objects_v2").paginate(Bucket=_bucket(), Prefix=prefix):
+        for o in page.get("Contents", []):
+            out.append({"key": o["Key"], "size": o["Size"], "at": o["LastModified"]})
+    return out

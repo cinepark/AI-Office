@@ -375,6 +375,66 @@ elif page == "Threads 데스크":
                     st.rerun()
             if stage == "placed":
                 st.success(f"올렸거나 예약 자리에 넣었습니다 ({ex.get('queue_key', '')}). 새 한 편은 위 버튼으로 시작합니다.")
+        with st.expander("스케치 모아 받기 · 그동안 그린 그림을 zip 하나로", icon=":material/download:"):
+            st.caption("Threads용 스케치 원본은 R2 저장소(turnerbro-threads/)에 모두 남아 있습니다. 기간과 종류를 골라 한 번에 내려받습니다. "
+                       "한 번에 최대 100장까지 묶습니다. 많으면 기간을 나눠 받으세요.")
+            today_ = P.now_kst().date()
+            rng_ = st.date_input("기간", (today_ - dt.timedelta(days=30), today_), key="zip_rng")
+            kinds_ = st.multiselect("종류", ["여행", "고양이", "지금 한 편"], default=["여행", "고양이", "지금 한 편"], key="zip_kinds")
+            with_skip = st.checkbox("'빼고 새로'로 뺀 그림도 포함", value=False, key="zip_skip")
+            if st.button("zip 만들기", icon=":material/folder_zip:", key="zip_make"):
+                import io as _io
+                import re as _re
+                import zipfile as _zf
+                from office import storage as _sg
+                d0, d1 = (rng_ if isinstance(rng_, (tuple, list)) and len(rng_) == 2 else (rng_, rng_))
+                by_key = {v.get("r2_key"): v for v in state.get("queue", {}).values() if v.get("r2_key")}
+                pick = []
+                with st.spinner("저장소 목록을 읽는 중입니다."):
+                    for prefix in ("turnerbro-threads/queue/", "turnerbro-threads/extra/"):
+                        for o in _sg.list_keys(prefix):
+                            k = o["key"]
+                            m = _re.search(r"(\d{4})-?(\d{2})-?(\d{2})", k.rsplit("/", 1)[-1])
+                            if not m:
+                                continue
+                            day = dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+                            if not (d0 <= day <= d1):
+                                continue
+                            v = by_key.get(k, {})
+                            kind = "지금 한 편" if ("/extra/" in k or v.get("kind") == "extra") else ("여행" if v.get("kind") == "travel" else ("고양이" if v.get("kind") == "cat" else ""))
+                            if kind and kind not in kinds_:
+                                continue
+                            skipped = (not v and "/queue/" in k) or v.get("status") == "skipped"
+                            if skipped and not with_skip:
+                                continue
+                            label = v.get("city") or v.get("breed") or ""
+                            name = f"{day.isoformat()}_{(v.get('slot') or '')[-4:]}_{kind or '뺀그림'}_{label}".rstrip("_")
+                            name = _re.sub(r"[\\/:*?\"<>|\s]+", "_", name) + "." + k.rsplit(".", 1)[-1]
+                            pick.append((name, k))
+                pick.sort()
+                if not pick:
+                    st.info("고른 조건에 맞는 그림이 없습니다.")
+                else:
+                    if len(pick) > 100:
+                        st.warning(f"{len(pick)}장 가운데 앞의 100장만 묶었습니다. 나머지는 기간을 나눠 받으세요.")
+                        pick = pick[:100]
+                    buf = _io.BytesIO()
+                    bar = st.progress(0.0, text="그림을 묶는 중입니다.")
+                    seen = set()
+                    with _zf.ZipFile(buf, "w", _zf.ZIP_STORED) as z:
+                        for i, (name, k) in enumerate(pick):
+                            n2 = name
+                            while n2 in seen:
+                                n2 = n2.replace(".", "_b.", 1)
+                            seen.add(n2)
+                            z.writestr(n2, _sg.get_bytes(k))
+                            bar.progress((i + 1) / len(pick), text=f"{i + 1}/{len(pick)}장")
+                    st.session_state["zip_bytes"] = buf.getvalue()
+                    st.session_state["zip_name"] = f"turnerbro_sketches_{d0:%Y%m%d}-{d1:%Y%m%d}.zip"
+                    st.success(f"{len(pick)}장을 묶었습니다. 아래 버튼으로 내려받으세요.")
+            if st.session_state.get("zip_bytes"):
+                st.download_button("zip 내려받기", st.session_state["zip_bytes"], file_name=st.session_state["zip_name"],
+                                   mime="application/zip", icon=":material/download:", key="zip_dl")
         with st.expander(f"누운 원본 사진 ({len(state.get('sideways_photos', []))}장) · 여행 사진 방향 점검", icon=":material/screen_rotation:"):
             st.caption("눕거나 거꾸로 된 원본은 그림으로 쓰지 않습니다. 아래 목록을 Google Drive에서 지우시면 됩니다(오피스는 Drive를 읽기만 합니다).")
             if st.button("여행 원본 사진 전체 방향 점검", icon=":material/fact_check:", key="photo_check") and server_ready():
