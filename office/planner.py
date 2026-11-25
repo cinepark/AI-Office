@@ -104,9 +104,23 @@ def cat_prompt(cfg: dict, breed: dict, scene: dict, rng: random.Random | None = 
             + cfg["style"])
 
 
+TAG_RANK = {"daily": 0, "scene": 1, "": 2, "view": 2, "food": 3, "person": 4, "facade": 5, "text": 6}
+_DAY = re.compile(r"(?:19|20)?\d{2}[_-]?\d{4}")
+
+
+def shot_group(p: dict) -> str:
+    """같은 날·같은 동네에서 찍은 묶음: 폴더 + 파일 이름의 날짜(2006_0726, 051127 …)."""
+    m = _DAY.search(p.get("name", ""))
+    if not m:  # 휴대폰 사진(IMG_1234.HEIC)처럼 이름에 날짜가 없으면 한 장씩 따로 본다
+        return p.get("id", "")
+    return f"{p.get('folder', '')}:{m.group(0)[:9]}"
+
+
 def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],
-                rng: random.Random | None = None, k: int = 1) -> dict | list[dict] | None:
-    """photos: [{id, name, city, year}] — 원본 사진 목록. k>1 이면 같은 도시의 후보 k장을 돌려준다."""
+                rng: random.Random | None = None, k: int = 1, tags: dict | None = None,
+                resorts: list[str] | None = None) -> dict | list[dict] | None:
+    """photos: [{id, name, city, year}] — 원본 사진 목록. k>1 이면 같은 도시의 후보 k장을 돌려준다.
+    tags(사진 점검 결과)가 있으면 생활 장면(daily·scene)을 먼저, 건물 정면·글자 사진은 맨 나중에 후보로 넣는다."""
     rng = rng or random.Random()
     fresh = [p for p in photos if p["id"] not in used_ids]
     if not fresh:
@@ -122,6 +136,26 @@ def pick_travel(photos: list[dict], history: list[dict], used_ids: set[str],
     city = rng.choice(turn)
     pool = fresh
     same = [p for p in pool if p["city"] == city]
+    # 같은 동네 반복 막기: 최근 여행 8편과 같은 날·같은 폴더 묶음의 사진은 다른 후보가 있으면 뺀다
+    by_id = {p["id"]: p for p in photos}
+    recent_ids = [h.get("photo_id") for h in travels[-8:] if h.get("photo_id")]
+    recent_groups = {shot_group(by_id[i]) for i in recent_ids if i in by_id}
+    other = [p for p in same if shot_group(p) not in recent_groups]
+    same = other or same
+    if tags:
+        # 장면 종류 돌리기: 직전 여행 2편이 모두 골목·역 같은 생활 장면이면 이번엔 일상 풍경·전망을 앞에 둔다
+        last2 = [tags.get(i, "") for i in recent_ids[-2:]]
+        rank = dict(TAG_RANK)
+        if len(last2) == 2 and all(t == "daily" for t in last2):
+            rank.update({"scene": 0, "view": 1, "daily": 2})
+        if city.lower() in {r.lower() for r in (resorts or [])}:  # 휴양지: 바다·전경이 그 도시의 얼굴
+            rank.update({"view": 0, "scene": 0, "daily": 0, "food": 1})
+        rng.shuffle(same)
+        same.sort(key=lambda p: rank.get(tags.get(p["id"], ""), 2))
+        best = rank.get(tags.get(same[0]["id"], ""), 2)
+        if k <= 1:
+            return rng.choice([p for p in same if rank.get(tags.get(p["id"], ""), 2) == best])
+        return same[:k]
     if k <= 1:
         return rng.choice(same)
     return rng.sample(same, min(k, len(same)))

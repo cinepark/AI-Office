@@ -22,6 +22,7 @@ openai:
 
 google_drive:
   travel_root_folder: 1_rlo7xo_GojQ-HSrtw1gZ5-2okESkbd5     # 01.원본 사진 (하위: 2005 Tokyo, 2006 Paris ...)
+  resort_cities: [Okinawa, Jeju, Cannes, Bali, Phuket, Guam, Saipan, Hawaii, Danang, Cebu, Boracay, Nice, Yufuin, Beppu, Kurokawa]   # 휴양지: 바다·전경도 1순위로 본다
   cat_reference_files:                                       # 확정 화풍 기준 2장
     - 1buDEaCAxkav2WA2EjBzzy1Ii8E459xI_                      # 고양이_저녁식빵_20261104.png
     - 1lWvzj_vz354-aunUnSAW9l8r5ZU5r_tE                      # 고양이_물방울_수채화_20261104.png

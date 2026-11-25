@@ -435,9 +435,15 @@ elif page == "Threads 데스크":
             if st.session_state.get("zip_bytes"):
                 st.download_button("zip 내려받기", st.session_state["zip_bytes"], file_name=st.session_state["zip_name"],
                                    mime="application/zip", icon=":material/download:", key="zip_dl")
-        with st.expander(f"누운 원본 사진 ({len(state.get('sideways_photos', []))}장) · 여행 사진 방향 점검", icon=":material/screen_rotation:"):
-            st.caption("눕거나 거꾸로 된 원본은 그림으로 쓰지 않습니다. 아래 목록을 Google Drive에서 지우시면 됩니다(오피스는 Drive를 읽기만 합니다).")
-            if st.button("여행 원본 사진 전체 방향 점검", icon=":material/fact_check:", key="photo_check") and server_ready():
+        with st.expander(f"누운 원본 사진 ({len(state.get('sideways_photos', []))}장) · 여행 사진 점검(방향·종류)", icon=":material/screen_rotation:"):
+            st.caption("눕거나 거꾸로 된 원본은 그림으로 쓰지 않습니다. 아래 목록을 Google Drive에서 지우시면 됩니다(오피스는 Drive를 읽기만 합니다). "
+                       "점검 때 사진 종류(생활 장면·일상 풍경·전망·건물 정면 등)도 함께 붙여, 여행 편은 생활 장면부터 고릅니다.")
+            _tags = state.get("photo_tags") or {}
+            if _tags:
+                from collections import Counter as _C
+                _nm = {"daily": "생활 장면", "scene": "일상 풍경", "view": "전망", "facade": "건물 정면·간판", "person": "인물", "text": "글자", "food": "음식"}
+                st.caption("종류 점검 " + f"{len(_tags)}장: " + ", ".join(f"{_nm.get(k, k)} {v}" for k, v in _C(_tags.values()).most_common()))
+            if st.button("여행 원본 사진 점검 (방향·종류)", icon=":material/fact_check:", key="photo_check") and server_ready():
                 give_order("photo_check", {}, "review", "여행 원본 사진 방향 점검")
                 st.rerun()
             side = state.get("sideways_photos", [])

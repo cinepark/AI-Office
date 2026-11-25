@@ -50,7 +50,7 @@ def travel_photos(root_folder: str) -> list[dict]:
                     if p.get("mimeType") == "application/vnd.google-apps.folder":
                         nxt.append(p["id"])
                     elif p.get("mimeType") in IMAGE_TYPES:
-                        photos.append({"id": p["id"], "name": p["name"], "city": city, "year": year})
+                        photos.append({"id": p["id"], "name": p["name"], "city": city, "year": year, "folder": fid})
             todo, depth = nxt, depth + 1
     return photos
 

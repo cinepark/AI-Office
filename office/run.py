@@ -180,11 +180,13 @@ def make_item(st: dict, key: str, slot: dict) -> dict:
             used |= set(st.setdefault("skipped_photos", []))  # '빼고 새로'로 뺀 원본은 다시 쓰지 않는다
             used |= {v.get("photo_id") for v in st["queue"].values() if v.get("status") == "skipped"}
             for _try in range(3):
-                cands = P.pick_travel(photos, plan_history, used, k=4)
+                cands = P.pick_travel(photos, plan_history, used, k=6, tags=st.get("photo_tags") or {},
+                                      resorts=CFG["google_drive"].get("resort_cities", []))
                 if not cands:
                     raise RuntimeError("안 쓴 여행 원본 사진이 없습니다. 01.원본 사진 폴더에 사진을 추가해 주세요.")
                 srcs = [drive.download(c["id"]) for c in cands]
-                i, why, side = ai.pick_photo(CFG, cands[0]["city"], srcs)
+                i, why, side = ai.pick_photo(CFG, cands[0]["city"], srcs,
+                                             resort=cands[0]["city"].lower() in {r.lower() for r in CFG["google_drive"].get("resort_cities", [])})
                 for j in side:
                     st["sideways_photos"].append({k_: cands[j][k_] for k_ in ("id", "name", "city")})
                     used.add(cands[j]["id"])
@@ -360,7 +362,7 @@ def photo_check() -> str:
     from . import ai, drive, storage
     photos = drive.travel_photos(CFG["google_drive"]["travel_root_folder"])
     st = _state()
-    done = set(st.get("photo_checked", [])) | {x["id"] for x in st.get("sideways_photos", [])}
+    done = set(st.get("photo_tags", {})) | {x["id"] for x in st.get("sideways_photos", [])}  # 종류 태그까지 받은 사진만 건너뜀
     todo = [p for p in photos if p["id"] not in done]
     act(st, "review", f"여행 원본 사진 방향 점검 시작: {len(todo)}장", "working")
     storage.save_state(st)
@@ -369,7 +371,7 @@ def photo_check() -> str:
         batch = todo[n:n + 8]
         try:
             imgs = [drive.download(p["id"]) for p in batch]
-            side = ai.check_upright(CFG, imgs)
+            side, tags = ai.check_photos(CFG, imgs)
         except Exception as e:
             act(st, "dev", f"방향 점검 일부 실패: {str(e)[:80]}", "error")
             continue
@@ -378,11 +380,18 @@ def photo_check() -> str:
             st.setdefault("sideways_photos", []).append({k_: batch[j][k_] for k_ in ("id", "name", "city")})
             found.append(batch[j]["name"])
         st.setdefault("photo_checked", []).extend(p["id"] for j, p in enumerate(batch) if j not in side)
+        for j, p in enumerate(batch):
+            if j not in side:
+                st.setdefault("photo_tags", {})[p["id"]] = tags[j] or "view"
         storage.save_state(st)
     st = _state()
-    act(st, "review", f"방향 점검 끝: 누운 사진 {len(found)}장 → Threads 데스크 '누운 원본 사진' 목록", "done")
+    from collections import Counter
+    cnt = Counter(st.get("photo_tags", {}).values())
+    names = {"daily": "생활 장면", "scene": "일상 풍경", "view": "전망", "facade": "건물 정면·간판", "person": "인물", "text": "글자", "food": "음식"}
+    summary = ", ".join(f"{names.get(k_, k_)} {v}" for k_, v in cnt.most_common())
+    act(st, "review", f"사진 점검 끝: 누운 사진 {len(found)}장 / 종류 — {summary}", "done")
     storage.save_state(st)
-    return f"누운 사진 {len(found)}장"
+    return f"누운 사진 {len(found)}장 / {summary}"
 
 
 def extra_job(t: str, a: dict) -> str:

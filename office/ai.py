@@ -135,20 +135,40 @@ def study_captions(cfg: dict, pairs: dict) -> dict:
 
 PICK_RULES = """당신은 Threads 사진 편집자입니다. 같은 도시의 여행 원본 사진 후보 가운데, 펜 수채화로 바꿔 Threads 에 올릴 한 장을 고릅니다.
 가설(Mr. MOON): 사람들은 누구나 찍는 명소보다 여행 속 일상적인 공간에 더 관심을 갖는다.
-그래서 그 도시 사람들이 매일 지나는 곳을 먼저 고른다: 역 개찰구·출구, 지하철, 편의점, 동네 식당·시장, 골목, 버스 정류장, 빨래방, 주택가 계단.
-'나도 거기서 헤맸는데', '저기 가 봤어' 하고 말을 걸고 싶어지는 장면이면 더 좋다. 엽서·관광 안내에 나오는 정면 명소 사진은 뒤로 미룬다.
-일상 공간 사진이 없으면, 명소라도 사람이 오가는 생활의 순간이 담긴 사진을 고른다. 글자(신문·포스터)가 화면 대부분을 채운 사진은 고르지 않는다.
+실제 성적(2026-11): 이탈리아 골목길 2,300회, 도쿄역 안 인파 1,200회 / 타이베이 중앙역 건물 정면·뤼미에르 극장 간판·프라하 건물 정면은 250회 안팎.
+그래서 아래 순서를 반드시 지킨다.
+ 1순위: 눈높이에서 본 생활 장면 — 사람이 오가는 골목, 역 안·개찰구·플랫폼, 지하철, 시장·상점가, 동네 식당·카페 안, 버스 정류장, 주택가 계단.
+ 2순위: 그 도시 사람의 일상이 보이는 풍경 — 강변 산책로, 공원 벤치, 창밖 거리, 노천 테이블.
+ 3순위: 탁 트인 전망·스카이라인.
+ 마지막: 건물 정면을 꽉 채운 사진, 간판·현판이 주인공인 사진, 기념물·명소를 엽서처럼 찍은 사진. 1~3순위 후보가 하나라도 있으면 절대 고르지 않는다.
+'나도 거기서 헤맸는데', '저기 가 봤어' 하고 말을 걸고 싶어지는 장면이면 더 좋다.
+같은 순위 안에서는 최근에 올린 장면과 다른 것을 고른다: 골목만 이어지지 않게 역, 시장, 카페, 강변처럼 공간의 성격이 바뀌는 쪽을 먼저 본다. 글자(신문·포스터)가 화면 대부분을 채운 사진은 고르지 않는다.
 먼저 후보마다 바로 선 사진인지 본다(하늘·천장이 위, 사람·건물이 똑바로 서 있음). 옆으로 눕거나 거꾸로 된 사진은 sideways 에 번호를 넣고 고르지 않는다.
-JSON 만 출력: {"pick": 0, "why": "고른 이유 한 줄", "sideways": []}"""
+JSON 만 출력: {"pick": 0, "why": "고른 이유 한 줄(몇 순위인지 포함)", "sideways": []}"""
 
-UPRIGHT_RULES = """사진 방향 점검 담당입니다. 사진마다 화면에 보이는 그대로 바로 선 사진인지 봅니다.
-바로 선 사진: 하늘·천장이 위, 땅·바닥이 아래, 사람·건물·글자가 똑바로 서 있다.
-옆으로 누운 사진(90도 돌아감)이나 거꾸로 된 사진(180도)은 sideways 에 번호(0부터)를 넣는다. 애매하면 넣지 않는다.
-JSON 만 출력: {"sideways": [번호, ...]}"""
+UPRIGHT_RULES = """여행 원본 사진 점검 담당입니다. 사진마다 두 가지를 봅니다.
+1) 방향: 하늘·천장이 위, 땅·바닥이 아래, 사람·건물·글자가 똑바로 서 있으면 바로 선 사진.
+   옆으로 누운 사진(90도 돌아감)이나 거꾸로 된 사진(180도)은 sideways 에 번호(0부터)를 넣는다. 애매하면 넣지 않는다.
+2) 종류: 사진마다 하나만 고른다.
+   daily  = 눈높이의 생활 장면(사람이 오가는 골목, 역 안·플랫폼, 지하철, 시장·상점가, 식당·카페 안, 정류장, 주택가)
+   scene  = 일상이 보이는 풍경(강변 산책로, 공원, 창밖 거리, 노천 테이블)
+   view   = 탁 트인 전망·스카이라인·자연 풍경
+   facade = 건물 정면을 꽉 채운 사진, 간판·현판이 주인공, 기념물·명소를 엽서처럼 찍은 사진
+   person = 사람 얼굴이 화면을 크게 채운 사진(셀카·인물 사진)
+   text   = 글자·포스터·안내판이 화면 대부분
+   food   = 음식·음료가 주인공
+JSON 만 출력: {"sideways": [번호, ...], "tags": ["daily", "facade", ...]}  (tags 는 사진 순서대로, 사진 수만큼)"""
+
+TAGS = ("daily", "scene", "view", "facade", "person", "text", "food")
 
 
 def check_upright(cfg: dict, images: list[bytes]) -> list[int]:
     """사진 묶음(최대 8장) 가운데 눕거나 거꾸로 된 사진 번호."""
+    return check_photos(cfg, images)[0]
+
+
+def check_photos(cfg: dict, images: list[bytes]) -> tuple[list[int], list[str]]:
+    """사진 묶음(최대 8장): (눕거나 거꾸로 된 번호, 사진별 종류 태그)."""
     content = [{"type": "input_text", "text": f"사진 {len(images)}장, 0번부터 순서대로입니다."}]
     for b in images:
         b64 = base64.b64encode(_shrink(b, 384)).decode()
@@ -158,10 +178,17 @@ def check_upright(cfg: dict, images: list[bytes]) -> list[int]:
                                           {"role": "user", "content": content}])
     m = re.search(r"\{.*\}", r.output_text or "", re.S)
     d = json.loads(m.group(0)) if m else {}
-    return sorted({int(x) for x in d.get("sideways", []) if 0 <= int(x) < len(images)})
+    side = sorted({int(x) for x in d.get("sideways", []) if 0 <= int(x) < len(images)})
+    tags = [t if t in TAGS else "" for t in (d.get("tags") or [])][:len(images)]
+    tags += [""] * (len(images) - len(tags))
+    return side, tags
 
 
-def pick_photo(cfg: dict, city: str, images: list[bytes]) -> tuple[int, str, list[int]]:
+RESORT_NOTE = ("\n이번 도시는 휴양지입니다. 휴양지에서는 바다·해변·숲·온천 풍경과 탁 트인 전망도 1순위로 봅니다. "
+               "'저기 가고 싶다'는 마음이 드는 장면을 고르되, 리조트 간판·호텔 건물 정면은 여전히 마지막입니다.")
+
+
+def pick_photo(cfg: dict, city: str, images: list[bytes], resort: bool = False) -> tuple[int, str, list[int]]:
     """여행 사진 후보 가운데 한 장을 고른다. 눕거나 거꾸로 된 후보 번호도 함께. 실패하면 0번."""
     content = [{"type": "input_text", "text": f"도시: {city}. 후보 {len(images)}장, 0번부터 순서대로입니다."}]
     for b in images:
@@ -169,7 +196,7 @@ def pick_photo(cfg: dict, city: str, images: list[bytes]) -> tuple[int, str, lis
         content.append({"type": "input_image", "image_url": f"data:image/png;base64,{b64}"})
     try:
         r = _client().responses.create(model=cfg["openai"]["text_model"],
-                                       input=[{"role": "system", "content": PICK_RULES},
+                                       input=[{"role": "system", "content": PICK_RULES + (RESORT_NOTE if resort else "")},
                                               {"role": "user", "content": content}])
         m = re.search(r"\{.*\}", r.output_text or "", re.S)
         d = json.loads(m.group(0)) if m else {}
